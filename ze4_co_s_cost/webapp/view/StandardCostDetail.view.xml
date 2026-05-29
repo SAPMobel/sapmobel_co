@@ -1,0 +1,145 @@
+<mvc:View controllerName="ze4.co.s.cost.ze4coscost.controller.StandardCostDetail"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:viz="sap.viz.ui5.controls">
+    <Page id="detailPage" 
+        title="{i18n>detailTitle}" 
+        showNavButton="true"
+        navButtonPress=".onNavBack">
+        <content>
+            <l:VerticalLayout class="sapUiContentPadding" width="100%">
+                <!-- Object Page Header -->
+                <VBox class="sapUiLargeMarginBottom sapUiMediumMarginTop">
+                    <HBox>
+                        <VBox class="sapUiMediumMarginRight" width="50%">
+                            <Label text="{i18n>lblMaterialInfo}" design="Bold" class="sapUiMediumMarginBottom"/>
+                            <HBox class="sapUiMediumMarginBottom">
+                                <Label text="{i18n>lblMaterialNumber}" width="40%" class="sapUiMediumMarginRight"/>
+                                <Text text="{detail>/matnr}"/>
+                            </HBox>
+                            <HBox class="sapUiMediumMarginBottom">
+                                <Label text="{i18n>lblMaterialName}" width="40%" class="sapUiMediumMarginRight"/>
+                                <Text text="{detail>/maktx}"/>
+                            </HBox>
+                            <HBox class="sapUiMediumMarginBottom">
+                                <Label text="{i18n>lblMaterialType}" width="40%" class="sapUiMediumMarginRight"/>
+                                <Text text="{detail>/mtbez}"/>
+                            </HBox>
+                            <HBox class="sapUiMediumMarginBottom">
+                                <Label text="{i18n>lblMaterialGroup}" width="40%" class="sapUiMediumMarginRight"/>
+                                <Text text="{detail>/wgbez}"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="50%">
+                            <Label text="{i18n>lblTotalCost}" design="Bold" class="sapUiMediumMarginBottom"/>
+                            <HBox>
+                                <Text text="{detail>/total_cost}" class="sapUiXLargeMarginRight" design="Bold"/>
+                                <Text text="{detail>/waers}"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- IconTabBar with tabs -->
+                <IconTabBar id="detailTabs" class="sapUiMediumMarginTop">
+                    <!-- Tab 1: Cost Breakdown -->
+                    <IconTabFilter text="{i18n>tabCostBreakdown}">
+                        <l:VerticalLayout width="100%" class="sapUiMediumMarginTop">
+                            <HBox class="sapUiResponsiveMargin">
+                                <!-- Left: Cost Breakdown Table -->
+                                <VBox width="48%">
+                                    <Label text="{i18n>tabCostBreakdown}" design="Bold" class="sapUiMediumMarginBottom"/>
+                                    <Table id="costComponentTable" 
+                                        items="{detail>_Item}"
+                                        mode="None"
+                                        class="sapUiMediumMarginTop">
+                                        <columns>
+                                            <Column>
+                                                <Label text="{i18n>colCostComp}"/>
+                                            </Column>
+                                            <Column>
+                                                <Label text="{i18n>colAmount}"/>
+                                            </Column>
+                                            <Column>
+                                                <Label text="{i18n>colPercent}"/>
+                                            </Column>
+                                            <Column>
+                                                <Label text="{i18n>colUnit}"/>
+                                            </Column>
+                                        </columns>
+                                        <items>
+                                            <ColumnListItem>
+                                                <Text text="{detail>cost_comp_text}"/>
+                                                <Text text="{detail>amount}"/>
+                                                <Text text="{detail>percent}"/>
+                                                <Text text="{detail>waers}"/>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+                                </VBox>
+
+                                <!-- Right: Donut Chart -->
+                                <VBox width="48%" class="sapUiMediumMarginLeft">
+                                    <Label text="원가 구조 비중" design="Bold" class="sapUiMediumMarginBottom"/>
+                                    <viz:VizFrame id="costDonutChart" 
+                                        vizType="donut"
+                                        width="100%"
+                                        height="300px"
+                                        class="sapUiMediumMarginTop">
+                                    </viz:VizFrame>
+                                </VBox>
+                            </HBox>
+                        </l:VerticalLayout>
+                    </IconTabFilter>
+
+                    <!-- Tab 2: Reservation Tracking -->
+                    <IconTabFilter text="{i18n>tabReservationTracking}">
+                        <l:VerticalLayout width="100%" class="sapUiMediumMarginTop">
+                            <Label text="{i18n>tabReservationTracking}" design="Bold" class="sapUiMediumMarginBottom"/>
+                            <Table id="reservationTable" 
+                                items="{detail>_Reservation}"
+                                mode="None"
+                                class="sapUiMediumMarginTop">
+                                <columns>
+                                    <Column>
+                                        <Label text="{i18n>colBanfn}"/>
+                                    </Column>
+                                    <Column>
+                                        <Label text="{i18n>colRsnum}"/>
+                                    </Column>
+                                    <Column>
+                                        <Label text="{i18n>colMenge}"/>
+                                    </Column>
+                                    <Column>
+                                        <Label text="{i18n>colResme}"/>
+                                    </Column>
+                                    <Column>
+                                        <Label text="{i18n>colUnit}"/>
+                                    </Column>
+                                    <Column>
+                                        <Label text="{i18n>colDeleteFlag}"/>
+                                    </Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <Text text="{detail>banfn}"/>
+                                        <Text text="{detail>rsnum}"/>
+                                        <Text text="{detail>menge}"/>
+                                        <Text text="{detail>resme}"/>
+                                        <Text text="{detail>meins}"/>
+                                        <Text text="{
+                                            path: 'detail>loekz',
+                                            formatter: '.formatDeleteFlag'
+                                        }"/>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </l:VerticalLayout>
+                    </IconTabFilter>
+                </IconTabBar>
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>

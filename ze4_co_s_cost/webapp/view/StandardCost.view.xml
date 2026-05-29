@@ -1,0 +1,130 @@
+<mvc:View controllerName="ze4.co.s.cost.ze4coscost.controller.StandardCost"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:u="sap.ui.unified"
+    xmlns:t="sap.ui.table">
+    <Page id="page" title="{i18n>title}" showNavButton="false">
+        <headerContent>
+            <Button icon="sap-icon://excel-attachment" tooltip="{i18n>btnExcelExport}" press=".onExportToExcel"/>
+            <Button icon="sap-icon://print" tooltip="{i18n>btnPdfExport}" press=".onExportToPdf"/>
+        </headerContent>
+        <content>
+            <l:VerticalLayout class="sapUiContentPadding" width="100%">
+                <!-- Smart Filter Bar -->
+                <VBox class="sapUiMediumMarginBottom">
+                    <HBox class="sapUiMediumMarginBottom">
+                        <Label text="{i18n>lblYear}" class="sapUiMediumMarginRight"/>
+                        <Input id="inputYear" value="{/filters/gjahr}" type="Number" width="100px" editable="false" class="sapUiMediumMarginRight"/>
+                        
+                        <Label text="{i18n>lblMonth}" class="sapUiMediumMarginRight"/>
+                        <Input id="inputMonth" value="{/filters/monat}" type="Number" width="100px" editable="false" class="sapUiMediumMarginRight"/>
+                        
+                        <Label text="{i18n>lblMaterial}" class="sapUiMediumMarginRight"/>
+                        <Input id="inputMatnr" value="{/filters/matnr}" placeholder="{i18n>plhMaterial}" width="120px" class="sapUiMediumMarginRight"/>
+                        
+                        <Label text="{i18n>lblCostCenter}" class="sapUiMediumMarginRight"/>
+                        <Input id="inputKostl" value="{/filters/kostl}" placeholder="{i18n>plhCostCenter}" width="120px" class="sapUiMediumMarginRight"/>
+                        
+                        <Button text="{i18n>btnSearch}" type="Emphasized" press=".onSearch" class="sapUiMediumMarginRight"/>
+                        <Button text="{i18n>btnReset}" press=".onResetFilters"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- Summary Table -->
+                <t:Table id="costSummaryTable" 
+                    rows="{view>/costData}"
+                    selectionMode="Single"
+                    rowSelectionChange=".onRowSelectionChange"
+                    enableColumnReordering="true"
+                    enableGrouping="true"
+                    class="sapUiMediumMarginTop">
+                    <t:columns>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colMatnr}"/>
+                            <t:template>
+                                <Text text="{view>matnr}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="15%">
+                            <Label text="{i18n>colMaktx}"/>
+                            <t:template>
+                                <Text text="{view>maktx}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="8%">
+                            <Label text="{i18n>colYear}"/>
+                            <t:template>
+                                <Text text="{view>gjahr}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="8%">
+                            <Label text="{i18n>colMonth}"/>
+                            <t:template>
+                                <Text text="{view>monat}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colCostCenter}"/>
+                            <t:template>
+                                <Text text="{view>kostl}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="12%">
+                            <Label text="{i18n>colCostCenterName}"/>
+                            <t:template>
+                                <Text text="{view>ktext}"/>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="12%">
+                            <Label text="{i18n>colTotalCost}"/>
+                            <t:template>
+                                <HBox>
+                                    <Text text="{view>total_cost}" class="sapUiMediumMarginRight"/>
+                                    <Text text="{view>waers}"/>
+                                </HBox>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colAvailStock}"/>
+                            <t:template>
+                                <HBox>
+                                    <Text text="{view>total_clabs}" class="sapUiMediumMarginRight"/>
+                                    <Text text="{view>meins}"/>
+                                </HBox>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colInspection}"/>
+                            <t:template>
+                                <HBox>
+                                    <Text text="{view>total_verme}" class="sapUiMediumMarginRight"/>
+                                    <Text text="{view>meins}"/>
+                                </HBox>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colHoldStock}"/>
+                            <t:template>
+                                <HBox>
+                                    <Text text="{view>total_cspem}" class="sapUiMediumMarginRight"/>
+                                    <Text text="{view>meins}"/>
+                                </HBox>
+                            </t:template>
+                        </t:Column>
+                        <t:Column width="10%">
+                            <Label text="{i18n>colReservation}"/>
+                            <t:template>
+                                <HBox>
+                                    <Text text="{view>total_resme}" class="sapUiMediumMarginRight"/>
+                                    <Text text="{view>meins}"/>
+                                </HBox>
+                            </t:template>
+                        </t:Column>
+                    </t:columns>
+                </t:Table>
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>

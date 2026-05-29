@@ -1,0 +1,139 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze4.co.s.cost.ze4coscost",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.3",
+      "toolsId": "56c8b8d8-615e-4c84-96f5-af1f2bfbb23b"
+    },
+    "dataSources": {
+      "ZCDS_E4_CO_0010_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E4_CO_0010_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E4_CO_0010_CDS_VAN.xml"
+        }
+      },
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0010_CDS/",
+        "type": "OData",
+        "settings": {
+          "annotations": [
+            "ZCDS_E4_CO_0010_CDS_VAN"
+          ],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.table": {},
+        "sap.ui.layout": {},
+        "sap.ui.unified": {},
+        "sap.viz": {},
+        "sap.ui.export": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze4.co.s.cost.ze4coscost.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze4.co.s.cost.ze4coscost.view",
+        "async": true,
+        "viewPath": "ze4.co.s.cost.ze4coscost.view"
+      },
+      "routes": [
+        {
+          "name": "RouteStandardCost",
+          "pattern": ":?query:",
+          "target": [
+            "TargetStandardCost"
+          ]
+        },
+        {
+          "name": "RouteStandardCostDetail",
+          "pattern": "detail/{matnr}/{gjahr}/{monat}/{kostl}",
+          "target": [
+            "TargetStandardCostDetail"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetStandardCost": {
+          "id": "StandardCost",
+          "name": "StandardCost"
+        },
+        "TargetStandardCostDetail": {
+          "id": "StandardCostDetail",
+          "name": "StandardCostDetail"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze4.co.s.cost.ze4coscost.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

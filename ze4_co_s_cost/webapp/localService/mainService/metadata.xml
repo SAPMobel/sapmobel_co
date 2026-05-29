@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_AGGREGATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Aggregation.V1" Alias="Aggregation"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_ANALYTICS',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Analytics.v1" Alias="Analytics"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CAPABILITIES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CODELIST',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.CodeList.v1" Alias="SAP__CodeList"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMON',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Common.v1" Alias="Common"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMUNICATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Communication.v1" Alias="Communication"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_MEASURES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_PERSONALDATA',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.PersonalData.v1" Alias="PersonalData"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_UI',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.UI.v1" Alias="UI"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_VALIDATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Validation.V1" Alias="Validation"/>
+    </edmx:Reference>
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZCDS_E4_CO_0010_CDS" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="zcds_e4_co_0010Type" sap:label="[CO] 표준원가 헤더 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="gjahr"/>
+                    <PropertyRef Name="monat"/>
+                    <PropertyRef Name="kostl"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
+                <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계 연도" sap:quickinfo="[CO] 회계 연도"/>
+                <Property Name="monat" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:label="회계기간" sap:quickinfo="[FI] 회계기간"/>
+                <Property Name="kostl" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="코스트 센터" sap:quickinfo="[CO] 코스트 센터"/>
+                <Property Name="ktext" Type="Edm.String" MaxLength="20" sap:label="마스터 명칭" sap:quickinfo="[CO] 마스터 명칭"/>
+                <Property Name="maktx" Type="Edm.String" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 이름" sap:quickinfo="[MM] 자재 이름"/>
+                <Property Name="mtart" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="자재 유형" sap:quickinfo="[MM] 자재 유형"/>
+                <Property Name="mtbez" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="자재 유형 명칭" sap:quickinfo="[MM] 자재 유형 명칭"/>
+                <Property Name="matkl" Type="Edm.String" MaxLength="9" sap:display-format="UpperCase" sap:label="자재 그룹" sap:quickinfo="[MM] 자재 그룹"/>
+                <Property Name="wgbez" Type="Edm.String" MaxLength="20" sap:display-format="UpperCase" sap:label="자재 그룹 명칭" sap:quickinfo="[MM] 자재 그룹 명칭"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="total_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="총 표준 원가" sap:quickinfo="[CO] 총 표준 원가"/>
+                <Property Name="waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="Currency" sap:quickinfo="Currency Key" sap:semantics="currency-code"/>
+                <Property Name="total_clabs" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_verme" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_cspem" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_resme" Type="Edm.Decimal" Precision="13" Scale="0" sap:unit="meins"/>
+                <Property Name="erdat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="Created On" sap:quickinfo="Record Creation Date"/>
+                <Property Name="erzet" Type="Edm.Time" Precision="0" sap:label="Time" sap:quickinfo="Entry time"/>
+                <Property Name="ernam" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="Created By" sap:quickinfo="Name of Person Responsible for Creating the Object"/>
+                <Property Name="aedat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="Changed On" sap:quickinfo="Last Changed On"/>
+                <Property Name="aezet" Type="Edm.Time" Precision="0" sap:label="Changed at" sap:quickinfo="Time last change was made"/>
+                <Property Name="aenam" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="Changed By" sap:quickinfo="Name of Person Who Changed Object"/>
+                <NavigationProperty Name="to_Item" Relationship="ZCDS_E4_CO_0010_CDS.assoc_80DFFD0821CD6CF67868CB3EE371D2AE" FromRole="FromRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE" ToRole="ToRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
+                <NavigationProperty Name="to_Reservation" Relationship="ZCDS_E4_CO_0010_CDS.assoc_DAF46069AC41E7F39F84F4C503DE87A8" FromRole="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8" ToRole="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                <NavigationProperty Name="to_Stock" Relationship="ZCDS_E4_CO_0010_CDS.assoc_84A52E05E8630BB4BD016FCA190E80A7" FromRole="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7" ToRole="ToRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_co_0011Type" sap:label="[CO] 표준원가 아이템 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="gjahr"/>
+                    <PropertyRef Name="cost_comp"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
+                <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계 연도" sap:quickinfo="[CO] 회계 연도"/>
+                <Property Name="cost_comp" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:label="원가 항목" sap:quickinfo="[CO] 원가 항목"/>
+                <Property Name="cost_comp_text" Type="Edm.String" MaxLength="5"/>
+                <Property Name="amount" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="총 표준 원가" sap:quickinfo="[CO] 총 표준 원가"/>
+                <Property Name="percent" Type="Edm.Decimal" Precision="5" Scale="2" sap:label="비중 퍼센트" sap:quickinfo="[CO] 비중 퍼센트"/>
+                <Property Name="waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="Currency" sap:quickinfo="Currency Key" sap:semantics="currency-code"/>
+                <Property Name="erdat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="Created On" sap:quickinfo="Record Creation Date"/>
+                <Property Name="erzet" Type="Edm.Time" Precision="0" sap:label="Time" sap:quickinfo="Entry time"/>
+                <Property Name="ernam" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="Created By" sap:quickinfo="Name of Person Responsible for Creating the Object"/>
+                <Property Name="aedat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="Changed On" sap:quickinfo="Last Changed On"/>
+                <Property Name="aezet" Type="Edm.Time" Precision="0" sap:label="Changed at" sap:quickinfo="Time last change was made"/>
+                <Property Name="aenam" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="Changed By" sap:quickinfo="Name of Person Who Changed Object"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_co_0012Type" sap:label="[CO] 자재별 유형별 재고 집계 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
+                <Property Name="total_clabs" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_verme" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_cspem" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
+                <Property Name="total_resme" Type="Edm.Decimal" Precision="13" Scale="0" sap:unit="meins"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_co_0013Type" sap:label="[CO] 재고 예약 상세 내역 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="banfn"/>
+                    <PropertyRef Name="rsnum"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
+                <Property Name="banfn" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="구매요청 번호" sap:quickinfo="[MM] 구매요청 번호"/>
+                <Property Name="rsnum" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="자재 예약 번호" sap:quickinfo="[MM] 자재 예약 번호"/>
+                <Property Name="menge" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="요청 수량" sap:quickinfo="[MM] 요청 수량"/>
+                <Property Name="resme" Type="Edm.Decimal" Precision="13" Scale="0" sap:unit="meins" sap:label="예약재고" sap:quickinfo="[MM] 예약재고"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="loekz" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label="삭제 플레그" sap:quickinfo="[MM] 삭제 플레그"/>
+            </EntityType>
+            <Association Name="assoc_DAF46069AC41E7F39F84F4C503DE87A8" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0013Type" Multiplicity="*" Role="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+            </Association>
+            <Association Name="assoc_84A52E05E8630BB4BD016FCA190E80A7" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0012Type" Multiplicity="0..1" Role="ToRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
+            </Association>
+            <Association Name="assoc_80DFFD0821CD6CF67868CB3EE371D2AE" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0011Type" Multiplicity="*" Role="ToRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
+            </Association>
+            <EntityContainer Name="ZCDS_E4_CO_0010_CDS_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="zcds_e4_co_0010" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_co_0011" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0011Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_co_0012" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0012Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_co_0013" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0013Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <AssociationSet Name="assoc_84A52E05E8630BB4BD016FCA190E80A7" Association="ZCDS_E4_CO_0010_CDS.assoc_84A52E05E8630BB4BD016FCA190E80A7" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
+                    <End EntitySet="zcds_e4_co_0012" Role="ToRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
+                </AssociationSet>
+                <AssociationSet Name="assoc_80DFFD0821CD6CF67868CB3EE371D2AE" Association="ZCDS_E4_CO_0010_CDS.assoc_80DFFD0821CD6CF67868CB3EE371D2AE" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
+                    <End EntitySet="zcds_e4_co_0011" Role="ToRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
+                </AssociationSet>
+                <AssociationSet Name="assoc_DAF46069AC41E7F39F84F4C503DE87A8" Association="ZCDS_E4_CO_0010_CDS.assoc_DAF46069AC41E7F39F84F4C503DE87A8" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                    <End EntitySet="zcds_e4_co_0013" Role="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                </AssociationSet>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <Annotations Target="ZCDS_E4_CO_0010_CDS.ZCDS_E4_CO_0010_CDS_Entities" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                <Annotation Term="Common.ApplyMultiUnitBehaviorForSortingAndFiltering" Bool="true"/>
+            </Annotations>
+            <Annotations Target="ZCDS_E4_CO_0010_CDS.ZCDS_E4_CO_0010_CDS_Entities/zcds_e4_co_0010" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                <Annotation Term="Capabilities.NavigationRestrictions">
+                    <Record>
+                        <PropertyValue Property="RestrictedProperties">
+                            <Collection>
+                                <Record>
+                                    <PropertyValue Property="NavigationProperty" NavigationPropertyPath="to_Item"/>
+                                    <PropertyValue Property="InsertRestrictions">
+                                        <Record>
+                                            <PropertyValue Property="Insertable" Bool="false"/>
+                                        </Record>
+                                    </PropertyValue>
+                                </Record>
+                                <Record>
+                                    <PropertyValue Property="NavigationProperty" NavigationPropertyPath="to_Reservation"/>
+                                    <PropertyValue Property="InsertRestrictions">
+                                        <Record>
+                                            <PropertyValue Property="Insertable" Bool="false"/>
+                                        </Record>
+                                    </PropertyValue>
+                                </Record>
+                                <Record>
+                                    <PropertyValue Property="NavigationProperty" NavigationPropertyPath="to_Stock"/>
+                                    <PropertyValue Property="InsertRestrictions">
+                                        <Record>
+                                            <PropertyValue Property="Insertable" Bool="false"/>
+                                        </Record>
+                                    </PropertyValue>
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+            <atom:link rel="self" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E4_CO_0010_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E4_CO_0010_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
