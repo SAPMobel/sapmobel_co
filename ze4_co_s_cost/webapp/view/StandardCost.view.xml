@@ -5,126 +5,185 @@
     xmlns="sap.m"
     xmlns:u="sap.ui.unified"
     xmlns:t="sap.ui.table">
-    <Page id="page" title="{i18n>title}" showNavButton="false">
-        <headerContent>
-            <Button icon="sap-icon://excel-attachment" tooltip="{i18n>btnExcelExport}" press=".onExportToExcel"/>
-            <Button icon="sap-icon://print" tooltip="{i18n>btnPdfExport}" press=".onExportToPdf"/>
-        </headerContent>
+    <Page id="page" title="{i18n>title}" showNavButton="false" showHeader="false">
         <content>
-            <l:VerticalLayout class="sapUiContentPadding" width="100%">
-                <!-- Smart Filter Bar -->
-                <VBox class="sapUiMediumMarginBottom">
-                    <HBox class="sapUiMediumMarginBottom">
-                        <Label text="{i18n>lblYear}" class="sapUiMediumMarginRight"/>
-                        <Input id="inputYear" value="{/filters/gjahr}" type="Number" width="100px" editable="false" class="sapUiMediumMarginRight"/>
-                        
-                        <Label text="{i18n>lblMonth}" class="sapUiMediumMarginRight"/>
-                        <Input id="inputMonth" value="{/filters/monat}" type="Number" width="100px" editable="false" class="sapUiMediumMarginRight"/>
-                        
-                        <Label text="{i18n>lblMaterial}" class="sapUiMediumMarginRight"/>
-                        <Input id="inputMatnr" value="{/filters/matnr}" placeholder="{i18n>plhMaterial}" width="120px" class="sapUiMediumMarginRight"/>
-                        
-                        <Label text="{i18n>lblCostCenter}" class="sapUiMediumMarginRight"/>
-                        <Input id="inputKostl" value="{/filters/kostl}" placeholder="{i18n>plhCostCenter}" width="120px" class="sapUiMediumMarginRight"/>
-                        
-                        <Button text="{i18n>btnSearch}" type="Emphasized" press=".onSearch" class="sapUiMediumMarginRight"/>
-                        <Button text="{i18n>btnReset}" press=".onResetFilters"/>
-                    </HBox>
-                </VBox>
-                
-                <!-- Summary Table -->
-                <t:Table id="costSummaryTable" 
-                    rows="{view>/costData}"
-                    selectionMode="Single"
-                    rowSelectionChange=".onRowSelectionChange"
-                    enableColumnReordering="true"
-                    enableGrouping="true"
-                    class="sapUiMediumMarginTop">
-                    <t:columns>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colMatnr}"/>
-                            <t:template>
-                                <Text text="{view>matnr}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="15%">
-                            <Label text="{i18n>colMaktx}"/>
-                            <t:template>
-                                <Text text="{view>maktx}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="8%">
-                            <Label text="{i18n>colYear}"/>
-                            <t:template>
-                                <Text text="{view>gjahr}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="8%">
-                            <Label text="{i18n>colMonth}"/>
-                            <t:template>
-                                <Text text="{view>monat}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colCostCenter}"/>
-                            <t:template>
-                                <Text text="{view>kostl}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="12%">
-                            <Label text="{i18n>colCostCenterName}"/>
-                            <t:template>
-                                <Text text="{view>ktext}"/>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="12%">
-                            <Label text="{i18n>colTotalCost}"/>
-                            <t:template>
-                                <HBox>
-                                    <Text text="{view>total_cost}" class="sapUiMediumMarginRight"/>
-                                    <Text text="{view>waers}"/>
-                                </HBox>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colAvailStock}"/>
-                            <t:template>
-                                <HBox>
-                                    <Text text="{view>total_clabs}" class="sapUiMediumMarginRight"/>
-                                    <Text text="{view>meins}"/>
-                                </HBox>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colInspection}"/>
-                            <t:template>
-                                <HBox>
-                                    <Text text="{view>total_verme}" class="sapUiMediumMarginRight"/>
-                                    <Text text="{view>meins}"/>
-                                </HBox>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colHoldStock}"/>
-                            <t:template>
-                                <HBox>
-                                    <Text text="{view>total_cspem}" class="sapUiMediumMarginRight"/>
-                                    <Text text="{view>meins}"/>
-                                </HBox>
-                            </t:template>
-                        </t:Column>
-                        <t:Column width="10%">
-                            <Label text="{i18n>colReservation}"/>
-                            <t:template>
-                                <HBox>
-                                    <Text text="{view>total_resme}" class="sapUiMediumMarginRight"/>
-                                    <Text text="{view>meins}"/>
-                                </HBox>
-                            </t:template>
-                        </t:Column>
-                    </t:columns>
-                </t:Table>
-            </l:VerticalLayout>
+            <VBox class="sapUiContentPadding standardCostPage" width="100%">
+                <Title text="{i18n>title}" level="H1" titleStyle="H1" class="pageHeroTitle"/>
+
+                <Panel class="filterPanel appCard" width="100%" backgroundDesign="Solid">
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <core:Icon src="sap-icon://slim-arrow-down" class="sectionIcon"/>
+                            <Title text="{i18n>filterTitle}" level="H2"/>
+                            <ToolbarSpacer/>
+                            <Button text="{i18n>filterHide}" type="Transparent" icon="sap-icon://navigation-up-arrow"/>
+                            <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <content>
+                        <FlexBox wrap="Wrap" alignItems="End" class="filterGrid">
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblYear}" labelFor="inputYear"/>
+                                <Input id="inputYear" value="{view>/filters/gjahr}" type="Text" width="13rem" maxLength="4" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMonth}" labelFor="inputMonth"/>
+                                <Input id="inputMonth" value="{view>/filters/monat}" type="Text" width="13rem" maxLength="2" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMaterial}" labelFor="inputMatnr"/>
+                                <Input id="inputMatnr" value="{view>/filters/matnr}" placeholder="{i18n>plhMaterial}" width="13rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblCostCenter}" labelFor="inputKostl"/>
+                                <Input id="inputKostl" value="{view>/filters/kostl}" placeholder="{i18n>plhCostCenter}" width="13rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMaterialType}" labelFor="inputMtart"/>
+                                <Input id="inputMtart" value="{view>/filters/mtart}" placeholder="{i18n>plhSelect}" width="13rem" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMaterialGroup}" labelFor="inputMatkl"/>
+                                <Input id="inputMatkl" value="{view>/filters/matkl}" placeholder="{i18n>plhSelect}" width="13rem" submit=".onSearch"/>
+                            </VBox>
+
+                            <HBox class="filterActions">
+                                <Button text="{i18n>btnSearch}" icon="sap-icon://search" type="Emphasized" press=".onSearch"/>
+                                <Button text="{i18n>btnReset}" icon="sap-icon://reset" press=".onResetFilters"/>
+                            </HBox>
+                        </FlexBox>
+                    </content>
+                </Panel>
+
+                <Panel class="appCard summaryPanel" width="100%" backgroundDesign="Solid">
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <Title text="{i18n>tableSummaryTitle}" level="H2"/>
+                            <ToolbarSpacer/>
+                            <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" press=".onExportToExcel"/>
+                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" press=".onExportToPdf"/>
+                            <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
+                            <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <content>
+                        <t:Table id="costSummaryTable" 
+                            rows="{view>/costData}"
+                            selectionMode="Single"
+                            rowSelectionChange=".onRowSelectionChange"
+                            enableColumnReordering="true"
+                            enableGrouping="true"
+                            alternateRowColors="true"
+                            visibleRowCountMode="Auto"
+                            minAutoRowCount="8"
+                            class="costSummaryTable"
+                            noData="{i18n>msgNoData}">
+                            <t:columns>
+                                <t:Column width="9rem">
+                                    <Label text="{i18n>colMatnr}"/>
+                                    <t:template>
+                                        <Text text="{view>matnr}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="13rem">
+                                    <Label text="{i18n>colMaktx}"/>
+                                    <t:template>
+                                        <Text text="{view>maktx}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="6rem" hAlign="Center">
+                                    <Label text="{i18n>colYear}"/>
+                                    <t:template>
+                                        <Text text="{view>gjahr}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="5rem" hAlign="Center">
+                                    <Label text="{i18n>colMonth}"/>
+                                    <t:template>
+                                        <Text text="{view>monat}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="8rem">
+                                    <Label text="{i18n>colCostCenter}"/>
+                                    <t:template>
+                                        <Text text="{view>kostl}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="10rem">
+                                    <Label text="{i18n>colCostCenterName}"/>
+                                    <t:template>
+                                        <Text text="{view>ktext}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="10rem" hAlign="End">
+                                    <Label text="{i18n>colTotalCost}"/>
+                                    <t:template>
+                                        <ObjectNumber class="amountText" number="{path: 'view>total_cost', formatter: '.formatAmount'}" unit="{view>waers}" emphasized="true"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="7rem">
+                                    <Label text="{i18n>colCurrency}"/>
+                                    <t:template>
+                                        <Text text="{view>waers}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="8rem" hAlign="End">
+                                    <t:multiLabels>
+                                        <Label text="{i18n>stockFlowGroup}"/>
+                                        <Label text="{i18n>colAvailStock}"/>
+                                    </t:multiLabels>
+                                    <t:template>
+                                        <ObjectNumber number="{path: 'view>total_clabs', formatter: '.formatQuantity'}" unit="{view>meins}" emphasized="false"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="8rem" hAlign="End">
+                                    <t:multiLabels>
+                                        <Label text="{i18n>stockFlowGroup}"/>
+                                        <Label text="{i18n>colInspection}"/>
+                                    </t:multiLabels>
+                                    <t:template>
+                                        <ObjectNumber number="{path: 'view>total_verme', formatter: '.formatQuantity'}" unit="{view>meins}" emphasized="false"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="8rem" hAlign="End">
+                                    <t:multiLabels>
+                                        <Label text="{i18n>stockFlowGroup}"/>
+                                        <Label text="{i18n>colHoldStock}"/>
+                                    </t:multiLabels>
+                                    <t:template>
+                                        <ObjectNumber number="{path: 'view>total_cspem', formatter: '.formatQuantity'}" unit="{view>meins}" emphasized="false"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="8rem" hAlign="End">
+                                    <t:multiLabels>
+                                        <Label text="{i18n>stockFlowGroup}"/>
+                                        <Label text="{i18n>colReservation}"/>
+                                    </t:multiLabels>
+                                    <t:template>
+                                        <ObjectNumber number="{path: 'view>total_resme', formatter: '.formatQuantity'}" unit="{view>meins}" emphasized="false"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="7rem" hAlign="Center">
+                                    <Label text="{i18n>colUnit}"/>
+                                    <t:template>
+                                        <Text text="{view>meins}"/>
+                                    </t:template>
+                                </t:Column>
+                            </t:columns>
+                        </t:Table>
+                        <OverflowToolbar class="tableFooter">
+                            <ObjectStatus icon="sap-icon://information" text="{i18n>rowSelectHint}" state="Information"/>
+                            <ToolbarSpacer/>
+                            <Text text="{path: 'view>/costData', formatter: '.formatResultCount'}"/>
+                        </OverflowToolbar>
+                    </content>
+                </Panel>
+            </VBox>
         </content>
     </Page>
 </mvc:View>

@@ -17,7 +17,7 @@ builder:
           url: http://bgissap3.bgissap.co.kr:8000/
           client: '100'
         app:
-          name: E4_S_COST
+          name: ZE4_S_COST
           description: '[CO] Standard Cost'
           package: ZPE4CO
           transport: EFXK901670

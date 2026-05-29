@@ -1,18 +1,215 @@
 /* Enter your custom styles here */
 
 /* List View Styles */
-.costSummaryTable {
-    margin-top: 1rem;
+.sapMPage {
+    background: #f5f7fa;
 }
 
-.filterBar {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+.standardCostPage {
+    gap: 1rem;
+    max-width: 120rem;
+    margin: 0 auto;
+}
+
+.pageHeroTitle {
+    margin: 0.75rem 0 0.5rem;
+    color: #0b1f3a;
+    font-size: 2rem;
+    font-weight: 700;
+    white-space: normal;
+    line-height: 1.25;
+}
+
+.appCard {
+    border: 1px solid #d9e1e8;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.875rem rgba(35, 54, 78, 0.1);
+    overflow: hidden;
+}
+
+.appCard .sapMPanelWrappingDiv,
+.appCard .sapMPanelContent {
+    border: 0;
+}
+
+.filterPanel {
+    background: #fff;
+}
+
+.filterPanel .sapMPanelContent {
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.filterGrid {
+    gap: 1rem 1.5rem;
+}
+
+.filterField {
+    gap: 0.25rem;
+    min-width: 13rem;
+}
+
+.filterField .sapMLabel {
+    color: #354a5f;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.filterActions {
+    gap: 0.5rem;
+    margin-left: auto;
+    padding-top: 1.25rem;
+}
+
+.sectionIcon {
+    color: #0a6ed1;
+}
+
+.summaryPanel .sapMPanelContent {
+    padding: 0;
+}
+
+.costSummaryTable {
+    border-top: 1px solid #e2e8ee;
+}
+
+.costSummaryTable .sapUiTableColHdrCnt,
+.costSummaryTable .sapUiTableColRowHdr {
+    background: #f7f9fc;
+}
+
+.costSummaryTable .sapUiTableCell {
+    border-color: #e5ebf0;
+}
+
+.amountText .sapMObjectNumberText,
+.amountText .sapMObjectNumberUnit {
+    color: #0a6ed1;
+    font-weight: 700;
+}
+
+.tableFooter {
+    border-top: 1px solid #e2e8ee;
+    background: #fff;
 }
 
 /* Detail View Styles */
+.detailPageContent {
+    padding-top: 0.75rem;
+}
+
+.breadcrumbLine {
+    gap: 0.5rem;
+}
+
+.breadcrumbIcon {
+    color: #6a7785;
+    font-size: 0.75rem;
+}
+
+.detailHeaderCard .sapMPanelContent {
+    padding: 1.25rem 1.5rem;
+}
+
+.detailHeaderGrid {
+    gap: 1rem 2rem;
+}
+
+.detailInfoBlock {
+    min-width: 10rem;
+    padding-right: 1.25rem;
+    border-right: 1px solid #e3e8ee;
+}
+
+.detailInfoBlock.wide {
+    min-width: 16rem;
+}
+
+.detailInfoBlock .sapMLabel,
+.totalCostBox .sapMLabel {
+    color: #526376;
+    font-weight: 600;
+}
+
+.detailKeyText .sapMObjectIdentifierTitle,
+.detailValueText {
+    color: #0a6ed1;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.detailSubText {
+    color: #6a7785;
+    margin-top: 0.125rem;
+}
+
+.totalCostBox {
+    min-width: 14rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.375rem;
+    background: #0a6ed1;
+}
+
+.totalCostBox .sapMLabel,
+.totalCostBox .sapMObjectNumberText,
+.totalCostBox .sapMObjectNumberUnit {
+    color: #fff;
+}
+
+.totalCostBox .sapMObjectNumberText {
+    font-size: 2rem;
+}
+
+.detailActionRow {
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.detailTabsCard .sapMPanelContent {
+    padding: 0;
+}
+
+.detailTabs .sapMITBContent {
+    padding: 1rem;
+    background: #f7f9fc;
+}
+
+.breakdownGrid {
+    gap: 1rem;
+}
+
+.breakdownPanel {
+    flex: 1 1 31rem;
+    min-width: 31rem;
+    border: 1px solid #dfe7ef;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(35, 54, 78, 0.08);
+}
+
+.breakdownPanel .sapMPanelContent {
+    padding: 1rem;
+}
+
+.reservationSummaryCard {
+    margin-top: 1rem;
+    border: 1px solid #dfe7ef;
+    border-radius: 0.5rem;
+}
+
+.reservationSummaryCard .sapMPanelContent {
+    padding: 1rem;
+}
+
+.reservationSummary {
+    gap: 1rem;
+}
+
+.reservationDeletedRow {
+    text-decoration: line-through;
+    color: #7a8794;
+    background-color: #eef2f5;
+}
+
 .costBreakdownContainer {
     display: flex;
     gap: 1rem;
@@ -47,12 +244,6 @@
     color: #555;
 }
 
-.reservationDeletedRow {
-    text-decoration: line-through;
-    color: #999;
-    background-color: #f0f0f0;
-}
-
 /* Tab Styling */
 .iconTabBar {
     margin-top: 1rem;
@@ -60,6 +251,26 @@
 
 /* Responsive Layout for Chart */
 @media (max-width: 1024px) {
+    .pageHeroTitle {
+        font-size: 1.5rem;
+    }
+
+    .filterActions {
+        margin-left: 0;
+    }
+
+    .detailInfoBlock {
+        border-right: 0;
+    }
+
+    .totalCostBox {
+        width: 100%;
+    }
+
+    .breakdownPanel {
+        min-width: 100%;
+    }
+
     .costBreakdownContainer {
         flex-direction: column;
     }

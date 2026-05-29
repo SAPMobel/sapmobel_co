@@ -74,7 +74,11 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "ze4.co.s.cost.ze4coscost.i18n.i18n"
+          "bundleName": "ze4.co.s.cost.ze4coscost.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ],
+          "fallbackLocale": ""
         }
       },
       "": {

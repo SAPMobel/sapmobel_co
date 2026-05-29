@@ -20,7 +20,9 @@ sap.ui.define([
                     gjahr: new Date().getFullYear(),
                     monat: String(new Date().getMonth() + 1).padStart(2, '0'),
                     matnr: "",
-                    kostl: ""
+                    kostl: "",
+                    mtart: "",
+                    matkl: ""
                 },
                 costData: []
             });
@@ -39,16 +41,38 @@ sap.ui.define([
             const oViewModel = this.getView().getModel("view");
             const filters = oViewModel.getProperty("/filters");
 
+            const sYear = String(filters.gjahr || "").trim();
+            const sMonth = String(filters.monat || "").trim().padStart(2, "0");
+
+            if (!/^\d{4}$/.test(sYear)) {
+                MessageBox.warning("연도는 4자리 숫자로 입력해주세요.");
+                return;
+            }
+
+            if (!/^(0[1-9]|1[0-2])$/.test(sMonth)) {
+                MessageBox.warning("월은 01부터 12까지 입력해주세요.");
+                return;
+            }
+
+            oViewModel.setProperty("/filters/gjahr", sYear);
+            oViewModel.setProperty("/filters/monat", sMonth);
+
             const aFilters = [
-                new Filter("gjahr", FilterOperator.EQ, filters.gjahr.toString()),
-                new Filter("monat", FilterOperator.EQ, filters.monat)
+                new Filter("gjahr", FilterOperator.EQ, sYear),
+                new Filter("monat", FilterOperator.EQ, sMonth)
             ];
 
-            if (filters.matnr) {
-                aFilters.push(new Filter("matnr", FilterOperator.Contains, filters.matnr));
+            if (filters.matnr && String(filters.matnr).trim()) {
+                aFilters.push(new Filter("matnr", FilterOperator.Contains, String(filters.matnr).trim().toUpperCase()));
             }
-            if (filters.kostl) {
-                aFilters.push(new Filter("kostl", FilterOperator.Contains, filters.kostl));
+            if (filters.kostl && String(filters.kostl).trim()) {
+                aFilters.push(new Filter("kostl", FilterOperator.Contains, String(filters.kostl).trim().toUpperCase()));
+            }
+            if (filters.mtart && String(filters.mtart).trim()) {
+                aFilters.push(new Filter("mtart", FilterOperator.Contains, String(filters.mtart).trim().toUpperCase()));
+            }
+            if (filters.matkl && String(filters.matkl).trim()) {
+                aFilters.push(new Filter("matkl", FilterOperator.Contains, String(filters.matkl).trim().toUpperCase()));
             }
 
             oModel.read("/zcds_e4_co_0010", {
@@ -73,7 +97,9 @@ sap.ui.define([
                 gjahr: new Date().getFullYear(),
                 monat: String(new Date().getMonth() + 1).padStart(2, '0'),
                 matnr: "",
-                kostl: ""
+                kostl: "",
+                mtart: "",
+                matkl: ""
             });
             this._loadCostData();
         },
@@ -83,19 +109,23 @@ sap.ui.define([
             const iIndex = oEvent.getParameter("rowIndex");
             
             if (iIndex >= 0) {
-                const oData = oTable.getContextByIndex(iIndex).getObject();
+                const oContext = oTable.getContextByIndex(iIndex);
+                if (!oContext) {
+                    return;
+                }
+
+                const oData = oContext.getObject();
                 const oRouter = this.getOwnerComponent().getRouter();
                 oRouter.navTo("RouteStandardCostDetail", {
-                    matnr: oData.matnr,
-                    gjahr: oData.gjahr,
-                    monat: oData.monat,
-                    kostl: oData.kostl
+                    matnr: encodeURIComponent(oData.matnr),
+                    gjahr: encodeURIComponent(oData.gjahr),
+                    monat: encodeURIComponent(oData.monat),
+                    kostl: encodeURIComponent(oData.kostl)
                 });
             }
         },
 
         onExportToExcel() {
-            const oTable = this.byId("costSummaryTable");
             const aData = this.getView().getModel("view").getProperty("/costData");
             
             if (!aData || aData.length === 0) {
@@ -136,8 +166,13 @@ sap.ui.define([
         },
 
         onExportToPdf() {
-            const oTable = this.byId("costSummaryTable");
             const aPrintMarkup = [];
+            const aData = this.getView().getModel("view").getProperty("/costData") || [];
+
+            if (aData.length === 0) {
+                MessageBox.warning("출력할 데이터가 없습니다.");
+                return;
+            }
             
             aPrintMarkup.push("<!DOCTYPE html>");
             aPrintMarkup.push("<html>");
@@ -156,7 +191,6 @@ sap.ui.define([
             aPrintMarkup.push("<h1>[EverNiture-CO] 표준원가 기간별 요약 및 재고 링크</h1>");
             aPrintMarkup.push("<p>생성일시: " + new Date().toLocaleString('ko-KR') + "</p>");
 
-            const aData = this.getView().getModel("view").getProperty("/costData");
             aPrintMarkup.push("<table>");
             aPrintMarkup.push("<thead><tr>");
             aPrintMarkup.push("<th>자재번호</th><th>자재명</th><th>연도</th><th>월</th><th>코스트센터</th>");
@@ -167,18 +201,18 @@ sap.ui.define([
 
             aData.forEach((oItem) => {
                 aPrintMarkup.push("<tr>");
-                aPrintMarkup.push("<td>" + oItem.matnr + "</td>");
-                aPrintMarkup.push("<td>" + oItem.maktx + "</td>");
-                aPrintMarkup.push("<td>" + oItem.gjahr + "</td>");
-                aPrintMarkup.push("<td>" + oItem.monat + "</td>");
-                aPrintMarkup.push("<td>" + oItem.kostl + "</td>");
-                aPrintMarkup.push("<td>" + oItem.ktext + "</td>");
-                aPrintMarkup.push("<td>" + oItem.total_cost + " " + oItem.waers + "</td>");
-                aPrintMarkup.push("<td>" + oItem.total_clabs + "</td>");
-                aPrintMarkup.push("<td>" + oItem.total_verme + "</td>");
-                aPrintMarkup.push("<td>" + oItem.total_cspem + "</td>");
-                aPrintMarkup.push("<td>" + oItem.total_resme + "</td>");
-                aPrintMarkup.push("<td>" + oItem.meins + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.matnr) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.maktx) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.gjahr) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.monat) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.kostl) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.ktext) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(this.formatAmount(oItem.total_cost)) + " " + this._escapeHtml(oItem.waers) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(this.formatQuantity(oItem.total_clabs)) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(this.formatQuantity(oItem.total_verme)) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(this.formatQuantity(oItem.total_cspem)) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(this.formatQuantity(oItem.total_resme)) + "</td>");
+                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.meins) + "</td>");
                 aPrintMarkup.push("</tr>");
             });
 
@@ -187,9 +221,51 @@ sap.ui.define([
 
             const sHtml = aPrintMarkup.join("");
             const oWindow = window.open("", "", "width=800,height=600");
+            if (!oWindow) {
+                MessageBox.warning("팝업 차단을 해제한 뒤 다시 시도해주세요.");
+                return;
+            }
             oWindow.document.write(sHtml);
             oWindow.document.close();
             oWindow.print();
+        },
+
+        formatAmount(vValue) {
+            return this._formatNumber(vValue, 0);
+        },
+
+        formatQuantity(vValue) {
+            return this._formatNumber(vValue, 3);
+        },
+
+        formatResultCount(aRows) {
+            const iCount = Array.isArray(aRows) ? aRows.length : 0;
+            return `${iCount}건`;
+        },
+
+        _formatNumber(vValue, iMaximumFractionDigits) {
+            if (vValue === null || vValue === undefined || vValue === "") {
+                return "0";
+            }
+
+            const fValue = Number(vValue);
+            if (Number.isNaN(fValue)) {
+                return String(vValue);
+            }
+
+            return new Intl.NumberFormat("ko-KR", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: iMaximumFractionDigits
+            }).format(fValue);
+        },
+
+        _escapeHtml(vValue) {
+            return String(vValue ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
         }
     });
 });
