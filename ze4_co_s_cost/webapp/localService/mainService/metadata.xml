@@ -37,19 +37,19 @@
                     <PropertyRef Name="matnr"/>
                     <PropertyRef Name="gjahr"/>
                     <PropertyRef Name="monat"/>
-                    <PropertyRef Name="kostl"/>
+                    <PropertyRef Name="mtopt"/>
                 </Key>
                 <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
                 <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계 연도" sap:quickinfo="[CO] 회계 연도"/>
                 <Property Name="monat" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:label="회계기간" sap:quickinfo="[FI] 회계기간"/>
-                <Property Name="kostl" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="코스트 센터" sap:quickinfo="[CO] 코스트 센터"/>
-                <Property Name="ktext" Type="Edm.String" MaxLength="20" sap:label="마스터 명칭" sap:quickinfo="[CO] 마스터 명칭"/>
+                <Property Name="mtopt" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="제품 옵션" sap:quickinfo="[PP] 제품 옵션"/>
                 <Property Name="maktx" Type="Edm.String" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 이름" sap:quickinfo="[MM] 자재 이름"/>
                 <Property Name="mtart" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="자재 유형" sap:quickinfo="[MM] 자재 유형"/>
                 <Property Name="mtbez" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="자재 유형 명칭" sap:quickinfo="[MM] 자재 유형 명칭"/>
                 <Property Name="matkl" Type="Edm.String" MaxLength="9" sap:display-format="UpperCase" sap:label="자재 그룹" sap:quickinfo="[MM] 자재 그룹"/>
                 <Property Name="wgbez" Type="Edm.String" MaxLength="20" sap:display-format="UpperCase" sap:label="자재 그룹 명칭" sap:quickinfo="[MM] 자재 그룹 명칭"/>
                 <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="mtopt_t" Type="Edm.String" MaxLength="40" sap:label="제품 옵션명" sap:quickinfo="[PP] 제품 옵션명"/>
                 <Property Name="total_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="총 표준 원가" sap:quickinfo="[CO] 총 표준 원가"/>
                 <Property Name="waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="Currency" sap:quickinfo="Currency Key" sap:semantics="currency-code"/>
                 <Property Name="total_clabs" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins"/>
@@ -64,16 +64,22 @@
                 <Property Name="aenam" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="Changed By" sap:quickinfo="Name of Person Who Changed Object"/>
                 <NavigationProperty Name="to_Item" Relationship="ZCDS_E4_CO_0010_CDS.assoc_80DFFD0821CD6CF67868CB3EE371D2AE" FromRole="FromRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE" ToRole="ToRole_assoc_80DFFD0821CD6CF67868CB3EE371D2AE"/>
                 <NavigationProperty Name="to_Reservation" Relationship="ZCDS_E4_CO_0010_CDS.assoc_DAF46069AC41E7F39F84F4C503DE87A8" FromRole="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8" ToRole="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                <NavigationProperty Name="to_SORequirement" Relationship="ZCDS_E4_CO_0010_CDS.assoc_SORequirement" FromRole="FromRole_assoc_SORequirement" ToRole="ToRole_assoc_SORequirement"/>
+                <NavigationProperty Name="to_BOMCostBreakdown" Relationship="ZCDS_E4_CO_0010_CDS.assoc_BOMCostBreakdown" FromRole="FromRole_assoc_BOMCostBreakdown" ToRole="ToRole_assoc_BOMCostBreakdown"/>
                 <NavigationProperty Name="to_Stock" Relationship="ZCDS_E4_CO_0010_CDS.assoc_84A52E05E8630BB4BD016FCA190E80A7" FromRole="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7" ToRole="ToRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
             </EntityType>
             <EntityType Name="zcds_e4_co_0011Type" sap:label="[CO] 표준원가 아이템 뷰" sap:content-version="1">
                 <Key>
                     <PropertyRef Name="matnr"/>
                     <PropertyRef Name="gjahr"/>
+                    <PropertyRef Name="monat"/>
+                    <PropertyRef Name="mtopt"/>
                     <PropertyRef Name="cost_comp"/>
                 </Key>
                 <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
                 <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계 연도" sap:quickinfo="[CO] 회계 연도"/>
+                <Property Name="monat" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:label="회계기간" sap:quickinfo="[FI] 회계기간"/>
+                <Property Name="mtopt" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="제품 옵션" sap:quickinfo="[PP] 제품 옵션"/>
                 <Property Name="cost_comp" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:label="원가 항목" sap:quickinfo="[CO] 원가 항목"/>
                 <Property Name="cost_comp_text" Type="Edm.String" MaxLength="5"/>
                 <Property Name="amount" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="총 표준 원가" sap:quickinfo="[CO] 총 표준 원가"/>
@@ -111,9 +117,73 @@
                 <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
                 <Property Name="loekz" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label="삭제 플레그" sap:quickinfo="[MM] 삭제 플레그"/>
             </EntityType>
+            <EntityType Name="zcds_e4_sd_0007Type" sap:label="[SD] 완제품 판매오더 예약 재고 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="vbeln"/>
+                    <PropertyRef Name="posnr"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 번호" sap:quickinfo="[MM] 자재 번호"/>
+                <Property Name="vbeln" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="판매오더" sap:quickinfo="[SD] 판매오더"/>
+                <Property Name="posnr" Type="Edm.String" Nullable="false" MaxLength="6" sap:display-format="NonNegative" sap:label="판매오더 항목" sap:quickinfo="[SD] 판매오더 항목"/>
+                <Property Name="mtopt" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="제품 옵션" sap:quickinfo="[PP] 제품 옵션"/>
+                <Property Name="gbstk" Type="Edm.String" MaxLength="2" sap:display-format="UpperCase" sap:label="상태" sap:quickinfo="[SD] 상태"/>
+                <Property Name="auart" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="오더 유형" sap:quickinfo="[SD] 오더 유형"/>
+                <Property Name="kunnr" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="고객 번호" sap:quickinfo="[SD] 고객 번호"/>
+                <Property Name="bdmng" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="예약 수량" sap:quickinfo="[SD] 예약 수량"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="werks" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="플랜트" sap:quickinfo="[SD] 플랜트"/>
+                <Property Name="edatu" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="납기일" sap:quickinfo="[SD] 납기일"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_co_0014Type" sap:label="[CO/PP] 완제품별 BOM 구성품 원가 상세 산출 뷰" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="mtopt"/>
+                    <PropertyRef Name="gjahr"/>
+                    <PropertyRef Name="monat"/>
+                    <PropertyRef Name="idnrk"/>
+                </Key>
+                <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="완제품 코드"/>
+                <Property Name="mtopt" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="제품 옵션"/>
+                <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계 연도"/>
+                <Property Name="monat" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:label="회계기간"/>
+                <Property Name="idnrk" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label="하위 구성 부품 코드"/>
+                <Property Name="maktx" Type="Edm.String" MaxLength="40" sap:display-format="UpperCase" sap:label="구성 부품명"/>
+                <Property Name="posnr" Type="Edm.String" MaxLength="4" sap:display-format="NonNegative" sap:label="품목 번호"/>
+                <Property Name="menge" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="투입량"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="bmeng" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="bmein" sap:label="BOM 기준수량"/>
+                <Property Name="bmein" Type="Edm.String" MaxLength="3" sap:label="BOM Base Unit" sap:semantics="unit-of-measure"/>
+                <Property Name="comp_unit_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="부품 단가"/>
+                <Property Name="waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="Currency" sap:semantics="currency-code"/>
+                <Property Name="comp_total_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="구성품 원가액"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_mm_0007Type" sap:label="[MM] 자재 유형 CDS View" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="mtart"/>
+                </Key>
+                <Property Name="mtart" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:label="자재 유형" sap:quickinfo="[MM] 자재 유형"/>
+                <Property Name="mtbez" Type="Edm.String" MaxLength="20" sap:display-format="UpperCase" sap:label="자재 유형 명칭" sap:quickinfo="[MM] 자재 유형 명칭"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_mm_0008Type" sap:label="[MM] 자재 그룹 CDS View" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="matkl"/>
+                </Key>
+                <Property Name="matkl" Type="Edm.String" Nullable="false" MaxLength="9" sap:display-format="UpperCase" sap:label="자재 그룹" sap:quickinfo="[MM] 자재 그룹"/>
+                <Property Name="wgbez" Type="Edm.String" MaxLength="20" sap:display-format="UpperCase" sap:label="자재 그룹 명칭" sap:quickinfo="[MM] 자재 그룹 명칭"/>
+                <Property Name="bezei" Type="Edm.String" MaxLength="40" sap:display-format="UpperCase" sap:label="자재 그룹 설명" sap:quickinfo="[MM] 자재 그룹 설명"/>
+            </EntityType>
             <Association Name="assoc_DAF46069AC41E7F39F84F4C503DE87A8" sap:content-version="1">
                 <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
                 <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0013Type" Multiplicity="*" Role="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+            </Association>
+            <Association Name="assoc_SORequirement" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_SORequirement"/>
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_sd_0007Type" Multiplicity="*" Role="ToRole_assoc_SORequirement"/>
+            </Association>
+            <Association Name="assoc_BOMCostBreakdown" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_BOMCostBreakdown"/>
+                <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0014Type" Multiplicity="*" Role="ToRole_assoc_BOMCostBreakdown"/>
             </Association>
             <Association Name="assoc_84A52E05E8630BB4BD016FCA190E80A7" sap:content-version="1">
                 <End Type="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0010Type" Multiplicity="1" Role="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
@@ -128,6 +198,10 @@
                 <EntitySet Name="zcds_e4_co_0011" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0011Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <EntitySet Name="zcds_e4_co_0012" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0012Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <EntitySet Name="zcds_e4_co_0013" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0013Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_co_0014" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_co_0014Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_sd_0007" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_sd_0007Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_mm_0007" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_mm_0007Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_mm_0008" EntityType="ZCDS_E4_CO_0010_CDS.zcds_e4_mm_0008Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
                 <AssociationSet Name="assoc_84A52E05E8630BB4BD016FCA190E80A7" Association="ZCDS_E4_CO_0010_CDS.assoc_84A52E05E8630BB4BD016FCA190E80A7" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
                     <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
                     <End EntitySet="zcds_e4_co_0012" Role="ToRole_assoc_84A52E05E8630BB4BD016FCA190E80A7"/>
@@ -139,6 +213,14 @@
                 <AssociationSet Name="assoc_DAF46069AC41E7F39F84F4C503DE87A8" Association="ZCDS_E4_CO_0010_CDS.assoc_DAF46069AC41E7F39F84F4C503DE87A8" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
                     <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
                     <End EntitySet="zcds_e4_co_0013" Role="ToRole_assoc_DAF46069AC41E7F39F84F4C503DE87A8"/>
+                </AssociationSet>
+                <AssociationSet Name="assoc_SORequirement" Association="ZCDS_E4_CO_0010_CDS.assoc_SORequirement" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_SORequirement"/>
+                    <End EntitySet="zcds_e4_sd_0007" Role="ToRole_assoc_SORequirement"/>
+                </AssociationSet>
+                <AssociationSet Name="assoc_BOMCostBreakdown" Association="ZCDS_E4_CO_0010_CDS.assoc_BOMCostBreakdown" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0010" Role="FromRole_assoc_BOMCostBreakdown"/>
+                    <End EntitySet="zcds_e4_co_0014" Role="ToRole_assoc_BOMCostBreakdown"/>
                 </AssociationSet>
             </EntityContainer>
             <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>

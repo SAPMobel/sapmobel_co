@@ -31,6 +31,11 @@
                                 <Title text="{detail>/maktx}" level="H2"/>
                             </VBox>
                             <VBox class="detailInfoBlock">
+                                <Label text="{i18n>lblOption}"/>
+                                <Text text="{detail>/mtopt_t}" class="detailValueText"/>
+                                <Text text="{detail>/mtopt}" class="detailSubText"/>
+                            </VBox>
+                            <VBox class="detailInfoBlock">
                                 <Label text="{i18n>lblMaterialType}"/>
                                 <Text text="{detail>/mtbez}" class="detailValueText"/>
                                 <Text text="{detail>/mtart}" class="detailSubText"/>
@@ -44,20 +49,14 @@
                                 <Label text="{i18n>lblYearMonth}"/>
                                 <Text text="{= ${detail>/gjahr} + ' / ' + ${detail>/monat} }" class="detailValueText"/>
                             </VBox>
-                            <VBox class="detailInfoBlock">
-                                <Label text="{i18n>lblCostCenter}"/>
-                                <Link text="{detail>/kostl}"/>
-                                <Text text="{detail>/ktext}" class="detailSubText"/>
-                            </VBox>
                             <VBox class="totalCostBox">
                                 <Label text="{i18n>lblTotalCost}"/>
-                                <ObjectNumber number="{path: 'detail>/total_cost', formatter: '.formatAmount'}" unit="{detail>/waers}" emphasized="true"/>
+                                <ObjectNumber number="{parts: [{path: 'detail>/total_cost'}, {path: 'detail>/waers'}], formatter: '.formatAmount'}" unit="{detail>/waers}" emphasized="true"/>
                             </VBox>
                         </FlexBox>
                         <HBox class="detailActionRow">
-                            <Button text="{i18n>btnStockLink}" icon="sap-icon://chain-link" enabled="false"/>
-                            <Button text="{i18n>btnReservationExpanded}" icon="sap-icon://database" enabled="false"/>
-                            <Button text="{i18n>expandBadge}" icon="sap-icon://syntax" enabled="false"/>
+                            <ObjectStatus text="{i18n>stockLinkedStatus}" icon="sap-icon://chain-link" state="Success" class="detailStatusBadge"/>
+                            <ObjectStatus text="{i18n>reservationExpandedStatus}" icon="sap-icon://database" state="Success" class="detailStatusBadge"/>
                         </HBox>
                     </content>
                 </Panel>
@@ -66,121 +65,192 @@
                     <headerToolbar>
                         <OverflowToolbar>
                             <ToolbarSpacer/>
+                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" type="Transparent" press=".onExportDetailToPdf"/>
                             <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
                             <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
                         </OverflowToolbar>
                     </headerToolbar>
                     <content>
                         <IconTabBar id="detailTabs" expandable="false" class="detailTabs">
-                            <IconTabFilter text="{i18n>tabCostBreakdown}" icon="sap-icon://detail-view">
-                                <FlexBox wrap="Wrap" class="breakdownGrid">
-                                    <Panel class="breakdownPanel" backgroundDesign="Solid">
-                                        <headerToolbar>
-                                            <OverflowToolbar>
-                                                <Title text="{i18n>costBreakdownTitle}" level="H2"/>
-                                                <ToolbarSpacer/>
-                                                <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
-                                                <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
-                                            </OverflowToolbar>
-                                        </headerToolbar>
-                                        <content>
-                                            <Table id="costComponentTable" 
-                                                items="{detail>/to_Item/results}"
-                                                mode="None">
-                                                <columns>
-                                                    <Column>
-                                                        <Label text="{i18n>colCostComp}"/>
-                                                    </Column>
-                                                    <Column hAlign="End">
-                                                        <Label text="{i18n>colAmount}"/>
-                                                    </Column>
-                                                    <Column hAlign="End">
-                                                        <Label text="{i18n>colPercent}"/>
-                                                    </Column>
-                                                    <Column hAlign="Center">
-                                                        <Label text="{i18n>colCurrency}"/>
-                                                    </Column>
-                                                </columns>
-                                                <items>
-                                                    <ColumnListItem>
-                                                        <Text text="{detail>cost_comp_text}"/>
-                                                        <ObjectNumber class="amountText" number="{path: 'detail>amount', formatter: '.formatAmount'}" unit="{detail>waers}" emphasized="true"/>
-                                                        <ObjectNumber number="{path: 'detail>percent', formatter: '.formatPercent'}" unit="%" emphasized="false"/>
-                                                        <Text text="{detail>waers}"/>
-                                                    </ColumnListItem>
-                                                </items>
-                                            </Table>
-                                        </content>
-                                    </Panel>
-
-                                    <Panel class="breakdownPanel" backgroundDesign="Solid">
-                                        <headerToolbar>
-                                            <OverflowToolbar>
-                                                <Title text="{i18n>costChartTitle}" level="H2"/>
-                                                <ToolbarSpacer/>
-                                                <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
-                                            </OverflowToolbar>
-                                        </headerToolbar>
-                                        <content>
-                                            <viz:VizFrame id="costDonutChart" 
-                                                vizType="donut"
-                                                width="100%"
-                                                height="22rem">
-                                            </viz:VizFrame>
-                                        </content>
-                                    </Panel>
-                                </FlexBox>
-
-                                <Panel class="reservationSummaryCard" backgroundDesign="Solid">
+                            <items>
+                                <IconTabFilter text="{i18n>tabCostBreakdown}" icon="sap-icon://detail-view" tooltip="{i18n>tabCostBreakdownTooltip}">
                                     <content>
-                                        <HBox alignItems="Center" justifyContent="SpaceAround" class="reservationSummary">
-                                            <Title text="{i18n>reservationSummaryTitle}" level="H3"/>
-                                            <ObjectStatus icon="sap-icon://documents" title="{i18n>summaryReservationCount}" text="{path: 'detail>/reservationSummary/count', formatter: '.formatQuantity'}"/>
-                                            <ObjectStatus icon="sap-icon://shipping-status" title="{i18n>summaryOpenQuantity}" text="{path: 'detail>/reservationSummary/openQuantity', formatter: '.formatQuantity'}" state="Information"/>
-                                            <ObjectStatus icon="sap-icon://flag" title="{i18n>summaryDeletedCount}" text="{path: 'detail>/reservationSummary/deletedCount', formatter: '.formatQuantity'}" state="Warning"/>
-                                        </HBox>
-                                    </content>
-                                </Panel>
-                            </IconTabFilter>
+                                        <VBox id="breakdownGrid" renderType="Bare" class="breakdownGrid" width="100%">
+                                            <Panel class="breakdownPanel costComponentPanel" backgroundDesign="Solid">
+                                                <headerToolbar>
+                                                    <OverflowToolbar>
+                                                        <Title text="{i18n>costBreakdownTitle}" level="H2"/>
+                                                        <ToolbarSpacer/>
+                                                        <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
+                                                        <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table id="costComponentTable"
+                                                        items="{detail>/to_Item/results}"
+                                                        mode="None">
+                                                        <columns>
+                                                            <Column>
+                                                                <Label text="{i18n>colCostComp}"/>
+                                                            </Column>
+                                                            <Column hAlign="End">
+                                                                <Label text="{i18n>colAmount}"/>
+                                                            </Column>
+                                                            <Column hAlign="End">
+                                                                <Label text="{i18n>colPercent}"/>
+                                                            </Column>
+                                                            <Column hAlign="Center">
+                                                                <Label text="{i18n>colCurrency}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <Text text="{detail>cost_comp_text}"/>
+                                                                <ObjectNumber class="amountText" number="{parts: [{path: 'detail>amount'}, {path: 'detail>waers'}], formatter: '.formatAmount'}" emphasized="true"/>
+                                                                <ObjectNumber number="{path: 'detail>percent', formatter: '.formatPercent'}" unit="%" emphasized="false"/>
+                                                                <Text text="{detail>waers}"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
 
-                            <IconTabFilter text="{i18n>tabReservationTracking}" icon="sap-icon://table-view">
-                                <Table id="reservationTable" 
-                                    items="{detail>/to_Reservation/results}"
-                                    mode="None"
-                                    updateFinished=".onReservationUpdateFinished"
-                                    class="reservationTable">
-                                    <columns>
-                                        <Column>
-                                            <Label text="{i18n>colBanfn}"/>
-                                        </Column>
-                                        <Column>
-                                            <Label text="{i18n>colRsnum}"/>
-                                        </Column>
-                                        <Column hAlign="End">
-                                            <Label text="{i18n>colMenge}"/>
-                                        </Column>
-                                        <Column hAlign="End">
-                                            <Label text="{i18n>colResme}"/>
-                                        </Column>
-                                        <Column hAlign="Center">
-                                            <Label text="{i18n>colUnit}"/>
-                                        </Column>
-                                        <Column hAlign="Center">
-                                            <Label text="{i18n>colDeleteFlag}"/>
-                                        </Column>
-                                    </columns>
-                                    <items>
-                                        <ColumnListItem>
-                                            <Text text="{detail>banfn}"/>
-                                            <Text text="{detail>rsnum}"/>
-                                            <ObjectNumber number="{path: 'detail>menge', formatter: '.formatQuantity'}" unit="{detail>meins}" emphasized="false"/>
-                                            <ObjectNumber number="{path: 'detail>resme', formatter: '.formatQuantity'}" unit="{detail>meins}" emphasized="false"/>
-                                            <Text text="{detail>meins}"/>
-                                            <ObjectStatus text="{path: 'detail>loekz', formatter: '.formatDeleteFlag'}" state="{path: 'detail>loekz', formatter: '.formatDeleteState'}"/>
-                                        </ColumnListItem>
-                                    </items>
-                                </Table>
-                            </IconTabFilter>
+                                            <Panel class="breakdownPanel costChartPanel" backgroundDesign="Solid">
+                                                <headerToolbar>
+                                                    <OverflowToolbar>
+                                                        <Title text="{= ${detail>/isBomChart} ? ${i18n>materialChartTitle} : ${i18n>costChartTitle} }" level="H2"/>
+                                                        <ToolbarSpacer/>
+                                                        <Button icon="sap-icon://undo" type="Transparent" tooltip="{i18n>btnBackToCostChart}" press=".onResetCostChart" visible="{detail>/isBomChart}"/>
+                                                        <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <viz:VizFrame id="costDonutChart"
+                                                        vizType="donut"
+                                                        width="100%"
+                                                        height="22rem"
+                                                        selectData=".onCostChartSelect">
+                                                    </viz:VizFrame>
+                                                </content>
+                                            </Panel>
+
+                                            <Panel class="breakdownPanel bomCostPanel" backgroundDesign="Solid" visible="{detail>/isFinishedProduct}">
+                                                <headerToolbar>
+                                                    <OverflowToolbar>
+                                                        <Title text="{i18n>bomCostTitle}" level="H2"/>
+                                                        <ToolbarSpacer/>
+                                                        <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table id="bomCostTable"
+                                                        items="{detail>/to_BOMCostBreakdown/results}"
+                                                        mode="None"
+                                                        noDataText="{i18n>bomCostNoData}">
+                                                        <columns>
+                                                            <Column width="46%">
+                                                                <Label text="{i18n>colBomComponent}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="8rem">
+                                                                <Label text="{i18n>colBomQuantity}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="7rem">
+                                                                <Label text="{i18n>colBomUnitCost}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="7.5rem">
+                                                                <Label text="{i18n>colBomAmount}"/>
+                                                            </Column>
+                                                            <Column hAlign="Center" width="4.5rem">
+                                                                <Label text="{i18n>colCurrency}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <Text text="{parts: [{path: 'detail>maktx'}, {path: 'detail>idnrk'}], formatter: '.formatBomComponentName'}"/>
+                                                                <ObjectNumber number="{parts: [{path: 'detail>menge'}, {path: 'detail>bmeng'}], formatter: '.formatBomComponentQuantity'}" unit="{detail>meins}" emphasized="false"/>
+                                                                <ObjectNumber class="amountText" number="{parts: [{path: 'detail>comp_unit_cost'}, {path: 'detail>waers'}], formatter: '.formatAmount'}" emphasized="false"/>
+                                                                <ObjectNumber class="amountText" number="{parts: [{path: 'detail>comp_total_cost'}, {path: 'detail>waers'}], formatter: '.formatAmount'}" emphasized="true"/>
+                                                                <Text text="{detail>waers}"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
+                                        </VBox>
+
+                                        <Panel class="costHistoryPanel" backgroundDesign="Solid">
+                                            <headerToolbar>
+                                                <OverflowToolbar>
+                                                    <Title text="{i18n>costHistoryTitle}" level="H2"/>
+                                                    <ToolbarSpacer/>
+                                                    <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
+                                                </OverflowToolbar>
+                                            </headerToolbar>
+                                            <content>
+                                                <VBox class="costHistoryChartBox" width="100%">
+                                                    <viz:VizFrame id="costHistoryLineChart"
+                                                        uiConfig="{applicationSet:'fiori'}"
+                                                        vizType="line"
+                                                        width="100%"
+                                                        height="18rem"
+                                                        selectData=".onCostHistorySelect">
+                                                    </viz:VizFrame>
+                                                </VBox>
+                                            </content>
+                                        </Panel>
+                                    </content>
+                                </IconTabFilter>
+
+                                <IconTabFilter text="{i18n>tabReservationTracking}" icon="sap-icon://table-view" tooltip="{i18n>tabReservationTrackingTooltip}">
+                                    <content>
+                                        <Panel class="reservationSummaryCard reservationSummaryInline" backgroundDesign="Solid">
+                                            <content>
+                                                <HBox alignItems="Center" justifyContent="SpaceAround" class="reservationSummary">
+                                                    <Title text="{i18n>reservationSummaryTitle}" level="H3"/>
+                                                    <ObjectStatus icon="sap-icon://documents" title="{i18n>summaryReservationCount}" text="{path: 'detail>/reservationSummary/count', formatter: '.formatQuantity'}"/>
+                                                    <ObjectStatus icon="sap-icon://shipping-status" title="{i18n>summaryOpenQuantity}" text="{path: 'detail>/reservationSummary/openQuantity', formatter: '.formatQuantity'}" state="Information"/>
+                                                </HBox>
+                                            </content>
+                                        </Panel>
+                                        <Table id="reservationTable"
+                                            items="{detail>/reservationRows}"
+                                            mode="None"
+                                            updateFinished=".onReservationUpdateFinished"
+                                            class="reservationTable">
+                                            <columns>
+                                                <Column>
+                                                    <Label text="{i18n>colReservationSource}"/>
+                                                </Column>
+                                                <Column>
+                                                    <Label text="{i18n>colReservationDoc}"/>
+                                                </Column>
+                                                <Column>
+                                                    <Label text="{i18n>colReservationItem}"/>
+                                                </Column>
+                                                <Column hAlign="End">
+                                                    <Label text="{i18n>colResme}"/>
+                                                </Column>
+                                                <Column hAlign="Center">
+                                                    <Label text="{i18n>colUnit}"/>
+                                                </Column>
+                                                <Column hAlign="Center">
+                                                    <Label text="{i18n>colReservationStatus}"/>
+                                                </Column>
+                                            </columns>
+                                            <items>
+                                                <ColumnListItem>
+                                                    <Text text="{detail>source}"/>
+                                                    <Text text="{detail>document}"/>
+                                                    <Text text="{detail>item}"/>
+                                                    <ObjectNumber number="{path: 'detail>reservationQuantity', formatter: '.formatQuantity'}" emphasized="false"/>
+                                                    <Text text="{detail>meins}"/>
+                                                    <ObjectStatus text="{detail>statusText}" state="{detail>statusState}"/>
+                                                </ColumnListItem>
+                                            </items>
+                                        </Table>
+                                    </content>
+                                </IconTabFilter>
+                            </items>
                         </IconTabBar>
                     </content>
                 </Panel>

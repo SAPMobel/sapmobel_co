@@ -67,10 +67,54 @@
 
 .summaryPanel .sapMPanelContent {
     padding: 0;
+    min-height: 24rem;
 }
 
 .costSummaryTable {
     border-top: 1px solid #e2e8ee;
+    min-height: 22.75rem;
+}
+
+.costSummaryTable .sapUiTableColCell {
+    white-space: normal;
+}
+
+.costSummaryTable .sapUiTableColCell .sapMLabel {
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.05;
+}
+
+.costSummaryTable .singleHeaderLabel {
+    min-height: 2.125rem;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.costSummaryTable .sapUiTableCell:not(.sapUiTableHeaderCell) .singleHeaderLabel {
+    min-height: 0;
+}
+
+.costSummaryTable .stockGroupHeader {
+    min-height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+}
+
+.costSummaryTable .stockSubHeader {
+    min-height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.8125rem;
+}
+
+.costSummaryTable .sapUiTableColHdrCnt {
+    min-height: 2.125rem;
 }
 
 .costSummaryTable .sapUiTableColHdrCnt,
@@ -85,7 +129,7 @@
 .amountText .sapMObjectNumberText,
 .amountText .sapMObjectNumberUnit {
     color: #0a6ed1;
-    font-weight: 700;
+    font-weight: 400;
 }
 
 .tableFooter {
@@ -95,7 +139,12 @@
 
 /* Detail View Styles */
 .detailPageContent {
+    width: 100%;
+    max-width: none;
+    margin: 0;
     padding-top: 0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
 }
 
 .breadcrumbLine {
@@ -144,10 +193,26 @@
 }
 
 .totalCostBox {
-    min-width: 14rem;
-    padding: 1rem 1.25rem;
+    min-width: 20rem;
+    max-width: 24rem;
+    padding: 0.875rem 1.25rem 1rem;
     border-radius: 0.375rem;
     background: #0a6ed1;
+}
+
+.totalCostBox .sapMLabel {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.totalCostBox .sapMObjectNumber {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .totalCostBox .sapMLabel,
@@ -157,12 +222,34 @@
 }
 
 .totalCostBox .sapMObjectNumberText {
-    font-size: 2rem;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1;
+    overflow: visible;
+}
+
+.totalCostBox .sapMObjectNumberUnit {
+    font-size: 1rem;
+    line-height: 1;
+    padding-left: 0;
 }
 
 .detailActionRow {
     gap: 0.75rem;
     margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.detailStatusBadge {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #d8e4f2;
+    border-radius: 0.375rem;
+    background: #f7fbff;
+}
+
+.detailTabs .sapMITBTextOnly .sapMITBText,
+.detailTabs .sapMITBFilter .sapMITBText {
+    max-width: none;
+    white-space: nowrap;
 }
 
 .detailTabsCard .sapMPanelContent {
@@ -174,16 +261,45 @@
     background: #f7f9fc;
 }
 
-.breakdownGrid {
+.breakdownGrid,
+.breakdownGrid.sapMFlexBox,
+.breakdownGrid.sapMVBox {
+    display: grid !important;
+    grid-template-columns: minmax(31rem, 0.9fr) minmax(42rem, 1.6fr);
+    grid-template-areas:
+        "components bom"
+        "chart bom";
     gap: 1rem;
+    align-items: stretch;
+    width: 100%;
 }
 
 .breakdownPanel {
-    flex: 1 1 31rem;
-    min-width: 31rem;
+    min-width: 0;
     border: 1px solid #dfe7ef;
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.5rem rgba(35, 54, 78, 0.08);
+}
+
+.costComponentPanel {
+    grid-area: components;
+}
+
+.costChartPanel {
+    grid-area: chart;
+}
+
+.bomCostPanel {
+    grid-area: bom;
+    min-width: 0;
+    height: 100%;
+}
+
+.breakdownGrid.bomHidden {
+    grid-template-columns: minmax(31rem, 42rem);
+    grid-template-areas:
+        "components"
+        "chart";
 }
 
 .breakdownPanel .sapMPanelContent {
@@ -196,12 +312,94 @@
     border-radius: 0.5rem;
 }
 
+.costHistoryPanel {
+    margin-top: 1rem;
+    border: 1px solid #dfe7ef;
+    border-radius: 0.5rem;
+}
+
 .reservationSummaryCard .sapMPanelContent {
     padding: 1rem;
 }
 
+.costHistoryPanel .sapMPanelContent {
+    padding: 0.75rem 1rem 1rem;
+}
+
+.costHistoryChartBox {
+    gap: 0.5rem;
+}
+
+.reservationSummaryInline {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
 .reservationSummary {
     gap: 1rem;
+}
+
+.costHistoryChart {
+    display: block;
+    width: 100%;
+    height: 18rem;
+}
+
+.historyBackground {
+    fill: #fff;
+}
+
+.historyGrid {
+    stroke: #e2e8ee;
+    stroke-width: 1;
+}
+
+.historyYearGrid {
+    stroke: #edf2f7;
+    stroke-width: 1;
+}
+
+.historyLine {
+    fill: none;
+    stroke: #0a6ed1;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.historyDot {
+    fill: #fff;
+    stroke: #0a6ed1;
+    stroke-width: 2;
+}
+
+.historyAxisLabel,
+.historyYAxisLabel,
+.historyCurrency {
+    fill: #5b6b7f;
+    font-size: 0.8125rem;
+}
+
+.historyAxisLabel {
+    text-anchor: middle;
+}
+
+.historyYAxisLabel {
+    text-anchor: end;
+}
+
+.historyCurrency {
+    text-anchor: end;
+    font-weight: 600;
+}
+
+.costHistoryEmpty {
+    min-height: 10rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5b6b7f;
+    font-weight: 600;
 }
 
 .reservationDeletedRow {
@@ -267,8 +465,14 @@
         width: 100%;
     }
 
+    .breakdownGrid {
+        display: flex !important;
+        flex-direction: column;
+    }
+
     .breakdownPanel {
-        min-width: 100%;
+        min-width: 0;
+        width: 100%;
     }
 
     .costBreakdownContainer {

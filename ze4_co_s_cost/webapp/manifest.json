@@ -54,6 +54,9 @@
   },
   "sap.ui5": {
     "flexEnabled": false,
+    "config": {
+      "fullWidth": true
+    },
     "dependencies": {
       "minUI5Version": "1.120.23",
       "libs": {
@@ -76,9 +79,11 @@
         "settings": {
           "bundleName": "ze4.co.s.cost.ze4coscost.i18n.i18n",
           "supportedLocales": [
+            "ko",
+            "en",
             ""
           ],
-          "fallbackLocale": ""
+          "fallbackLocale": "ko"
         }
       },
       "": {
@@ -116,7 +121,7 @@
         },
         {
           "name": "RouteStandardCostDetail",
-          "pattern": "detail/{matnr}/{gjahr}/{monat}/{kostl}",
+          "pattern": "detail/{matnr}/{gjahr}/{monat}/{mtopt}",
           "target": [
             "TargetStandardCostDetail"
           ]
