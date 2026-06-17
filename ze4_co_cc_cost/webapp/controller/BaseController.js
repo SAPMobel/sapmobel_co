@@ -1,0 +1,435 @@
+sap.ui.define([
+    "sap/ui/core/mvc/Controller",
+    "sap/ui/model/json/JSONModel",
+    "sap/m/MessageBox",
+    "ZE4_CC_COST/model/formatter",
+    "ZE4_CC_COST/model/CostDataService"
+], function (Controller, JSONModel, MessageBox, formatter, CostDataService) {
+    "use strict";
+
+    return Controller.extend("ZE4_CC_COST.controller.BaseController", {
+        formatter: formatter,
+        service: CostDataService,
+
+        getRouter: function () {
+            return this.getOwnerComponent().getRouter();
+        },
+
+        getAppStateModel: function () {
+            return this.getOwnerComponent().getModel("appState");
+        },
+
+        createViewModel: function (oInitialState) {
+            return new JSONModel(Object.assign({
+                busy: false,
+                warningVisible: false,
+                warningText: "",
+                filterVisible: true,
+                filterToggleText: "필터 숨기기",
+                filterStates: {
+                    gjahrState: "None",
+                    gjahrStateText: "",
+                    periodState: "None",
+                    periodStateText: ""
+                },
+                filters: this.createDefaultFilters(),
+                periodOptions: this.service.MONTHS.map(function (sMonth) {
+                    return {
+                        key: sMonth,
+                        text: sMonth + "월"
+                    };
+                }),
+                orgOptions: [],
+                selectedOrg: {
+                    childId: "",
+                    nodeText: "",
+                    descendantIds: []
+                },
+                headerInfo: this.createHeaderInfo(this.createDefaultFilters())
+            }, oInitialState || {}));
+        },
+
+        createDefaultFilters: function () {
+            var oToday = new Date();
+
+            return {
+                bukrs: "0001",
+                gjahr: String(oToday.getFullYear()),
+                period: this.service.normalizeMonth(String(oToday.getMonth() + 1)),
+                orgNodeId: "",
+                orgNodeText: "",
+                waers: this.service.CURRENCY,
+                budgetVersion: this.service.BUDGET_VERSION
+            };
+        },
+
+        syncDefaultFilters: function (sModelName) {
+            return this.service.init().then(function () {
+                return this.service.defaultFilters();
+            }.bind(this)).then(function (oFilters) {
+                var oModel = this.getView().getModel(sModelName);
+                var oAppModel = this.getAppStateModel();
+                var oCurrentFilters = oAppModel.getProperty("/filters") || {};
+                var oMergedFilters = Object.assign({}, oFilters, {
+                    orgNodeId: oCurrentFilters.orgNodeId || "",
+                    orgNodeText: oCurrentFilters.orgNodeText || ""
+                });
+
+                oAppModel.setProperty("/filters", oMergedFilters);
+                oModel.setProperty("/filters", oMergedFilters);
+                oModel.setProperty("/headerInfo", this.createHeaderInfo(oMergedFilters));
+
+                return oMergedFilters;
+            }.bind(this));
+        },
+
+        createHeaderInfo: function (oFilters) {
+            return {
+                companyCodeText: "0001",
+                currencyText: this.service.CURRENCY,
+                asOfDateText: this.formatToday(),
+                periodText: (oFilters && oFilters.gjahr || "") + "." + (oFilters && oFilters.period || "")
+            };
+        },
+
+        formatToday: function () {
+            var oToday = new Date();
+
+            return oToday.getFullYear() + "." + String(oToday.getMonth() + 1).padStart(2, "0") + "." + String(oToday.getDate()).padStart(2, "0");
+        },
+
+        normalizeFilters: function (oFilters) {
+            return {
+                bukrs: "0001",
+                gjahr: this.service.clean(oFilters && oFilters.gjahr),
+                period: this.service.normalizeMonth(oFilters && oFilters.period),
+                orgNodeId: this.service.normalizeNodeId(oFilters && oFilters.orgNodeId),
+                orgNodeText: this.service.clean(oFilters && oFilters.orgNodeText),
+                waers: this.service.CURRENCY,
+                budgetVersion: this.service.BUDGET_VERSION
+            };
+        },
+
+        validateFilters: function (sModelName) {
+            var oModel = this.getView().getModel(sModelName);
+            var oFilters = this.normalizeFilters(oModel.getProperty("/filters") || {});
+            var bValid = true;
+            var oStates = {
+                gjahrState: "None",
+                gjahrStateText: "",
+                periodState: "None",
+                periodStateText: ""
+            };
+
+            if (!oFilters.gjahr) {
+                bValid = false;
+                oStates.gjahrState = "Error";
+                oStates.gjahrStateText = "회계연도는 필수입니다.";
+            }
+
+            if (!oFilters.period) {
+                bValid = false;
+                oStates.periodState = "Error";
+                oStates.periodStateText = "기간은 필수입니다.";
+            }
+
+            oModel.setProperty("/filters", oFilters);
+            oModel.setProperty("/filterStates", oStates);
+
+            if (!bValid) {
+                MessageBox.error("회계연도와 기간은 필수입니다.");
+                return null;
+            }
+
+            this.getAppStateModel().setProperty("/filters", oFilters);
+            oModel.setProperty("/headerInfo", this.createHeaderInfo(oFilters));
+
+            return oFilters;
+        },
+
+        setHierarchyOptions: function (sModelName, aHierarchyRows, sSelectedOrgId) {
+            var oModel = this.getView().getModel(sModelName);
+            var aOptions = this.service.buildHierarchyOptions(aHierarchyRows);
+            var aTreeOptions = this.service.buildHierarchyOptionTree(aHierarchyRows);
+            var oSelectedOrg = this.service.getOrgSelection(sSelectedOrgId || oModel.getProperty("/filters/orgNodeId"), aHierarchyRows);
+
+            oModel.setProperty("/orgOptions", aOptions);
+            oModel.setProperty("/orgOptionTreeAllRows", aTreeOptions);
+            oModel.setProperty("/orgOptionTreeRows", aTreeOptions);
+            oModel.setProperty("/selectedOrg", oSelectedOrg);
+            oModel.setProperty("/filters/orgNodeId", oSelectedOrg.childId || "");
+            oModel.setProperty("/filters/orgNodeText", oSelectedOrg.nodeText || "");
+            this.getAppStateModel().setProperty("/selectedOrg", oSelectedOrg);
+
+            return oSelectedOrg;
+        },
+
+        onToggleFilter: function (oEvent) {
+            var sModelName = this.getModelName();
+            var oModel = this.getView().getModel(sModelName);
+            var bVisible = !!oModel.getProperty("/filterVisible");
+
+            oModel.setProperty("/filterVisible", !bVisible);
+            oModel.setProperty("/filterToggleText", bVisible ? "필터 보이기" : "필터 숨기기");
+        },
+
+        onOpenOrgValueHelp: function () {
+            var oDialog = this.byId("orgValueHelpDialog");
+            var oTreeTable = this.byId("orgValueHelpTree");
+            var oModel = this.getView().getModel(this.getModelName());
+
+            if (oDialog) {
+                oModel.setProperty("/orgOptionTreeRows", oModel.getProperty("/orgOptionTreeAllRows") || []);
+                oDialog.open();
+
+                if (oTreeTable && oTreeTable.expandToLevel) {
+                    oTreeTable.clearSelection();
+                    oTreeTable.expandToLevel(3);
+                }
+            }
+        },
+
+        onOrgValueHelpSearch: function (oEvent) {
+            var sValue = oEvent.getParameter("newValue") || oEvent.getParameter("query") || oEvent.getParameter("value") || "";
+            var oModel = this.getView().getModel(this.getModelName());
+            var aTreeRows = oModel.getProperty("/orgOptionTreeAllRows") || [];
+            var aFilteredRows = this.service.filterHierarchyTree(aTreeRows, sValue);
+            var oTreeTable = this.byId("orgValueHelpTree");
+
+            oModel.setProperty("/orgOptionTreeRows", aFilteredRows);
+
+            if (oTreeTable && oTreeTable.expandToLevel) {
+                oTreeTable.clearSelection();
+                oTreeTable.expandToLevel(sValue ? 9 : 3);
+            }
+        },
+
+        onOrgValueHelpConfirm: function (oEvent) {
+            var oSelectedItem = oEvent.getParameter("selectedItem");
+            var oTreeTable = this.byId("orgValueHelpTree");
+            var iSelectedIndex = oTreeTable && oTreeTable.getSelectedIndex && oTreeTable.getSelectedIndex();
+            var oContext = oSelectedItem && oSelectedItem.getBindingContext(this.getModelName());
+            var oOption = oContext && oContext.getObject();
+            var oModel = this.getView().getModel(this.getModelName());
+            var oDialog = this.byId("orgValueHelpDialog");
+
+            if (!oOption && oTreeTable && iSelectedIndex > -1) {
+                oContext = oTreeTable.getContextByIndex(iSelectedIndex);
+                oOption = oContext && oContext.getObject();
+            }
+
+            if (!oOption) {
+                return;
+            }
+
+            oModel.setProperty("/selectedOrg", oOption);
+            oModel.setProperty("/filters/orgNodeId", oOption.childId);
+            oModel.setProperty("/filters/orgNodeText", oOption.nodeText);
+            this.getAppStateModel().setProperty("/selectedOrg", oOption);
+            this.getAppStateModel().setProperty("/filters/orgNodeId", oOption.childId);
+            this.getAppStateModel().setProperty("/filters/orgNodeText", oOption.nodeText);
+            if (oDialog) {
+                oDialog.close();
+            }
+            this.onSearch();
+        },
+
+        onOrgValueHelpCancel: function () {
+            var oDialog = this.byId("orgValueHelpDialog");
+
+            if (oDialog) {
+                oDialog.close();
+            }
+        },
+
+        onClearOrgSelection: function () {
+            var oModel = this.getView().getModel(this.getModelName());
+
+            oModel.setProperty("/selectedOrg", {
+                childId: "",
+                nodeText: "",
+                descendantIds: []
+            });
+            oModel.setProperty("/filters/orgNodeId", "");
+            oModel.setProperty("/filters/orgNodeText", "");
+            this.getAppStateModel().setProperty("/selectedOrg", {
+                childId: "",
+                nodeText: "",
+                descendantIds: []
+            });
+            this.getAppStateModel().setProperty("/filters/orgNodeId", "");
+            this.getAppStateModel().setProperty("/filters/orgNodeText", "");
+            this.onSearch();
+        },
+
+        onResetFilters: function () {
+            var sModelName = this.getModelName();
+            var oModel = this.getView().getModel(sModelName);
+            var oDefaults = this.getAppStateModel().getProperty("/defaults") || this.createDefaultFilters();
+            var oFilters = Object.assign({}, oDefaults, {
+                orgNodeId: "",
+                orgNodeText: "",
+                waers: this.service.CURRENCY,
+                budgetVersion: this.service.BUDGET_VERSION
+            });
+
+            oModel.setProperty("/filters", oFilters);
+            oModel.setProperty("/selectedOrg", {
+                childId: "",
+                nodeText: "",
+                descendantIds: []
+            });
+            this.getAppStateModel().setProperty("/filters", oFilters);
+            this.getAppStateModel().setProperty("/selectedOrg", {
+                childId: "",
+                nodeText: "",
+                descendantIds: []
+            });
+            this.onSearch();
+        },
+
+        setWarning: function (sModelName, sText) {
+            var oModel = this.getView().getModel(sModelName);
+
+            oModel.setProperty("/warningVisible", !!sText);
+            oModel.setProperty("/warningText", sText || "");
+        },
+
+        createKpi: function (sTitle, sValue, sSubText, sState, sIcon) {
+            return {
+                title: sTitle,
+                valueText: sValue,
+                subText: sSubText,
+                state: sState || "None",
+                icon: sIcon || "sap-icon://business-card"
+            };
+        },
+
+        extractVizDataValue: function (oEvent, sDimensionName) {
+            var aSelectedData = oEvent && oEvent.getParameter("data") || [];
+            var vData = aSelectedData[0] && aSelectedData[0].data;
+            var oMatchedData;
+
+            if (!vData) {
+                return "";
+            }
+
+            if (Array.isArray(vData)) {
+                oMatchedData = vData.find(function (oData) {
+                    return oData && (oData.name === sDimensionName || oData.Name === sDimensionName);
+                });
+
+                return this.service.clean(oMatchedData && (oMatchedData.value || oMatchedData.Value));
+            }
+
+            return this.service.clean(vData[sDimensionName]);
+        },
+
+        decorateMonthlyTrendRows: function (aTrendRows, aDocumentRows, oFilters) {
+            var mDocumentCounts = this.service.documentCountsByMonth(aDocumentRows);
+
+            return (aTrendRows || []).map(function (oRow, iIndex, aRows) {
+                var fPreviousAmount = iIndex > 0 ? Number(aRows[iIndex - 1].actualAmount || 0) : null;
+                var fMomAmount = fPreviousAmount === null ? null : Number(oRow.actualAmount || 0) - fPreviousAmount;
+
+                return Object.assign({}, oRow, {
+                    periodText: (oFilters && oFilters.gjahr || "") + "." + oRow.month,
+                    momAmount: fMomAmount,
+                    documentCount: mDocumentCounts[oRow.month] || 0,
+                    selected: false
+                });
+            });
+        },
+
+        decorateAccountCompositionRows: function (aCompositionRows, aDocumentRows) {
+            var mDocumentCounts = this.service.documentCountsByField(aDocumentRows, "Saknr");
+
+            return (aCompositionRows || []).map(function (oRow) {
+                var aSaknrs = oRow.includedSaknrs || [oRow.saknr];
+                var iDocumentCount = aSaknrs.reduce(function (iTotal, sSaknr) {
+                    return iTotal + (mDocumentCounts[sSaknr] || 0);
+                }, 0);
+
+                return Object.assign({}, oRow, {
+                    documentCount: iDocumentCount,
+                    selected: false
+                });
+            });
+        },
+
+        buildSelectedMonthSummary: function (sMonthText, aTrendRows) {
+            var oRow = (aTrendRows || []).find(function (oCandidate) {
+                return oCandidate.monthText === sMonthText || oCandidate.month === this.service.normalizeMonth(sMonthText);
+            }.bind(this));
+
+            if (!oRow) {
+                return null;
+            }
+
+            return {
+                month: oRow.month,
+                monthText: oRow.periodText || oRow.monthText,
+                actualAmount: oRow.actualAmount,
+                budgetAmount: oRow.budgetAmount,
+                momAmount: oRow.momAmount,
+                documentCount: oRow.documentCount || 0
+            };
+        },
+
+        buildSelectedAccountSummary: function (sAccountText, aCompositionRows) {
+            var oRow = (aCompositionRows || []).find(function (oCandidate) {
+                return oCandidate.accountLabel === sAccountText || oCandidate.accountName === sAccountText;
+            });
+
+            if (!oRow) {
+                return null;
+            }
+
+            return {
+                saknr: oRow.saknr,
+                saknrTxt: oRow.accountName,
+                accountLabel: oRow.accountLabel || oRow.accountName,
+                amount: oRow.amount,
+                ratio: oRow.ratio,
+                ratioText: oRow.ratioText,
+                documentCount: oRow.documentCount || 0
+            };
+        },
+
+        markSelectedByProperty: function (aRows, sPropertyName, sSelectedValue) {
+            return (aRows || []).map(function (oRow) {
+                return Object.assign({}, oRow, {
+                    selected: oRow[sPropertyName] === sSelectedValue
+                });
+            });
+        },
+
+        navToDashboard: function () {
+            this.getRouter().navTo("dashboard");
+        },
+
+        navToDepartment: function (sOrgId) {
+            this.getRouter().navTo("departmentDetail", {
+                orgId: encodeURIComponent(sOrgId || "ALL")
+            });
+        },
+
+        navToDocuments: function (sOrgId, sSaknr) {
+            if (sSaknr) {
+                this.getRouter().navTo("documentDetailWithAccount", {
+                    kostl: encodeURIComponent(sOrgId || "ALL"),
+                    saknr: encodeURIComponent(sSaknr)
+                });
+                return;
+            }
+
+            this.getRouter().navTo("documentDetail", {
+                kostl: encodeURIComponent(sOrgId || "ALL")
+            });
+        },
+
+        getModelName: function () {
+            return "";
+        }
+    });
+});

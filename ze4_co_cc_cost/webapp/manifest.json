@@ -1,0 +1,177 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ZE4_CC_COST",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.3",
+      "toolsId": "0f21b2d6-3516-4a8d-a17e-0042875049d6"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0023_CDS/",
+        "type": "OData",
+        "settings": {
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "hierarchyService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0024_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "budgetService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0025_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "documentService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0026_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "ZCDS_E4_CO_0023_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E4_CO_0023_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E4_CO_0023_CDS_VAN.xml"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "config": {
+      "fullWidth": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.f": {},
+        "sap.uxap": {},
+        "sap.ui.core": {},
+        "sap.ui.comp": {},
+        "sap.ui.table": {},
+        "sap.viz": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ZE4_CC_COST.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ],
+          "fallbackLocale": ""
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ZE4_CC_COST.view",
+        "async": true,
+        "viewPath": "ZE4_CC_COST.view"
+      },
+      "routes": [
+        {
+          "name": "dashboard",
+          "pattern": "",
+          "target": [
+            "Dashboard"
+          ]
+        },
+        {
+          "name": "departmentDetail",
+          "pattern": "department/{orgId}",
+          "target": [
+            "DepartmentDetail"
+          ]
+        },
+        {
+          "name": "documentDetail",
+          "pattern": "documents/{kostl}",
+          "target": [
+            "DocumentDetail"
+          ]
+        },
+        {
+          "name": "documentDetailWithAccount",
+          "pattern": "documents/{kostl}/{saknr}",
+          "target": [
+            "DocumentDetail"
+          ]
+        }
+      ],
+      "targets": {
+        "Dashboard": {
+          "id": "Dashboard",
+          "name": "Dashboard"
+        },
+        "DepartmentDetail": {
+          "id": "DepartmentDetail",
+          "name": "DepartmentDetail"
+        },
+        "DocumentDetail": {
+          "id": "DocumentDetail",
+          "name": "DocumentDetail"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ZE4_CC_COST.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}
