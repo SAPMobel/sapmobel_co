@@ -2,6 +2,6 @@
     displayBlock="true"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m">
-    <App id="app">
+    <App id="app" class="ze4DashboardShell ze4ShellBody">
     </App>
 </mvc:View>

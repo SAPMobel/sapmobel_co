@@ -1,0 +1,7 @@
+<mvc:View controllerName="ze4.co.pa.ze4copa.controller.App"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <App id="app">
+    </App>
+</mvc:View>

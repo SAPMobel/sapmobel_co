@@ -1,0 +1,179 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze4.co.pa.ze4copa",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.3",
+      "toolsId": "85ce965b-89c9-42b4-b69b-a29016a9bfc3"
+    },
+    "dataSources": {
+      "ZCDS_E4_CO_0041_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E4_CO_0041_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E4_CO_0041_CDS_VAN.xml"
+        }
+      },
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0041_CDS/",
+        "type": "OData",
+        "settings": {
+          "annotations": [
+            "ZCDS_E4_CO_0041_CDS_VAN"
+          ],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "actualPlanService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0043_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "journalService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0044_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "config": {
+      "fullWidth": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.f": {},
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.layout": {},
+        "sap.viz": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze4.co.pa.ze4copa.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ],
+          "fallbackLocale": ""
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      },
+      "actualPlan": {
+        "dataSource": "actualPlanService",
+        "preload": false,
+        "settings": {}
+      },
+      "journal": {
+        "dataSource": "journalService",
+        "preload": false,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze4.co.pa.ze4copa.view",
+        "async": true,
+        "viewPath": "ze4.co.pa.ze4copa.view"
+      },
+      "routes": [
+        {
+          "name": "RouteProfitabilityCockpit",
+          "pattern": ":?query:",
+          "target": [
+            "TargetProfitabilityCockpit"
+          ]
+        },
+        {
+          "name": "RouteProductProfitability",
+          "pattern": "product",
+          "target": [
+            "TargetProductProfitability"
+          ]
+        },
+        {
+          "name": "RouteActualPlanProfitability",
+          "pattern": "actual-plan",
+          "target": [
+            "TargetActualPlanProfitability"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetProfitabilityCockpit": {
+          "id": "ProfitabilityCockpit",
+          "name": "ProfitabilityCockpit"
+        },
+        "TargetProductProfitability": {
+          "id": "ProductProfitability",
+          "name": "ProductProfitability"
+        },
+        "TargetActualPlanProfitability": {
+          "id": "ActualPlanProfitability",
+          "name": "ActualPlanProfitability"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze4.co.pa.ze4copa.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

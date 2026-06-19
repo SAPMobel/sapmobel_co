@@ -1,0 +1,239 @@
+<mvc:View
+    controllerName="ZE4_CC_COST.controller.AllocationFlowOverview"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:t="sap.ui.table">
+    <Page
+        class="ze4DynamicPage ze4AllocationFlowPage sapUiSizeCompact"
+        showHeader="false"
+        enableScrolling="true"
+        busy="{flow0>/busy}"
+        busyIndicatorDelay="0">
+        <content>
+            <VBox class="ze4PageContent ze4AllocationFlowContent">
+                <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
+                    <Title text="{flow0>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                    <ToolbarSpacer />
+                    <HBox class="ze4PageActions" alignItems="Center">
+                        <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
+                        <Button text="배부 분석" icon="sap-icon://process" type="Emphasized" press=".onGoAllocationFlowOverview" />
+                        <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                    </HBox>
+                </HBox>
+
+                <VBox class="ze4AllocationFilterBar">
+                    <HBox class="ze4FilterHeader" alignItems="Center">
+                        <Title text="조회 조건" level="H3" />
+                        <ToolbarSpacer />
+                        <Button text="{flow0>/filterToggleText}" type="Transparent" press=".onToggleFilter" />
+                    </HBox>
+                    <FlexBox class="ze4FilterFields" visible="{flow0>/filterVisible}" wrap="Wrap" alignItems="End">
+                        <VBox class="ze4FilterField">
+                            <Label text="회사코드" required="true" />
+                            <Input value="0001 (EverNiture CO., LTD.)" editable="false" enabled="false" width="13rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="회계연도" required="true" />
+                            <Input
+                                value="{flow0>/filters/gjahr}"
+                                valueState="{flow0>/filterStates/gjahrState}"
+                                valueStateText="{flow0>/filterStates/gjahrStateText}"
+                                maxLength="4"
+                                width="8rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="기간" required="true" />
+                            <Select
+                                selectedKey="{flow0>/filters/period}"
+                                valueState="{flow0>/filterStates/periodState}"
+                                valueStateText="{flow0>/filterStates/periodStateText}"
+                                items="{flow0>/periodOptions}"
+                                width="8rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="배부사이클" />
+                            <Select
+                                selectedKey="{flow0>/filters/cycle}"
+                                items="{flow0>/cycleOptions}"
+                                width="17rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="송신 CCG" />
+                            <Select selectedKey="{flow0>/filters/senderCcgId}" items="{flow0>/senderCcgOptions}" width="14rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="수신 CCG" />
+                            <Select selectedKey="{flow0>/filters/receiverCcgId}" items="{flow0>/receiverCcgOptions}" width="14rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="배부기준/SKF" />
+                            <Select selectedKey="{flow0>/filters/skfId}" items="{flow0>/skfOptions}" width="14rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="CCG 기준" />
+                            <Select selectedKey="{flow0>/filters/groupBasis}" items="{flow0>/groupBasisOptions}" width="12rem">
+                                <core:Item key="{flow0>key}" text="{flow0>text}" />
+                            </Select>
+                        </VBox>
+                        <Button class="ze4SearchButton" text="조회" icon="sap-icon://search" type="Emphasized" press=".onSearch" />
+                        <Button text="초기화" type="Transparent" press=".onResetFilters" />
+                    </FlexBox>
+                    <MessageStrip
+                        class="ze4MessageStrip"
+                        visible="{flow0>/warningVisible}"
+                        text="{flow0>/warningText}"
+                        type="Warning"
+                        showIcon="true" />
+                </VBox>
+
+                <FlexBox class="ze4AllocationKpiGrid" wrap="Wrap" items="{flow0>/kpis}">
+                    <VBox class="ze4KpiCard ze4AllocationKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="{flow0>icon}" class="ze4KpiIcon" color="{flow0>iconColor}" backgroundColor="{flow0>iconBackground}" />
+                            <VBox class="ze4KpiText">
+                                <Text class="ze4KpiTitle" text="{flow0>title}" />
+                                <ObjectStatus class="ze4KpiValueStatus" text="{flow0>valueText}" state="{flow0>valueState}" tooltip="{flow0>valueText}" />
+                            </VBox>
+                        </HBox>
+                        <ObjectStatus class="ze4KpiSub" text="{flow0>subText}" state="{flow0>state}" visible="{= !!${flow0>subText} }" />
+                    </VBox>
+                </FlexBox>
+
+                <VBox class="ze4Card ze4AllocationSankeyCard">
+                    <HBox class="ze4CardHeader" alignItems="Center">
+                        <Title text="CCG 그룹 배부 흐름도" level="H3" />
+                        <ToolbarSpacer />
+                        <Text class="ze4CardUnit" text="금액 단위: KRW" />
+                    </HBox>
+                    <HBox class="ze4AllocationCycleLegend" visible="{flow0>/hasFlowData}" wrap="Wrap" items="{flow0>/cycleLegend}">
+                        <HBox class="ze4AllocationLegendItem" alignItems="Center">
+                            <core:Icon src="sap-icon://circle-task-2" color="{flow0>color}" />
+                            <Text text="{flow0>text}" wrapping="false" tooltip="{flow0>text}" />
+                        </HBox>
+                    </HBox>
+                    <ScrollContainer
+                        horizontal="true"
+                        vertical="true"
+                        focusable="false"
+                        class="ze4SankeyScroll">
+                        <core:HTML content="{flow0>/sankeyHtml}" sanitizeContent="false" />
+                    </ScrollContainer>
+                    <VBox class="ze4ChartEmptyState" visible="{= !${flow0>/hasFlowData} }">
+                        <Text text="조회 조건에 해당하는 배부 데이터가 없습니다." />
+                    </VBox>
+                </VBox>
+
+                <HBox class="ze4AllocationLowerGrid">
+                    <VBox class="ze4Card ze4AllocationSelectedPanel">
+                        <HBox class="ze4CardHeader" alignItems="Center" width="100%">
+                            <Title text="선택 흐름 요약" level="H3" />
+                        </HBox>
+                        <HBox class="ze4SelectedFlowPath" alignItems="Center" wrap="Wrap">
+                            <ObjectIdentifier title="송신 CCG" text="{flow0>/selectedFlow/senderText}" />
+                            <core:Icon src="sap-icon://navigation-right-arrow" />
+                            <ObjectStatus text="{flow0>/selectedFlow/cycleText}" state="Information" />
+                            <core:Icon src="sap-icon://navigation-right-arrow" />
+                            <ObjectIdentifier title="수신 CCG" text="{flow0>/selectedFlow/receiverText}" />
+                        </HBox>
+                        <HBox class="ze4SelectedFlowFacts" wrap="Wrap">
+                            <VBox>
+                                <Text class="ze4SubText" text="배부 금액" />
+                                <Text class="ze4SelectedFlowValue" text="{flow0>/selectedFlow/amountText}" />
+                            </VBox>
+                            <VBox>
+                                <Text class="ze4SubText" text="전표 건수" />
+                                <Text class="ze4SelectedFlowValue" text="{flow0>/selectedFlow/totalDocumentCountText}" />
+                            </VBox>
+                        </HBox>
+                        <HBox class="ze4SelectedFlowDetails" wrap="Wrap">
+                            <VBox class="ze4SelectedFlowDetailItem">
+                                <Text class="ze4SubText" text="흐름 성격" />
+                                <ObjectStatus text="{flow0>/selectedFlow/directionText}" state="Information" />
+                            </VBox>
+                            <VBox class="ze4SelectedFlowDetailItem">
+                                <Text class="ze4SubText" text="조회 기준" />
+                                <Text class="ze4SelectedFlowMeta" text="{flow0>/selectedFlow/scopeText}" />
+                            </VBox>
+                            <VBox class="ze4SelectedFlowDetailItem">
+                                <Text class="ze4SubText" text="CCG 기준" />
+                                <Text class="ze4SelectedFlowMeta" text="{flow0>/selectedFlow/groupBasisText}" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <VBox class="ze4Card ze4TableCard ze4AllocationGroupSummaryCard">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="CCG 그룹 요약" level="H3" />
+                            <ToolbarSpacer />
+                            <Text class="ze4CardUnit" text="단위: KRW" />
+                        </HBox>
+                        <t:Table
+                            rows="{flow0>/groupSummaryRows}"
+                            selectionMode="None"
+                            visibleRowCount="{flow0>/groupSummaryVisibleRowCount}"
+                            width="100%"
+                            noData="조회 조건에 해당하는 배부 데이터가 없습니다."
+                            class="ze4GridTable ze4Table ze4AllocationDetailTable">
+                            <t:columns>
+                                <t:Column width="15rem"><Label text="CCG 그룹" /><t:template><Text text="{flow0>ccgText}" wrapping="false" tooltip="{flow0>ccgText}" class="ze4NoWrapText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="송신 금액" /><t:template><Text text="{path: 'flow0>sentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="수신 금액" /><t:template><Text text="{path: 'flow0>receivedAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="순 배부 금액" /><t:template><Text text="{path: 'flow0>netAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="8rem" hAlign="End"><Label text="전표 건수" /><t:template><Text text="{flow0>documentCountText}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                            </t:columns>
+                        </t:Table>
+                    </VBox>
+
+                    <VBox class="ze4Card ze4AllocationHelpPanel">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="안내 및 도움말" level="H3" />
+                        </HBox>
+                        <MessageStrip text="흐름도에서 CCG 그룹 또는 연결선을 클릭하면 하단 선택 흐름 요약과 CCG 그룹 요약이 갱신됩니다." type="Information" showIcon="true" />
+                        <VBox class="ze4HelpList">
+                            <HBox class="ze4HelpItem" alignItems="Start">
+                                <core:Icon src="sap-icon://process" class="ze4HelpIcon" />
+                                <VBox class="ze4HelpTextBlock">
+                                    <Text text="흐름 읽기" class="ze4HelpTitle" />
+                                    <Text text="왼쪽은 송신 CCG, 가운데는 배부사이클, 오른쪽은 수신 CCG입니다." class="ze4HelpText" wrapping="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox class="ze4HelpItem" alignItems="Start">
+                                <core:Icon src="sap-icon://money-bills" class="ze4HelpIcon" />
+                                <VBox class="ze4HelpTextBlock">
+                                    <Text text="금액 기준" class="ze4HelpTitle" />
+                                    <Text text="선 굵기는 배부금액 비중을 나타내며, 금액은 KRW 기준입니다." class="ze4HelpText" wrapping="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox class="ze4HelpItem" alignItems="Start">
+                                <core:Icon src="sap-icon://detail-view" class="ze4HelpIcon" />
+                                <VBox class="ze4HelpTextBlock">
+                                    <Text text="내부 흐름 보기" class="ze4HelpTitle" />
+                                    <Text text="선택한 수신 CCG 기준으로 외부 유입과 내부 재배부 흐름을 분해합니다." class="ze4HelpText" wrapping="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox class="ze4HelpItem" alignItems="Start">
+                                <core:Icon src="sap-icon://table-view" class="ze4HelpIcon" />
+                                <VBox class="ze4HelpTextBlock">
+                                    <Text text="요약 활용" class="ze4HelpTitle" />
+                                    <Text text="하단 표에서 송신 금액, 수신 금액, 순 배부 금액, 전표 건수를 비교합니다." class="ze4HelpText" wrapping="true" />
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

@@ -45,6 +45,20 @@
           "odataVersion": "2.0"
         }
       },
+      "allocationRuleService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0031_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "allocationResultService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0032_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
       "ZCDS_E4_CO_0023_CDS_VAN": {
         "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E4_CO_0023_CDS_VAN',Version='0001')/$value/",
         "type": "ODataAnnotation",
@@ -84,6 +98,7 @@
         "sap.ui.core": {},
         "sap.ui.comp": {},
         "sap.ui.table": {},
+        "sap.suite.ui.commons": {},
         "sap.viz": {}
       }
     },
@@ -150,6 +165,55 @@
           "target": [
             "DocumentDetail"
           ]
+        },
+        {
+          "name": "allocationAnalysis",
+          "pattern": "allocation",
+          "target": [
+            "AllocationAnalysis"
+          ]
+        },
+        {
+          "name": "allocationDetail",
+          "pattern": "allocation/detail/{selection}",
+          "target": [
+            "AllocationAnalysis"
+          ]
+        },
+        {
+          "name": "allocationMap",
+          "pattern": "allocation-map/{gjahr}/{period}",
+          "target": [
+            "AllocationMap"
+          ]
+        },
+        {
+          "name": "allocationFlowOverview",
+          "pattern": "allocation-flow",
+          "target": [
+            "AllocationFlowOverview"
+          ]
+        },
+        {
+          "name": "allocationFlowLanding",
+          "pattern": "allocation-flow/landing/{context}",
+          "target": [
+            "AllocationFlowLanding"
+          ]
+        },
+        {
+          "name": "allocationFlowDetail",
+          "pattern": "allocation-flow/detail/{context}",
+          "target": [
+            "AllocationFlowDetail"
+          ]
+        },
+        {
+          "name": "orgExplorer",
+          "pattern": "org",
+          "target": [
+            "OrgExplorer"
+          ]
         }
       ],
       "targets": {
@@ -164,6 +228,30 @@
         "DocumentDetail": {
           "id": "DocumentDetail",
           "name": "DocumentDetail"
+        },
+        "AllocationAnalysis": {
+          "id": "AllocationAnalysis",
+          "name": "AllocationAnalysis"
+        },
+        "AllocationMap": {
+          "id": "AllocationMap",
+          "name": "AllocationMap"
+        },
+        "AllocationFlowOverview": {
+          "id": "AllocationFlowOverview",
+          "name": "AllocationFlowOverview"
+        },
+        "AllocationFlowLanding": {
+          "id": "AllocationFlowLanding",
+          "name": "AllocationFlowLanding"
+        },
+        "AllocationFlowDetail": {
+          "id": "AllocationFlowDetail",
+          "name": "AllocationFlowDetail"
+        },
+        "OrgExplorer": {
+          "id": "OrgExplorer",
+          "name": "OrgExplorer"
         }
       }
     },

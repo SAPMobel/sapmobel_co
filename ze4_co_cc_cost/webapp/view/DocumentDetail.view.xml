@@ -100,30 +100,23 @@
         </Dialog>
     </mvc:dependents>
 
-    <f:DynamicPage
+    <Page
         class="ze4DynamicPage sapUiSizeCompact"
-        fitContent="true"
+        showHeader="false"
+        enableScrolling="true"
         busy="{document>/busy}"
         busyIndicatorDelay="0">
-                <f:title>
-                    <f:DynamicPageTitle>
-                        <f:heading>
-                            <VBox>
-                                <HBox class="ze4Breadcrumb" alignItems="Center">
-                                    <Link text="홈" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Link text="부서별 비용분석" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Text text="전표 상세" />
-                                </HBox>
-                                <Title text="{document>/pageTitle}" level="H2" class="ze4PageTitle" />
-                            </VBox>
-                        </f:heading>
-                    </f:DynamicPageTitle>
-                </f:title>
-
-                <f:header>
-                    <f:DynamicPageHeader pinnable="false">
+                <content>
+                    <VBox class="ze4PageContent ze4DocumentContent">
+                        <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
+                            <Title text="{document>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                            <ToolbarSpacer />
+                            <HBox class="ze4PageActions" alignItems="Center">
+                                <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
+                                <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
+                                <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                            </HBox>
+                        </HBox>
                         <VBox class="ze4FilterBar">
                             <FlexBox class="ze4FilterFields" wrap="Wrap" alignItems="End">
                                 <VBox class="ze4FilterField">
@@ -161,28 +154,14 @@
                             </FlexBox>
                             <MessageStrip class="ze4MessageStrip" visible="{document>/warningVisible}" text="{document>/warningText}" type="Warning" showIcon="true" />
                         </VBox>
-                    </f:DynamicPageHeader>
-                </f:header>
-
-                <f:content>
-                    <VBox class="ze4PageContent">
-                        <VBox class="ze4Card ze4DocumentHeader">
-                            <HBox wrap="Wrap" class="ze4ObjectFacts">
-                                <ObjectAttribute title="조직/코스트센터" text="{document>/header/orgText}" />
-                                <ObjectAttribute title="코드" text="{document>/header/orgCode}" />
-                                <ObjectAttribute title="계정" text="{document>/header/account}" />
-                                <ObjectAttribute title="계정명" text="{document>/header/accountText}" />
-                                <ObjectAttribute title="조회기간" text="{document>/header/period}" />
-                                <ObjectAttribute title="라인건수" text="{document>/header/lineCountText}" />
-                            </HBox>
-                        </VBox>
 
                         <FlexBox class="ze4KpiGrid" wrap="Wrap" items="{document>/kpis}">
                             <VBox class="ze4KpiCard">
-                                <HBox alignItems="Start">
+                                <HBox alignItems="Center">
+                                    <core:Icon src="{document>icon}" class="ze4KpiIcon" color="{document>iconColor}" backgroundColor="{document>iconBackground}" />
                                     <VBox class="ze4KpiText">
                                         <Text class="ze4KpiTitle" text="{document>title}" />
-                                        <Text class="ze4KpiValue" text="{document>valueText}" />
+                                        <ObjectStatus class="ze4KpiValueStatus" text="{document>valueText}" state="{document>valueState}" />
                                     </VBox>
                                 </HBox>
                                 <ObjectStatus class="ze4KpiSub" text="{document>subText}" state="{document>state}" />
@@ -208,35 +187,21 @@
                                     enableColumnReordering="true"
                                     class="ze4GridTable ze4Table ze4DocumentTable">
                                     <t:columns>
-                                        <t:Column width="8rem"><Label text="전기일자" /><t:template><Text text="{path: 'document>Budat', formatter: '.formatter.date'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="전표번호" /><t:template><Text text="{document>Belnr}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="5rem"><Label text="라인" /><t:template><Text text="{document>Docln}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="6rem"><Label text="전표유형" /><t:template><Text text="{document>Blart}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="전표유형명" /><t:template><Text text="{document>BlartTxt}" wrapping="false" tooltip="{document>BlartTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="비용흐름" /><t:template><ObjectStatus text="{document>CostFlowTypeTxt}" state="{path: 'document>CostFlowTypeTxt', formatter: '.formatter.costFlowTypeState'}" /></t:template></t:Column>
-                                        <t:Column width="7rem"><Label text="차대변" /><t:template><Text text="{parts: [{path: 'document>Drcrk'}, {path: 'document>DrcrkTxt'}], formatter: '.formatter.drcrkText'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="8rem"><Label text="분석 코스트센터" /><t:template><Text text="{document>Kostl}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="분석 코스트센터명" /><t:template><Text text="{document>KostlTxt}" wrapping="false" tooltip="{document>KostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{document>Saknr}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="계정명" /><t:template><Text text="{document>SaknrTxt}" wrapping="false" tooltip="{document>SaknrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{document>KtoksTxt}" wrapping="false" tooltip="{document>KtoksTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="거래처" /><t:template><Text text="{document>Partner}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="거래처명" /><t:template><Text text="{document>PartnerName}" wrapping="false" tooltip="{document>PartnerName}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="16rem"><Label text="적요" /><t:template><Text text="{document>Sgtxt}" wrapping="false" tooltip="{document>Sgtxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="참조번호" /><t:template><Text text="{document>Xblnr}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="11rem" hAlign="End"><Label text="금액" /><t:template><Text text="{path: 'document>Amount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
-                                        <t:Column width="5rem"><Label text="통화" /><t:template><Text text="{document>Waers}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="송신 코스트센터" /><t:template><Text text="{path: 'document>SenderKostl', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="송신 코스트센터명" /><t:template><Text text="{path: 'document>SenderKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>SenderKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="10rem"><Label text="수신 코스트센터" /><t:template><Text text="{path: 'document>ReceiverKostl', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="13rem"><Label text="수신 코스트센터명" /><t:template><Text text="{path: 'document>ReceiverKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="수신 프로핏센터" /><t:template><Text text="{path: 'document>ReceiverPrctr', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="12rem"><Label text="수신 프로핏센터명" /><t:template><Text text="{path: 'document>ReceiverPrctrTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverPrctrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="구매오더" /><t:template><Text text="{document>Ebeln}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="자재문서" /><t:template><Text text="{document>Mblnr}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="SD문서" /><t:template><Text text="{document>Vbeln}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="9rem"><Label text="생산오더" /><t:template><Text text="{document>Aufnr}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="8rem"><Label text="상태" /><t:template><ObjectStatus text="{path: 'document>BstatTxt', formatter: '.formatter.empty'}" state="{path: 'document>BstatTxt', formatter: '.formatter.documentStatus'}" /></t:template></t:Column>
+                                        <t:Column width="7rem"><Label text="전기일자" /><t:template><Text text="{path: 'document>Budat', formatter: '.formatter.date'}" wrapping="false" /></t:template></t:Column>
+                                        <t:Column width="9rem"><Label text="전표번호" /><t:template><Text text="{document>Belnr}" wrapping="false" tooltip="{document>Belnr}" /></t:template></t:Column>
+                                        <t:Column width="5.5rem"><Label text="라인" /><t:template><Text text="{document>Docln}" wrapping="false" /></t:template></t:Column>
+                                        <t:Column width="8.5rem"><Label text="전표유형명" /><t:template><Text text="{document>BlartTxt}" wrapping="false" tooltip="{document>BlartTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="10rem"><Label text="비용 흐름 유형" /><t:template><ObjectStatus text="{parts: [{path: 'document>CostFlowType'}, {path: 'document>CostFlowTypeTxt'}, {path: 'document>Drcrk'}, {path: 'document>BlartTxt'}], formatter: '.formatter.documentFlowText'}" state="{parts: [{path: 'document>CostFlowType'}, {path: 'document>CostFlowTypeTxt'}, {path: 'document>Drcrk'}, {path: 'document>BlartTxt'}], formatter: '.formatter.documentFlowState'}" /></t:template></t:Column>
+                                        <t:Column width="5.5rem"><Label text="차대변" /><t:template><Text text="{parts: [{path: 'document>Drcrk'}, {path: 'document>DrcrkTxt'}], formatter: '.formatter.drcrkText'}" wrapping="false" /></t:template></t:Column>
+                                        <t:Column width="12rem"><Label text="분석 코스트센터명" /><t:template><Text text="{document>KostlTxt}" wrapping="false" tooltip="{document>KostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="10rem"><Label text="계정명" /><t:template><Text text="{document>SaknrTxt}" wrapping="false" tooltip="{document>SaknrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="12rem"><Label text="계정그룹" /><t:template><Text text="{document>KtoksTxt}" wrapping="false" tooltip="{document>KtoksTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="28rem"><Label text="적요" /><t:template><Text text="{document>Sgtxt}" wrapping="false" tooltip="{document>Sgtxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="10rem" hAlign="End"><Label text="금액" /><t:template><ObjectStatus text="{path: 'document>Amount', formatter: '.formatter.amount'}" state="{path: 'document>Amount', formatter: '.formatter.amountState'}" class="ze4DocumentAmountStatus" /></t:template></t:Column>
+                                        <t:Column width="4.5rem"><Label text="통화" /><t:template><Text text="{document>Waers}" wrapping="false" /></t:template></t:Column>
+                                        <t:Column width="11.5rem"><Label text="송신 코스트센터" /><t:template><Text text="{path: 'document>SenderKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>SenderKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="11.5rem"><Label text="수신 코스트센터" /><t:template><Text text="{path: 'document>ReceiverKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="11.5rem"><Label text="수신 프로핏센터" /><t:template><Text text="{path: 'document>ReceiverPrctrTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverPrctrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                     </t:columns>
                                 </t:Table>
                             </VBox>
@@ -267,10 +232,9 @@
                                     <Label text="수신 코스트센터명" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/ReceiverKostlTxt', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="수신 프로핏센터" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/ReceiverPrctr', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="수신 프로핏센터명" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/ReceiverPrctrTxt', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
-                                    <Label text="비용흐름유형" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/CostFlowTypeTxt', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
+                                    <Label text="비용 흐름 유형" class="ze4DetailLabel" /><Text text="{parts: [{path: 'document>/selectedDocument/CostFlowType'}, {path: 'document>/selectedDocument/CostFlowTypeTxt'}, {path: 'document>/selectedDocument/Drcrk'}, {path: 'document>/selectedDocument/BlartTxt'}], formatter: '.formatter.documentFlowText'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="차대변" class="ze4DetailLabel" /><Text text="{parts: [{path: 'document>/selectedDocument/Drcrk'}, {path: 'document>/selectedDocument/DrcrkTxt'}], formatter: '.formatter.drcrkText'}" class="ze4DetailValue" wrapping="true" />
-                                    <Label text="금액" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Amount', formatter: '.formatter.amountWithCurrency'}" class="ze4DetailValue ze4DetailAmount" wrapping="true" />
-                                    <Label text="통화" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Waers', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
+                                    <Label text="금액" class="ze4DetailLabel" /><ObjectStatus text="{path: 'document>/selectedDocument/Amount', formatter: '.formatter.amountWithCurrency'}" state="{path: 'document>/selectedDocument/Amount', formatter: '.formatter.amountState'}" class="ze4DetailValue ze4DocumentDetailAmountStatus" />
                                     <Label text="구매오더" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Ebeln', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="자재문서" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Mblnr', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="SD문서" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Vbeln', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
@@ -284,6 +248,6 @@
                             </VBox>
                         </HBox>
                     </VBox>
-                </f:content>
-    </f:DynamicPage>
+                </content>
+    </Page>
 </mvc:View>

@@ -1,10 +1,10 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller"
-], (BaseController) => {
-  "use strict";
+    "sap/ui/core/mvc/Controller"
+], function (Controller) {
+    "use strict";
 
-  return BaseController.extend("ZE4_CC_COST.controller.App", {
-      onInit() {
-      }
-  });
+    return Controller.extend("ZE4_CC_COST.controller.App", {
+        onInit: function () {
+        }
+    });
 });

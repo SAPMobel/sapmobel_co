@@ -49,6 +49,7 @@
                 <Panel class="appCard summaryPanel" width="100%" backgroundDesign="Solid">
                     <headerToolbar>
                         <OverflowToolbar>
+                            <core:Icon src="sap-icon://table-view" class="sectionIcon"/>
                             <Title text="{= ${view>/filters/gjahr} + '년 ' + ${view>/filters/monat} + '월 원가/재고 요약' }" level="H2"/>
                             <ToolbarSpacer/>
                             <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" press=".onExportToExcel"/>
@@ -59,6 +60,7 @@
                     </headerToolbar>
                     <content>
                         <t:Table id="costSummaryTable"
+                            width="100%"
                             rows="{view>/costData}"
                             selectionMode="Single"
                             rowSelectionChange=".onRowSelectionChange"
@@ -72,55 +74,55 @@
                             class="costSummaryTable"
                             noData="{i18n>msgNoData}">
                             <t:columns>
-                                <t:Column width="5.6rem" hAlign="Center">
+                                <t:Column width="6%" hAlign="Center">
                                     <Label text="{i18n>colAction}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Button text="{i18n>btnDetail}" icon="sap-icon://detail-view" type="Transparent" width="5rem" tooltip="{i18n>btnDetailTooltip}" visible="{= !!${view>matnr} }" press=".onOpenDetail"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8rem">
+                                <t:Column width="8%">
                                     <Label text="{i18n>colMatnr}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>matnr}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="18.5rem">
+                                <t:Column width="17%">
                                     <Label text="{i18n>colMaktx}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>maktx}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="14.5rem">
+                                <t:Column width="13%">
                                     <Label text="{i18n>colOptionText}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>mtopt_t}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8.8rem">
+                                <t:Column width="8%">
                                     <Label text="{i18n>colMaterialType}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>mtbez}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8.8rem">
+                                <t:Column width="8%">
                                     <Label text="{i18n>colMaterialGroup}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>wgbez}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8.6rem" hAlign="End">
+                                <t:Column width="10%" hAlign="End">
                                     <Label text="{i18n>colTotalCost}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <ObjectNumber class="amountText" number="{parts: [{path: 'view>total_cost'}, {path: 'view>waers'}], formatter: '.formatAmount'}" emphasized="false"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4.2rem">
+                                <t:Column width="4%">
                                     <Label text="{i18n>colCurrency}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>waers}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="7.6rem" hAlign="End" headerSpan="4">
+                                <t:Column width="8%" hAlign="End" headerSpan="4">
                                     <t:multiLabels>
                                         <Label text="{i18n>stockFlowGroup}" width="100%" textAlign="Center" wrapping="true" class="stockGroupHeader"/>
                                         <Label text="{i18n>colAvailStock}" width="100%" textAlign="End" class="stockSubHeader"/>
@@ -132,7 +134,7 @@
                                         </HBox>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4.9rem" hAlign="End">
+                                <t:Column width="5%" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colInspection}" width="100%" textAlign="End" class="stockSubHeader"/>
@@ -141,7 +143,7 @@
                                         <ObjectNumber number="{path: 'view>total_verme', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4.9rem" hAlign="End">
+                                <t:Column width="5%" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colHoldStock}" width="100%" textAlign="End" class="stockSubHeader"/>
@@ -150,7 +152,7 @@
                                         <ObjectNumber number="{path: 'view>total_cspem', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4.9rem" hAlign="End">
+                                <t:Column width="5%" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colReservation}" width="100%" textAlign="End" class="stockSubHeader"/>
@@ -159,7 +161,7 @@
                                         <ObjectNumber number="{path: 'view>total_resme', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4rem" hAlign="Center">
+                                <t:Column width="3%" hAlign="Center">
                                     <Label text="{i18n>colUnit}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>meins}" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>

@@ -1,0 +1,231 @@
+<mvc:View
+    controllerName="ZE4_CC_COST.controller.AllocationMap"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:t="sap.ui.table">
+    <Page
+        showHeader="false"
+        enableScrolling="false"
+        class="ze4AllocationMapPage sapUiSizeCompact"
+        busy="{allocationMap>/busy}"
+        busyIndicatorDelay="0">
+        <content>
+            <VBox class="ze4AllocationMapContent">
+                <HBox class="ze4PageTitleBar ze4AllocationMapTitleBar" alignItems="Center" wrap="Wrap">
+                    <Title text="{allocationMap>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                    <ToolbarSpacer />
+                    <HBox class="ze4PageActions" alignItems="Center">
+                        <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
+                        <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                    </HBox>
+                </HBox>
+
+                <VBox class="ze4AllocationMapFilterBar">
+                    <FlexBox class="ze4FilterFields" wrap="Wrap" alignItems="End">
+                        <VBox class="ze4FilterField">
+                            <Label text="회사코드" />
+                            <Input value="{allocationMap>/filters/bukrs}" editable="false" enabled="false" class="ze4FixedInput" width="9rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="회계연도" required="true" />
+                            <Input
+                                value="{allocationMap>/filters/gjahr}"
+                                valueState="{allocationMap>/filterStates/gjahrState}"
+                                valueStateText="{allocationMap>/filterStates/gjahrStateText}"
+                                maxLength="4"
+                                width="8rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="기간" required="true" />
+                            <Select
+                                selectedKey="{allocationMap>/filters/period}"
+                                valueState="{allocationMap>/filterStates/periodState}"
+                                valueStateText="{allocationMap>/filterStates/periodStateText}"
+                                items="{allocationMap>/periodOptions}"
+                                width="8rem">
+                                <core:Item key="{allocationMap>key}" text="{allocationMap>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="배부사이클" required="true" />
+                            <Select
+                                selectedKey="{allocationMap>/filters/cycle}"
+                                valueState="{allocationMap>/filterStates/cycleState}"
+                                valueStateText="{allocationMap>/filterStates/cycleStateText}"
+                                items="{allocationMap>/cycleOptions}"
+                                width="17rem">
+                                <core:Item key="{allocationMap>key}" text="{allocationMap>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="배부단계" />
+                            <Select selectedKey="{allocationMap>/filters/stepKey}" items="{allocationMap>/stepOptions}" width="9rem">
+                                <core:Item key="{allocationMap>key}" text="{allocationMap>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="송신부서" />
+                            <Input value="{allocationMap>/filters/senderKostl}" width="10rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="수신부서" />
+                            <Input value="{allocationMap>/filters/receiverKostl}" width="10rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField ze4FilterFieldWide">
+                            <Label text="배부기준/SKF" />
+                            <Select selectedKey="{allocationMap>/filters/skfId}" items="{allocationMap>/skfOptions}" width="17rem">
+                                <core:Item key="{allocationMap>key}" text="{allocationMap>text}" />
+                            </Select>
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="Top N" />
+                            <Select selectedKey="{allocationMap>/filters/topLimit}" items="{allocationMap>/topLimitOptions}" width="8rem">
+                                <core:Item key="{allocationMap>key}" text="{allocationMap>text}" />
+                            </Select>
+                        </VBox>
+                        <Button class="ze4SearchButton" text="검색" icon="sap-icon://search" type="Emphasized" press=".onSearch" />
+                    </FlexBox>
+                    <MessageStrip
+                        class="ze4MessageStrip"
+                        visible="{allocationMap>/warningVisible}"
+                        text="{allocationMap>/warningText}"
+                        type="Warning"
+                        showIcon="true" />
+                </VBox>
+
+                <FlexBox class="ze4AllocationMapSummaryStrip" wrap="Wrap" items="{allocationMap>/summaryItems}">
+                    <VBox class="ze4AllocationMapSummaryItem">
+                        <Text class="ze4SubText" text="{allocationMap>label}" />
+                        <Text class="ze4StrongText" text="{allocationMap>value}" tooltip="{allocationMap>value}" />
+                    </VBox>
+                </FlexBox>
+
+                <HBox class="ze4AllocationMapShell">
+                    <VBox class="ze4AllocationMapLegendPanel">
+                        <Title text="단계별 색상" level="H3" />
+                        <VBox items="{allocationMap>/stepLegend}">
+                            <HBox class="ze4AllocationLegendItem" alignItems="Center">
+                                <core:Icon src="sap-icon://circle-task-2" color="{allocationMap>color}" />
+                                <Text text="{allocationMap>text}" wrapping="false" tooltip="{allocationMap>text}" />
+                            </HBox>
+                        </VBox>
+
+                        <Title text="배부사이클별 색상" level="H3" class="sapUiSmallMarginTop" />
+                        <List
+                            items="{allocationMap>/cycleLegend}"
+                            mode="None"
+                            itemPress=".onCycleLegendPress"
+                            class="ze4AllocationCycleLegend">
+                            <CustomListItem type="Active">
+                                <HBox class="ze4AllocationLegendItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://circle-task-2" color="{allocationMap>color}" />
+                                    <VBox>
+                                        <Text text="{allocationMap>title}" wrapping="false" tooltip="{allocationMap>title}" class="ze4NoWrapText" />
+                                        <Text text="{allocationMap>subText}" wrapping="false" tooltip="{allocationMap>subText}" class="ze4SubText" />
+                                    </VBox>
+                                </HBox>
+                            </CustomListItem>
+                        </List>
+
+                        <VBox class="ze4AllocationMapLegendStats">
+                            <ObjectAttribute title="선택된 사이클" text="{allocationMap>/selectedCycleText}" />
+                            <ObjectAttribute title="표시 흐름 수" text="{allocationMap>/visibleFlowCountText}" />
+                            <ObjectAttribute title="숨김/기타 처리 수" text="{allocationMap>/hiddenFlowCountText}" />
+                        </VBox>
+                    </VBox>
+
+                    <VBox class="ze4AllocationMapCanvasCard">
+                        <HBox class="ze4MapToolbar" alignItems="Center">
+                            <Title text="다단계 배부 흐름 맵" level="H3" />
+                            <ToolbarSpacer />
+                            <Button text="Fit" icon="sap-icon://full-screen" type="Transparent" press=".onFitMap" />
+                            <Button text="확대" icon="sap-icon://zoom-in" type="Transparent" press=".onZoomIn" />
+                            <Button text="축소" icon="sap-icon://zoom-out" type="Transparent" press=".onZoomOut" />
+                            <Button text="초기화" icon="sap-icon://reset" type="Transparent" press=".onResetMapView" />
+                        </HBox>
+                        <ScrollContainer
+                            id="allocationMapScroll"
+                            horizontal="true"
+                            vertical="true"
+                            width="100%"
+                            height="100%"
+                            class="ze4AllocationMapScroll">
+                            <core:HTML
+                                id="allocationSankeyHost"
+                                sanitizeContent="false"
+                                content="{allocationMap>/sankeyHtml}" />
+                        </ScrollContainer>
+                    </VBox>
+
+                    <VBox class="ze4AllocationMapDetailPanel">
+                        <HBox alignItems="Center">
+                            <Title text="선택 흐름 상세" level="H3" />
+                            <ToolbarSpacer />
+                            <Button icon="sap-icon://decline" type="Transparent" press=".onClearSelection" visible="{allocationMap>/hasSelection}" tooltip="선택 해제" />
+                        </HBox>
+                        <VBox visible="{= !${allocationMap>/hasSelection} }" class="ze4AllocationMapEmptyDetail">
+                            <Text text="배부 흐름을 선택하세요." />
+                            <Text text="노드 또는 흐름선을 클릭하면 상세 정보가 표시됩니다." />
+                        </VBox>
+                        <VBox visible="{allocationMap>/hasSelection}" class="ze4DetailList ze4AllocationMapDetailList">
+                            <Label text="단계" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/stepText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="배부사이클" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/cycleText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="세그먼트" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/segmentText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="송신부서" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/senderText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="수신부서" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/receiverText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="수신 프로핏센터" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/receiverPrctrText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="배부기준" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/skfText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="배부기준값" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/basisValueText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="비율" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/basisRatioText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="배부금액" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/amountText}" class="ze4DetailValue ze4DetailAmount" wrapping="true" />
+                            <Label text="전표건수" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/documentCountText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="전기일자 범위" class="ze4DetailLabel" /><Text text="{allocationMap>/selectedDetail/budatRangeText}" class="ze4DetailValue" wrapping="true" />
+                        </VBox>
+                        <HBox class="ze4AllocationMapDetailButtons" visible="{allocationMap>/hasSelection}">
+                            <Button text="전표 상세 보기" type="Transparent" press=".onOpenDocumentDetail" />
+                            <Button text="배부 상세 분석 열기" type="Emphasized" press=".onOpenAllocationDetail" />
+                            <Button text="선택 해제" type="Transparent" press=".onClearSelection" />
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <Panel
+                    class="ze4AllocationMapTablePanel"
+                    expandable="true"
+                    expanded="{allocationMap>/tableExpanded}"
+                    headerText="선택 흐름 관련 배부 결과">
+                    <t:Table
+                        id="allocationMapDetailTable"
+                        rows="{allocationMap>/tableRows}"
+                        selectionMode="None"
+                        visibleRowCount="8"
+                        width="100%"
+                        fixedColumnCount="2"
+                        enableColumnReordering="true"
+                        noData="배부 전표 데이터가 없습니다."
+                        class="ze4GridTable ze4Table">
+                        <t:columns>
+                            <t:Column width="7rem"><Label text="단계" /><t:template><Text text="{allocationMap>stepText}" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="15rem"><Label text="배부사이클" /><t:template><Text text="{allocationMap>cycleText}" wrapping="false" tooltip="{allocationMap>cycleText}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="세그먼트" /><t:template><Text text="{allocationMap>segmentText}" wrapping="false" tooltip="{allocationMap>segmentText}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="송신부서" /><t:template><Text text="{allocationMap>senderText}" wrapping="false" tooltip="{allocationMap>senderTooltip}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="수신부서" /><t:template><Text text="{allocationMap>receiverText}" wrapping="false" tooltip="{allocationMap>receiverTooltip}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="수신 프로핏센터" /><t:template><Text text="{allocationMap>receiverPrctrText}" wrapping="false" tooltip="{allocationMap>receiverPrctrText}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="배부기준" /><t:template><Text text="{allocationMap>skfText}" wrapping="false" tooltip="{allocationMap>skfText}" class="ze4NoWrapText" /></t:template></t:Column>
+                            <t:Column width="10rem" hAlign="End"><Label text="배부기준값" /><t:template><Text text="{allocationMap>basisValueText}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                            <t:Column width="7rem" hAlign="End"><Label text="비율" /><t:template><Text text="{allocationMap>basisRatioText}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="11rem" hAlign="End"><Label text="배부금액" /><t:template><Text text="{path: 'allocationMap>allocAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                            <t:Column width="10rem"><Label text="전표번호" /><t:template><Text text="{allocationMap>belnr}" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="8rem"><Label text="전표라인" /><t:template><Text text="{allocationMap>docln}" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="8rem"><Label text="전기일자" /><t:template><Text text="{path: 'allocationMap>budat', formatter: '.formatter.date'}" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="9rem"><Label text="계정" /><t:template><Text text="{allocationMap>saknr}" wrapping="false" /></t:template></t:Column>
+                            <t:Column width="13rem"><Label text="계정명" /><t:template><Text text="{allocationMap>saknrTxt}" wrapping="false" tooltip="{allocationMap>saknrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                        </t:columns>
+                    </t:Table>
+                </Panel>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

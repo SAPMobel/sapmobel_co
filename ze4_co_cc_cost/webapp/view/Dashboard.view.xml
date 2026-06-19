@@ -61,30 +61,23 @@
         </Dialog>
     </mvc:dependents>
 
-    <f:DynamicPage
+    <Page
         class="ze4DynamicPage sapUiSizeCompact"
-        fitContent="true"
+        showHeader="false"
+        enableScrolling="true"
         busy="{dashboard>/busy}"
         busyIndicatorDelay="0">
-                <f:title>
-                    <f:DynamicPageTitle>
-                        <f:heading>
-                            <VBox>
-                                <HBox class="ze4Breadcrumb" alignItems="Center">
-                                    <Link text="홈" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Link text="부서별 비용분석" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Text text="대시보드" />
-                                </HBox>
-                                <Title text="{dashboard>/pageTitle}" level="H2" class="ze4PageTitle" />
-                            </VBox>
-                        </f:heading>
-                    </f:DynamicPageTitle>
-                </f:title>
-
-                <f:header>
-                    <f:DynamicPageHeader pinnable="false">
+                <content>
+                    <VBox class="ze4PageContent">
+                        <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
+                            <Title text="{i18n>title}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                            <ToolbarSpacer />
+                            <HBox class="ze4PageActions" alignItems="Center">
+                                <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
+                                <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
+                                <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                            </HBox>
+                        </HBox>
                         <VBox class="ze4FilterBar">
                             <HBox class="ze4FilterHeader" alignItems="Center">
                                 <Title text="조회 조건" level="H3" />
@@ -137,17 +130,14 @@
                                 type="Warning"
                                 showIcon="true" />
                         </VBox>
-                    </f:DynamicPageHeader>
-                </f:header>
 
-                <f:content>
-                    <VBox class="ze4PageContent">
                         <FlexBox class="ze4KpiGrid" wrap="Wrap" items="{dashboard>/kpis}">
                             <VBox class="ze4KpiCard">
-                                <HBox alignItems="Start">
+                                <HBox alignItems="Center">
+                                    <core:Icon src="{dashboard>icon}" class="ze4KpiIcon" color="{dashboard>iconColor}" backgroundColor="{dashboard>iconBackground}" />
                                     <VBox class="ze4KpiText">
                                         <Text class="ze4KpiTitle" text="{dashboard>title}" />
-                                        <Text class="ze4KpiValue" text="{dashboard>valueText}" />
+                                        <ObjectStatus class="ze4KpiValueStatus" text="{dashboard>valueText}" state="{dashboard>valueState}" />
                                     </VBox>
                                 </HBox>
                                 <ObjectStatus class="ze4KpiSub" text="{dashboard>subText}" state="{dashboard>state}" />
@@ -200,7 +190,7 @@
                                     <viz:dataset>
                                         <vizData:FlattenedDataset data="{dashboard>/monthlyTrend}">
                                             <vizData:dimensions>
-                                                <vizData:DimensionDefinition name="월" value="{dashboard>monthText}" />
+                                                <vizData:DimensionDefinition name="조회 월" value="{dashboard>monthText}" />
                                             </vizData:dimensions>
                                             <vizData:measures>
                                                 <vizData:MeasureDefinition name="실적" value="{dashboard>actualAmount}" />
@@ -210,8 +200,11 @@
                                     </viz:dataset>
                                     <viz:feeds>
                                         <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="실적,예산" />
-                                        <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월" />
+                                        <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="조회 월" />
                                     </viz:feeds>
+                                    <viz:dependents>
+                                        <viz:Popover id="trendChartPopover" />
+                                    </viz:dependents>
                                 </viz:VizFrame>
                                 <VBox class="ze4ChartEmptyState" visible="{= !${dashboard>/hasTrendData} }">
                                     <Text text="월별 비용 데이터가 없습니다." />
@@ -236,11 +229,11 @@
                                     <ToolbarSpacer />
                                     <Text class="ze4CardUnit" text="단위: KRW" />
                                 </HBox>
-                                <viz:VizFrame id="compositionChart" height="20rem" width="100%" vizType="donut" uiConfig="{applicationSet:'fiori'}" visible="{dashboard>/hasCompositionData}" selectData=".onCompositionChartSelectData">
+                                <viz:VizFrame id="compositionChart" height="22rem" width="100%" vizType="donut" uiConfig="{applicationSet:'fiori'}" visible="{dashboard>/hasCompositionData}" selectData=".onCompositionChartSelectData">
                                     <viz:dataset>
                                         <vizData:FlattenedDataset data="{dashboard>/accountComposition}">
                                             <vizData:dimensions>
-                                                <vizData:DimensionDefinition name="계정" value="{dashboard>accountLabel}" />
+                                                <vizData:DimensionDefinition name="계정명" value="{dashboard>accountLabel}" />
                                             </vizData:dimensions>
                                             <vizData:measures>
                                                 <vizData:MeasureDefinition name="금액" value="{dashboard>amount}" />
@@ -249,8 +242,11 @@
                                     </viz:dataset>
                                     <viz:feeds>
                                         <vizFeeds:FeedItem uid="size" type="Measure" values="금액" />
-                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="계정" />
+                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="계정명" />
                                     </viz:feeds>
+                                    <viz:dependents>
+                                        <viz:Popover id="compositionChartPopover" />
+                                    </viz:dependents>
                                 </viz:VizFrame>
                                 <VBox class="ze4ChartEmptyState" visible="{= !${dashboard>/hasCompositionData} }">
                                     <Text text="비용계정 구성 데이터가 없습니다." />
@@ -293,6 +289,8 @@
                                         <t:Column width="14rem"><Label text="코스트센터명" /><t:template><Text text="{dashboard>kostlTxt}" wrapping="false" tooltip="{dashboard>kostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="10rem"><Label text="책임자" /><t:template><Text text="{dashboard>manager}" wrapping="false" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'dashboard>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                        <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'dashboard>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                        <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'dashboard>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
                                         <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'dashboard>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
                                         <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'dashboard>varianceAmount', formatter: '.formatter.amount'}" state="{dashboard>varianceState}" /></t:template></t:Column>
                                         <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'dashboard>varianceRate', formatter: '.formatter.rate'}" state="{dashboard>varianceState}" /></t:template></t:Column>
@@ -304,6 +302,6 @@
                             </VBox>
                         </HBox>
                     </VBox>
-                </f:content>
-    </f:DynamicPage>
+                </content>
+    </Page>
 </mvc:View>

@@ -25,6 +25,20 @@ sap.ui.define([
         return isNaN(fValue) ? null : fValue;
     }
 
+    function cleanText(vValue) {
+        return vValue === null || vValue === undefined ? "" : String(vValue).trim();
+    }
+
+    function isAllocationFlow(sType, sText, sDocumentTypeText) {
+        var sNormalizedType = cleanText(sType).toUpperCase();
+        var sNormalizedText = cleanText(sText);
+        var sNormalizedDocumentTypeText = cleanText(sDocumentTypeText);
+
+        return sNormalizedType === "ALLOC" ||
+            sNormalizedText.indexOf("배부") > -1 ||
+            sNormalizedDocumentTypeText.indexOf("배부") > -1;
+    }
+
     return {
         amount: function (vValue) {
             var fValue = toNumber(vValue);
@@ -84,12 +98,39 @@ sap.ui.define([
             return fValue > 0 ? "Error" : "Success";
         },
 
+        amountState: function (vValue) {
+            var fValue = toNumber(vValue);
+
+            if (fValue === null || fValue === 0) {
+                return "None";
+            }
+
+            return fValue < 0 ? "Error" : "Information";
+        },
+
+        countState: function (vValue) {
+            var fValue = toNumber(vValue);
+
+            return fValue > 0 ? "Information" : "None";
+        },
+
         empty: function (vValue) {
             if (vValue === null || vValue === undefined || String(vValue).trim() === "") {
                 return "-";
             }
 
             return String(vValue);
+        },
+
+        skfUnitText: function (vValue) {
+            var sValue = vValue === null || vValue === undefined ? "" : String(vValue).trim();
+            var sCompact = sValue.replace(/\s/g, "");
+
+            if (sCompact === "세대구성원수" || sCompact === "구성원수") {
+                return "명";
+            }
+
+            return sValue;
         },
 
         compactAmount: function (vValue) {
@@ -162,8 +203,32 @@ sap.ui.define([
             return sValue.indexOf("취소") > -1 || sValue.indexOf("오류") > -1 ? "Error" : "None";
         },
 
+        documentFlowText: function (sType, sText, sDrcrk, sDocumentTypeText) {
+            if (isAllocationFlow(sType, sText, sDocumentTypeText)) {
+                if (sDrcrk === "H") {
+                    return "비용 배부(송신)";
+                }
+
+                if (sDrcrk === "S") {
+                    return "비용 배부(수신)";
+                }
+
+                return "비용 배부";
+            }
+
+            return "비용 발생";
+        },
+
+        documentFlowState: function (sType, sText, sDrcrk, sDocumentTypeText) {
+            if (isAllocationFlow(sType, sText, sDocumentTypeText)) {
+                return sDrcrk === "H" ? "Warning" : "Information";
+            }
+
+            return "Success";
+        },
+
         costFlowTypeState: function (vValue) {
-            var sValue = vValue === null || vValue === undefined ? "" : String(vValue).trim();
+            var sValue = cleanText(vValue);
 
             if (sValue.indexOf("배부") > -1) {
                 return "Information";

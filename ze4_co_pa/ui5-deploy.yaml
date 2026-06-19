@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+specVersion: "4.0"
+metadata:
+  name: ze4.co.pa.ze4copa
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          url: http://bgissap3.bgissap.co.kr:8000/
+          client: '100'
+        app:
+          name: ZE4_CO_PA
+          description: '[CO] Profitability Analysis'
+          package: ZPE4CO
+          transport: EFXK901670
+        exclude:
+          - /test/

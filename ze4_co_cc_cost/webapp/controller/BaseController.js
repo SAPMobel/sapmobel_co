@@ -296,13 +296,148 @@ sap.ui.define([
         },
 
         createKpi: function (sTitle, sValue, sSubText, sState, sIcon) {
+            var sResolvedIcon = sIcon || "sap-icon://business-card";
+            var sTone = this.kpiIconTone(sResolvedIcon);
+
             return {
                 title: sTitle,
                 valueText: sValue,
                 subText: sSubText,
                 state: sState || "None",
-                icon: sIcon || "sap-icon://business-card"
+                icon: sResolvedIcon,
+                iconColor: this.kpiIconColor(sTone),
+                iconBackground: this.kpiIconBackground(sTone),
+                valueState: this.kpiValueState(sState, sTone)
             };
+        },
+
+        kpiIconTone: function (sIcon) {
+            var sIconName = (sIcon || "").replace("sap-icon://", "");
+            var mIconTones = {
+                "wallet": "blue",
+                "money-bills": "blue",
+                "sum": "blue",
+                "calendar": "purple",
+                "documents": "purple",
+                "list": "purple",
+                "business-objects-experience": "orange",
+                "compare": "orange",
+                "org-chart": "orange",
+                "group": "orange",
+                "building": "orange",
+                "customer-and-supplier": "teal",
+                "competitor": "teal",
+                "paper-plane": "teal",
+                "download-from-cloud": "teal",
+                "trend-up": "green",
+                "pie-chart": "green",
+                "percentage": "green",
+                "lead": "green",
+                "arrow-left": "green",
+                "arrow-right": "orange"
+            };
+
+            return mIconTones[sIconName] || "blue";
+        },
+
+        kpiIconColor: function (sTone) {
+            return {
+                blue: "#0a6ed1",
+                purple: "#6f42c1",
+                green: "#107e3e",
+                orange: "#e9730c",
+                teal: "#008080"
+            }[sTone] || "#0a6ed1";
+        },
+
+        kpiIconBackground: function (sTone) {
+            return {
+                blue: "#eaf3ff",
+                purple: "#f2ecff",
+                green: "#edf7ed",
+                orange: "#fff3e5",
+                teal: "#e8f6f6"
+            }[sTone] || "#eaf3ff";
+        },
+
+        kpiValueState: function (sState, sTone) {
+            if (sState && sState !== "None") {
+                return sState;
+            }
+
+            return {
+                blue: "Information",
+                purple: "Information",
+                green: "Success",
+                orange: "Warning",
+                teal: "Information"
+            }[sTone] || "Information";
+        },
+
+        scheduleViewportTableResize: function (aConfigs) {
+            this._viewportTableConfigs = aConfigs || [];
+
+            if (!this._viewportTableResizeHandler && typeof window !== "undefined") {
+                this._viewportTableResizeHandler = function () {
+                    this._queueViewportTableResize();
+                }.bind(this);
+                window.addEventListener("resize", this._viewportTableResizeHandler);
+            }
+
+            this._queueViewportTableResize();
+        },
+
+        _queueViewportTableResize: function () {
+            if (this._viewportTableResizeTimer) {
+                clearTimeout(this._viewportTableResizeTimer);
+            }
+
+            this._viewportTableResizeTimer = setTimeout(function () {
+                this._resizeViewportTables();
+            }.bind(this), 0);
+
+            setTimeout(function () {
+                this._resizeViewportTables();
+            }.bind(this), 180);
+        },
+
+        _resizeViewportTables: function () {
+            var aConfigs = this._viewportTableConfigs || [];
+
+            aConfigs.forEach(function (oConfig) {
+                var oTable = oConfig && oConfig.table || this.byId(oConfig && oConfig.id);
+                var oDomRef = oTable && oTable.getDomRef && oTable.getDomRef();
+                var oBinding = oTable && oTable.getBinding && oTable.getBinding("rows");
+                var iDataRows = oBinding && oBinding.getLength ? oBinding.getLength() : 0;
+                var iMinRows = oConfig && oConfig.minRows || 5;
+                var iMaxRows = oConfig && oConfig.maxRows || 30;
+                var iRowHeight = oConfig && oConfig.rowHeight || 34;
+                var iHeaderHeight = oConfig && oConfig.headerHeight || 58;
+                var iBottomOffset = oConfig && oConfig.bottomOffset || 24;
+                var iAvailableHeight;
+                var iViewportRows;
+                var iTargetRows;
+                var iMinimumRows;
+
+                if (!oTable || !oDomRef || !oTable.setVisibleRowCount || typeof window === "undefined") {
+                    return;
+                }
+
+                iAvailableHeight = window.innerHeight - oDomRef.getBoundingClientRect().top - iBottomOffset;
+                iViewportRows = Math.floor((iAvailableHeight - iHeaderHeight) / iRowHeight);
+                iViewportRows = Math.max(1, iViewportRows);
+
+                if (iDataRows > 0) {
+                    iMinimumRows = Math.min(iMinRows, iDataRows);
+                    iTargetRows = Math.max(iMinimumRows, Math.min(iDataRows, iViewportRows, iMaxRows));
+                } else {
+                    iTargetRows = Math.min(iMinRows, iViewportRows, iMaxRows);
+                }
+
+                if (oTable.getVisibleRowCount && oTable.getVisibleRowCount() !== iTargetRows) {
+                    oTable.setVisibleRowCount(iTargetRows);
+                }
+            }.bind(this));
         },
 
         extractVizDataValue: function (oEvent, sDimensionName) {
@@ -404,8 +539,123 @@ sap.ui.define([
             });
         },
 
+        configureVizFrame: function (oVizFrame, oPopover, mOptions) {
+            var sType = mOptions && mOptions.type;
+            var oVizProperties;
+
+            if (!oVizFrame || !oVizFrame.setVizProperties) {
+                return;
+            }
+
+            oVizProperties = {
+                title: {
+                    visible: false
+                },
+                tooltip: {
+                    visible: true
+                },
+                legend: {
+                    visible: true,
+                    position: mOptions && mOptions.legendPosition || "bottom"
+                },
+                plotArea: {
+                    drawingEffect: "glossy"
+                }
+            };
+
+            if (sType === "trend") {
+                oVizProperties.categoryAxis = {
+                    title: {
+                        visible: true,
+                        text: mOptions.categoryAxisTitle || "조회 월"
+                    }
+                };
+                oVizProperties.valueAxis = {
+                    title: {
+                        visible: true,
+                        text: mOptions.valueAxisTitle || "금액(KRW)"
+                    }
+                };
+            }
+
+            if (sType === "allocationTrend") {
+                oVizProperties.categoryAxis = {
+                    title: {
+                        visible: true,
+                        text: mOptions.categoryAxisTitle || "조회 월"
+                    }
+                };
+                oVizProperties.valueAxis = {
+                    title: {
+                        visible: true,
+                        text: mOptions.valueAxisTitle || "배부금액(KRW)"
+                    }
+                };
+                oVizProperties.valueAxis2 = {
+                    title: {
+                        visible: true,
+                        text: mOptions.valueAxis2Title || "배부건수"
+                    }
+                };
+            }
+
+            if (sType === "donut") {
+                oVizProperties.legend.position = mOptions && mOptions.legendPosition || "right";
+                oVizProperties.plotArea.dataLabel = {
+                    visible: true,
+                    type: "percentage"
+                };
+            }
+
+            oVizFrame.setVizProperties(oVizProperties);
+
+            if (oPopover && oPopover.connect && oVizFrame.getVizUid) {
+                oPopover.connect(oVizFrame.getVizUid());
+            }
+        },
+
+        clearGlobalOrgSelection: function () {
+            var oAppModel = this.getAppStateModel();
+            var oFilters = Object.assign({}, oAppModel.getProperty("/filters") || {}, {
+                orgNodeId: "",
+                orgNodeText: ""
+            });
+
+            oAppModel.setProperty("/filters", oFilters);
+            oAppModel.setProperty("/selectedOrg", {
+                childId: "",
+                nodeText: "",
+                descendantIds: []
+            });
+        },
+
         navToDashboard: function () {
+            this.clearGlobalOrgSelection();
             this.getRouter().navTo("dashboard");
+        },
+
+        navToAllocationAnalysis: function () {
+            this.getRouter().navTo("allocationFlowOverview");
+        },
+
+        navToAllocationFlowOverview: function () {
+            this.getRouter().navTo("allocationFlowOverview");
+        },
+
+        navToOrgExplorer: function () {
+            this.getRouter().navTo("orgExplorer");
+        },
+
+        onGoDashboard: function () {
+            this.navToDashboard();
+        },
+
+        onGoAllocationAnalysis: function () {
+            this.navToAllocationAnalysis();
+        },
+
+        onGoOrgExplorer: function () {
+            this.navToOrgExplorer();
         },
 
         navToDepartment: function (sOrgId) {

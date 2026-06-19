@@ -61,30 +61,23 @@
         </Dialog>
     </mvc:dependents>
 
-    <f:DynamicPage
+    <Page
         class="ze4DynamicPage ze4DepartmentPage sapUiSizeCompact"
-        fitContent="true"
+        showHeader="false"
+        enableScrolling="true"
         busy="{department>/busy}"
         busyIndicatorDelay="0">
-                <f:title>
-                    <f:DynamicPageTitle>
-                        <f:heading>
-                            <VBox>
-                                <HBox class="ze4Breadcrumb" alignItems="Center">
-                                    <Link text="홈" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Link text="부서별 비용분석" press=".onGoDashboard" />
-                                    <core:Icon src="sap-icon://slim-arrow-right" />
-                                    <Text text="비용 상세" />
-                                </HBox>
-                                <Title text="{department>/pageTitle}" level="H2" class="ze4PageTitle" />
-                            </VBox>
-                        </f:heading>
-                    </f:DynamicPageTitle>
-                </f:title>
-
-                <f:header>
-                    <f:DynamicPageHeader pinnable="false">
+                <content>
+                    <VBox class="ze4PageContent ze4DepartmentContent">
+                        <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
+                            <Title text="{department>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                            <ToolbarSpacer />
+                            <HBox class="ze4PageActions" alignItems="Center">
+                                <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
+                                <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
+                                <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                            </HBox>
+                        </HBox>
                         <VBox class="ze4DepartmentHeaderStack">
                             <VBox class="ze4Card ze4DepartmentObjectHeader">
                                 <HBox alignItems="Start" class="ze4ObjectHeaderTop">
@@ -136,17 +129,14 @@
                                 <MessageStrip class="ze4MessageStrip" visible="{department>/warningVisible}" text="{department>/warningText}" type="Warning" showIcon="true" />
                             </VBox>
                         </VBox>
-                    </f:DynamicPageHeader>
-                </f:header>
 
-                <f:content>
-                    <VBox class="ze4PageContent ze4DepartmentContent">
                         <FlexBox class="ze4KpiGrid" wrap="Wrap" items="{department>/kpis}">
                             <VBox class="ze4KpiCard">
-                                <HBox alignItems="Start">
+                                <HBox alignItems="Center">
+                                    <core:Icon src="{department>icon}" class="ze4KpiIcon" color="{department>iconColor}" backgroundColor="{department>iconBackground}" />
                                     <VBox class="ze4KpiText">
                                         <Text class="ze4KpiTitle" text="{department>title}" />
-                                        <Text class="ze4KpiValue" text="{department>valueText}" />
+                                        <ObjectStatus class="ze4KpiValueStatus" text="{department>valueText}" state="{department>valueState}" />
                                     </VBox>
                                 </HBox>
                                 <ObjectStatus class="ze4KpiSub" text="{department>subText}" state="{department>state}" />
@@ -164,7 +154,7 @@
                                     <viz:dataset>
                                         <vizData:FlattenedDataset data="{department>/monthlyTrend}">
                                             <vizData:dimensions>
-                                                <vizData:DimensionDefinition name="월" value="{department>monthText}" />
+                                                <vizData:DimensionDefinition name="조회 월" value="{department>monthText}" />
                                             </vizData:dimensions>
                                             <vizData:measures>
                                                 <vizData:MeasureDefinition name="실적" value="{department>actualAmount}" />
@@ -174,8 +164,11 @@
                                     </viz:dataset>
                                     <viz:feeds>
                                         <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="실적,예산" />
-                                        <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월" />
+                                        <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="조회 월" />
                                     </viz:feeds>
+                                    <viz:dependents>
+                                        <viz:Popover id="departmentTrendChartPopover" />
+                                    </viz:dependents>
                                 </viz:VizFrame>
                                 <VBox class="ze4ChartEmptyState" visible="{= !${department>/hasTrendData} }">
                                     <Text text="월별 비용 데이터가 없습니다." />
@@ -198,11 +191,11 @@
                                     <ToolbarSpacer />
                                     <Text class="ze4CardUnit" text="단위: KRW" />
                                 </HBox>
-                                <viz:VizFrame id="departmentCompositionChart" height="20rem" width="100%" vizType="donut" uiConfig="{applicationSet:'fiori'}" visible="{department>/hasCompositionData}" selectData=".onCompositionChartSelectData">
+                                <viz:VizFrame id="departmentCompositionChart" height="22rem" width="100%" vizType="donut" uiConfig="{applicationSet:'fiori'}" visible="{department>/hasCompositionData}" selectData=".onCompositionChartSelectData">
                                     <viz:dataset>
                                         <vizData:FlattenedDataset data="{department>/accountComposition}">
                                             <vizData:dimensions>
-                                                <vizData:DimensionDefinition name="계정" value="{department>accountLabel}" />
+                                                <vizData:DimensionDefinition name="계정명" value="{department>accountLabel}" />
                                             </vizData:dimensions>
                                             <vizData:measures>
                                                 <vizData:MeasureDefinition name="금액" value="{department>amount}" />
@@ -211,8 +204,11 @@
                                     </viz:dataset>
                                     <viz:feeds>
                                         <vizFeeds:FeedItem uid="size" type="Measure" values="금액" />
-                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="계정" />
+                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="계정명" />
                                     </viz:feeds>
+                                    <viz:dependents>
+                                        <viz:Popover id="departmentCompositionChartPopover" />
+                                    </viz:dependents>
                                 </viz:VizFrame>
                                 <VBox class="ze4ChartEmptyState" visible="{= !${department>/hasCompositionData} }">
                                     <Text text="비용계정 구성 데이터가 없습니다." />
@@ -233,20 +229,23 @@
                             </VBox>
                         </HBox>
 
-                        <VBox class="ze4Card ze4TableCard">
+                        <VBox>
                             <HBox class="ze4CardHeader" alignItems="Center">
                                 <Title text="하위 코스트센터 현황" level="H3" />
                                 <ToolbarSpacer />
                                 <Text class="ze4CardUnit" text="단위: KRW" />
                             </HBox>
-                            <t:Table rows="{department>/childCostCenterRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onChildRowSelection" visibleRowCount="6" width="100%" fixedColumnCount="2" class="ze4GridTable ze4Table ze4DepartmentTable">
+                            <t:Table rows="{department>/childCostCenterRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onChildRowSelection" visibleRowCount="6" width="100%" fixedColumnCount="2">
                                 <t:columns>
                                     <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="8rem"><Label text="코스트센터" /><t:template><Text text="{department>kostl}" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="14rem"><Label text="코스트센터명" /><t:template><Text text="{department>kostlTxt}" wrapping="false" tooltip="{department>kostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                    <t:Column width="10rem"><Label text="책임자" /><t:template><Text text="{department>manager}" wrapping="false" tooltip="{department>manager}" class="ze4NoWrapText" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                    <t:Column width="14rem"><Label text="코스트센터명" /><t:template><Text text="{department>kostlTxt}" wrapping="false" tooltip="{department>kostlTxt}" /></t:template></t:Column>
+                                    <t:Column width="10rem"><Label text="책임자" /><t:template><Text text="{department>manager}" wrapping="false" tooltip="{department>manager}" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'department>varianceAmount', formatter: '.formatter.amount'}" state="{department>varianceState}" /></t:template></t:Column>
                                     <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'department>varianceRate', formatter: '.formatter.rate'}" state="{department>varianceState}" /></t:template></t:Column>
                                     <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
@@ -255,20 +254,26 @@
                             </t:Table>
                         </VBox>
 
-                        <VBox class="ze4Card ze4TableCard">
+                        <VBox>
                             <HBox class="ze4CardHeader" alignItems="Center">
                                 <Title text="비용계정별 상세 현황" level="H3" />
+                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                    <Text class="ze4TableHeaderMetricLabel" text="이번달 합계" />
+                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/accountSummary/currentAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                </HBox>
                                 <ToolbarSpacer />
                                 <Text class="ze4CardUnit" text="단위: KRW" />
                             </HBox>
-                            <t:Table rows="{department>/accountRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="6" width="100%" fixedColumnCount="2" class="ze4GridTable ze4Table ze4DepartmentTable">
+                            <t:Table rows="{department>/accountRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="6" width="100%" fixedColumnCount="2">
                                 <t:columns>
                                     <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                    <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{department>ktoksTxt}" wrapping="false" tooltip="{department>ktoksTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
+                                    <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{department>ktoksTxt}" wrapping="false" tooltip="{department>ktoksTxt}" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'department>varianceAmount', formatter: '.formatter.amount'}" state="{department>varianceState}" /></t:template></t:Column>
                                     <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'department>varianceRate', formatter: '.formatter.rate'}" state="{department>varianceState}" /></t:template></t:Column>
                                     <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
@@ -278,6 +283,6 @@
                             </t:Table>
                         </VBox>
                     </VBox>
-                </f:content>
-    </f:DynamicPage>
+                </content>
+    </Page>
 </mvc:View>

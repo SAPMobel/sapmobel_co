@@ -1,0 +1,272 @@
+.zecPage .sapFDynamicPageContent {
+    padding-top: 0;
+    background: var(--sapBackgroundColor);
+}
+
+.zecPage .sapFDynamicPageHeader {
+    box-shadow: none;
+}
+
+.zecContent {
+    gap: 1rem;
+}
+
+.zecFilterCard,
+.zecKpiBand,
+.zecPanel {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--sapGroup_ContentBorderColor);
+    border-radius: 0.5rem;
+    background: var(--sapGroup_ContentBackground);
+    box-sizing: border-box;
+    box-shadow: var(--sapContent_Shadow0);
+}
+
+.zecFilterCard {
+    padding: 0.875rem 1rem;
+}
+
+.zecFilterBar {
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.zecFilterItem {
+    flex: 1 1 13rem;
+    min-width: 13rem;
+}
+
+.zecCompanyItem {
+    flex: 0 1 8rem;
+    min-width: 8rem;
+}
+
+.zecBasisItem {
+    flex: 0 1 16rem;
+    min-width: 16rem;
+}
+
+.zecFilterItemWide {
+    flex: 1 1 18rem;
+    min-width: 16rem;
+}
+
+.zecPeriodBox {
+    gap: 0.5rem;
+}
+
+.zecKpiGrid {
+    gap: 0.75rem;
+    width: 100%;
+    flex-wrap: nowrap !important;
+}
+
+.zecKpiItem {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 6.75rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--sapGroup_ContentBorderColor);
+    border-radius: 0.375rem;
+    background: var(--sapTile_Background);
+    box-sizing: border-box;
+}
+
+.zecKpiHeader {
+    gap: 0.375rem;
+    min-height: 1.25rem;
+}
+
+.zecKpiIcon {
+    align-items: center;
+    border-radius: 50%;
+    display: inline-flex;
+    flex: 0 0 3rem;
+    font-size: 1.5rem;
+    height: 3rem;
+    justify-content: center;
+    margin-right: 0.875rem;
+    width: 3rem;
+}
+
+.zecKpiIconBlue {
+    background: #eaf3ff;
+    color: #0a6ed1;
+}
+
+.zecKpiIconPurple {
+    background: #f2ecff;
+    color: #6f42c1;
+}
+
+.zecKpiIconGreen {
+    background: #edf7ed;
+    color: #107e3e;
+}
+
+.zecKpiIconOrange {
+    background: #fff3e5;
+    color: #e9730c;
+}
+
+.zecKpiIconTeal {
+    background: #e8f6f6;
+    color: #008080;
+}
+
+.zecKpiText {
+    min-width: 0;
+}
+
+.zecKpiItem .sapMObjectNumberText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.8rem;
+}
+
+.zecMutedText {
+    color: var(--sapContent_LabelColor);
+    font-size: 0.75rem;
+}
+
+.zecTabs {
+    margin-top: 0.25rem;
+}
+
+.zecTabs .sapMITBHead {
+    margin: 0;
+}
+
+.zecTabs .sapMITBContent {
+    padding: 0;
+    border-bottom: 0;
+}
+
+.zecTabBody {
+    padding-top: 0.75rem;
+}
+
+.zecWorkGrid {
+    width: 100%;
+}
+
+.zecMainPanel,
+.zecChartPanel,
+.zecPreviewPanel {
+    min-height: 100%;
+}
+
+.zecMainPanel {
+    display: flex;
+    flex-direction: column;
+    min-height: 32rem;
+}
+
+.zecMainPanel .zecWideTable {
+    flex: 1 1 auto;
+}
+
+.zecWideTable {
+    min-width: 100%;
+}
+
+.zecGroupedTable .sapUiTableColHdrCnt {
+    background: var(--sapList_HeaderBackground);
+}
+
+.zecProcessingTable {
+    min-width: 112rem;
+}
+
+.zecAnalysisTable {
+    min-width: 86rem;
+}
+
+.zecHistoryTable {
+    min-width: 100rem;
+}
+
+.zecChartPanel {
+    position: relative;
+    max-height: 32rem;
+    overflow: auto;
+}
+
+.zecChartBox {
+    position: relative;
+    min-height: 13rem;
+}
+
+.zecChartTotal {
+    margin: 0.25rem 0 0.25rem;
+}
+
+.zecChartTotal .sapMObjectNumberText {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.zecChartCenter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 9rem;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+.zecChartCenter .sapMObjStatusText {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.zecSummaryBlock,
+.zecPreviewTableBlock {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.zecSummaryBlock {
+    padding: 0.75rem;
+    border: 1px solid var(--sapGroup_ContentBorderColor);
+    border-radius: 0.375rem;
+    background: var(--sapList_Background);
+}
+
+.zecInlineSection {
+    padding: 0.75rem;
+    border: 1px solid var(--sapGroup_ContentBorderColor);
+    border-radius: 0.375rem;
+    background: var(--sapList_Background);
+}
+
+.zecBreakdownList,
+.zecTopVarianceList {
+    border: 1px solid var(--sapGroup_ContentBorderColor);
+    border-radius: 0.375rem;
+}
+
+.zecBreakdownRow,
+.zecTopVarianceItem {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    box-sizing: border-box;
+}
+
+.zecTopVarianceItem {
+    gap: 0.25rem;
+}
+
+@media (max-width: 64rem) {
+    .zecKpiGrid {
+        flex-wrap: wrap !important;
+    }
+
+    .zecKpiItem {
+        flex: 1 1 15rem;
+        min-width: 12rem;
+    }
+}

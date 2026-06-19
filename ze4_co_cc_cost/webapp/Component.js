@@ -1,7 +1,8 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/model/json/JSONModel",
-    "ZE4_CC_COST/model/models"
+    "ZE4_CC_COST/model/models",
+    "sap/m/PageAccessibleLandmarkInfo"
 ], (UIComponent, JSONModel, models) => {
     "use strict";
 

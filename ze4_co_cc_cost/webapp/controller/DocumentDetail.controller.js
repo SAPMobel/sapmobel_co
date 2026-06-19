@@ -37,6 +37,7 @@ sap.ui.define([
             this._routeOrgId = decodeURIComponent(oArgs.kostl || "");
             this._routeOrgId = this._routeOrgId === "ALL" ? "" : this._routeOrgId;
             this._routeSaknr = decodeURIComponent(oArgs.saknr || "");
+            this.getAppStateModel().setProperty("/resetDashboardOrgFilterOnRoute", true);
             oModel.setProperty("/busy", true);
 
             this.service.refreshMetadata()
@@ -44,12 +45,16 @@ sap.ui.define([
                     return this.syncDefaultFilters("document");
                 }.bind(this))
                 .then(function (oFilters) {
-                    oFilters.orgNodeId = this._routeOrgId;
-                    oFilters.saknr = this._routeSaknr;
-                    oModel.setProperty("/filters", oFilters);
+                    var oRouteFilters = Object.assign({}, oFilters, {
+                        orgNodeId: this._routeOrgId,
+                        orgNodeText: "",
+                        saknr: this._routeSaknr
+                    });
+
+                    oModel.setProperty("/filters", oRouteFilters);
                     oModel.setProperty("/accountFilter", this._routeSaknr);
                     oModel.setProperty("/accountFilterText", this._routeSaknr);
-                    return this._loadDocuments(oFilters);
+                    return this._loadDocuments(oRouteFilters);
                 }.bind(this))
                 .catch(function () {
                     MessageBox.error("전표 상세 데이터를 조회하지 못했습니다.");
@@ -153,22 +158,38 @@ sap.ui.define([
                 orgCode: oSelectedOrg.childId || "ALL",
                 account: sSelectedSaknr || "전체",
                 accountText: sSelectedSaknr ? (oSelectedAccount && oSelectedAccount.saknrTxt || oFirst.SaknrTxt || "-") : "전체",
-                period: oFilters.gjahr + "년 " + oFilters.period + "월 누적",
+                period: oFilters.gjahr + "년 " + oFilters.period + "월",
                 documentCount: iDocumentCount,
                 lineCount: aMappedRows.length,
                 lineCountText: this.formatter.amount(aMappedRows.length) + "건",
                 totalAmount: fTotalAmount
             });
             oModel.setProperty("/kpis", [
-                this.createKpi("총 전표금액", this.formatter.amountWithCurrency(fTotalAmount, "KRW"), "차대변 반영 금액 합계", "None", "sap-icon://sum"),
-                this.createKpi("전표 건수", iDocumentCount ? this.formatter.amount(iDocumentCount) + "건" : "-", "전표번호 기준", "None", "sap-icon://documents"),
-                this.createKpi("라인 건수", this.formatter.amount(aMappedRows.length) + "건", "전표라인 기준", "None", "sap-icon://list"),
-                this.createKpi("차변 금액", this.formatter.amountWithCurrency(fDebitAmount, "KRW"), "원금액 기준", "Success", "sap-icon://arrow-left"),
-                this.createKpi("대변 금액", this.formatter.amountWithCurrency(fCreditAmount, "KRW"), "원금액 기준", "Warning", "sap-icon://arrow-right")
+                Object.assign(this.createKpi("총 전표금액", this.formatter.amountWithCurrency(fTotalAmount, "KRW"), "차대변 반영 금액 합계", "None", "sap-icon://sum"), {
+                    valueState: this.formatter.amountState(fTotalAmount)
+                }),
+                Object.assign(this.createKpi("전표 건수", iDocumentCount ? this.formatter.amount(iDocumentCount) + "건" : "-", "전표번호 기준", "None", "sap-icon://documents"), {
+                    valueState: this.formatter.countState(iDocumentCount)
+                }),
+                Object.assign(this.createKpi("라인 건수", this.formatter.amount(aMappedRows.length) + "건", "전표라인 기준", "None", "sap-icon://list"), {
+                    valueState: this.formatter.countState(aMappedRows.length)
+                }),
+                Object.assign(this.createKpi("차변 금액", this.formatter.amountWithCurrency(fDebitAmount, "KRW"), "원금액 기준", "Success", "sap-icon://arrow-left"), {
+                    valueState: this.formatter.amountState(fDebitAmount)
+                }),
+                Object.assign(this.createKpi("대변 금액", this.formatter.amountWithCurrency(fCreditAmount, "KRW"), "원금액 기준", "Warning", "sap-icon://arrow-right"), {
+                    valueState: fCreditAmount ? "Warning" : "None"
+                })
             ]);
             oModel.setProperty("/documentRows", aMappedRows);
             oModel.setProperty("/selectedDocument", aMappedRows[0] || {});
             oModel.setProperty("/hasSelection", !!aMappedRows.length);
+            this.scheduleViewportTableResize([{
+                id: "documentTable",
+                minRows: 8,
+                maxRows: 34,
+                bottomOffset: 14
+            }]);
         },
 
         onDocumentRowSelection: function (oEvent) {

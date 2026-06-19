@@ -50,8 +50,13 @@
                                 <Text text="{= ${detail>/gjahr} + ' / ' + ${detail>/monat} }" class="detailValueText"/>
                             </VBox>
                             <VBox class="totalCostBox">
-                                <Label text="{i18n>lblTotalCost}"/>
-                                <ObjectNumber number="{parts: [{path: 'detail>/total_cost'}, {path: 'detail>/waers'}], formatter: '.formatAmount'}" unit="{detail>/waers}" emphasized="true"/>
+                                <HBox alignItems="Center">
+                                    <core:Icon src="sap-icon://money-bills" class="totalCostIcon"/>
+                                    <VBox>
+                                        <Label text="{i18n>lblTotalCost}"/>
+                                        <ObjectNumber number="{parts: [{path: 'detail>/total_cost'}, {path: 'detail>/waers'}], formatter: '.formatAmount'}" unit="{detail>/waers}" emphasized="true" state="Information"/>
+                                    </VBox>
+                                </HBox>
                             </VBox>
                         </FlexBox>
                         <HBox class="detailActionRow">

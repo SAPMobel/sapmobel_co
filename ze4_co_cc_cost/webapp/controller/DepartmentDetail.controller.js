@@ -1,8 +1,7 @@
 sap.ui.define([
     "ZE4_CC_COST/controller/BaseController",
-    "sap/m/MessageBox",
-    "sap/viz/ui5/controls/common/feeds/FeedItem"
-], function (BaseController, MessageBox, FeedItem) {
+    "sap/m/MessageBox"
+], function (BaseController, MessageBox) {
     "use strict";
 
     return BaseController.extend("ZE4_CC_COST.controller.DepartmentDetail", {
@@ -20,6 +19,7 @@ sap.ui.define([
                 monthlyTrend: [],
                 accountComposition: [],
                 accountCompositionList: [],
+                selectedAccountKey: "",
                 selectedMonthSummary: {},
                 selectedAccountSummary: {},
                 hasSelectedMonthSummary: false,
@@ -36,6 +36,7 @@ sap.ui.define([
             var sOrgId = decodeURIComponent(oEvent.getParameter("arguments").orgId || "");
 
             this._routeOrgId = sOrgId === "ALL" ? "" : sOrgId;
+            this.getAppStateModel().setProperty("/resetDashboardOrgFilterOnRoute", true);
             oModel.setProperty("/busy", true);
 
             this.service.init()
@@ -43,9 +44,13 @@ sap.ui.define([
                     return this.syncDefaultFilters("department");
                 }.bind(this))
                 .then(function (oFilters) {
-                    oFilters.orgNodeId = this._routeOrgId;
-                    oModel.setProperty("/filters", oFilters);
-                    return this._loadDepartment(oFilters);
+                    var oRouteFilters = Object.assign({}, oFilters, {
+                        orgNodeId: this._routeOrgId,
+                        orgNodeText: ""
+                    });
+
+                    oModel.setProperty("/filters", oRouteFilters);
+                    return this._loadDepartment(oRouteFilters);
                 }.bind(this))
                 .catch(function () {
                     MessageBox.error("상세 분석 데이터를 조회하지 못했습니다.");
@@ -103,11 +108,13 @@ sap.ui.define([
             var aOrgActualRows = this.service.filterByOrg(aActualRows, "kostl", oSelectedOrg);
             var aOrgBudgetRows = this.service.filterByOrg(aBudgetRows, "Kostl", oSelectedOrg);
             var aOrgDocumentRows = this.service.filterByOrg(aDocumentRows, "Kostl", oSelectedOrg);
+            var aCurrentDocumentRows = this.service.currentDocumentRows(aOrgDocumentRows, oFilters.period);
             var aCumulativeActualRows = this.service.cumulativeActualRows(aOrgActualRows, oFilters.period);
             var aCumulativeBudgetRows = this.service.cumulativeBudgetRows(aOrgBudgetRows, oFilters.period);
             var aCurrentActualRows = this.service.currentActualRows(aOrgActualRows, oFilters.period);
             var aPreviousActualRows = this.service.previousActualRows(aOrgActualRows, aPreviousYearRows, oFilters, oSelectedOrg);
             var fTotalActual = this.service.sum(aCumulativeActualRows, "amount");
+            var fCurrentActual = this.service.sum(aCurrentActualRows, "amount");
             var fTotalBudget = this.service.sum(aCumulativeBudgetRows, "BudgetAmt");
             var fBudgetVariance = fTotalBudget ? fTotalActual - fTotalBudget : null;
             var fBudgetRate = fTotalBudget ? fBudgetVariance / fTotalBudget * 100 : null;
@@ -122,20 +129,25 @@ sap.ui.define([
                 aCurrentActualRows,
                 aPreviousActualRows,
                 aHierarchyRows,
-                aOrgDocumentRows
+                aCurrentDocumentRows
             );
             var aAccountRows = this.service.aggregateAccounts(
                 aCumulativeActualRows,
                 aCumulativeBudgetRows,
                 aCurrentActualRows,
                 aPreviousActualRows,
-                aOrgDocumentRows
+                aCurrentDocumentRows
             );
+            var oAccountSummary = {
+                actualAmount: this.service.sum(aAccountRows, "actualAmount"),
+                currentAmount: this.service.sum(aAccountRows, "currentAmount"),
+                previousAmount: this.service.sum(aAccountRows, "previousAmount")
+            };
             var aCompositionRows = this.decorateAccountCompositionRows(
                 this.service.buildAccountComposition(aCumulativeActualRows),
-                aOrgDocumentRows
+                aCurrentDocumentRows
             );
-            var iDocumentCount = this.service.distinctDocumentCount(aOrgDocumentRows);
+            var iDocumentCount = this.service.distinctDocumentCount(aCurrentDocumentRows);
             var iChildCount = oSelectedOrg.descendantIds && oSelectedOrg.descendantIds.length ? aChildRows.length : 0;
             var bHasTrendData;
             var bHasCompositionData = aCompositionRows.length > 0;
@@ -165,9 +177,10 @@ sap.ui.define([
             });
             oModel.setProperty("/kpis", [
                 this.createKpi("누적 비용", this.formatter.amountWithCurrency(fTotalActual, "KRW"), "선택 기간 누적", "None", "sap-icon://wallet"),
+                this.createKpi("이번달 비용", this.formatter.amountWithCurrency(fCurrentActual, "KRW"), oFilters.period + "월 기준", "None", "sap-icon://calendar"),
                 this.createKpi("예산", fTotalBudget ? this.formatter.amountWithCurrency(fTotalBudget, "KRW") : "-", fTotalBudget ? "BUD 기준 누적" : "예산 데이터 없음", "None", "sap-icon://business-objects-experience"),
                 this.createKpi("예산대비 차이", fBudgetVariance === null ? "-" : this.formatter.amountWithCurrency(fBudgetVariance, "KRW"), fBudgetRate === null ? "예산 데이터 없음" : this.formatter.rate(fBudgetRate), this.formatter.valueStateByVariance(fBudgetVariance, !!fTotalBudget), "sap-icon://compare"),
-                this.createKpi("전표 건수", iDocumentCount ? this.formatter.amount(iDocumentCount) + "건" : "-", iDocumentCount ? "선택 기간 기준" : "전표 데이터 없음", "None", "sap-icon://documents"),
+                this.createKpi("전표 건수", iDocumentCount ? this.formatter.amount(iDocumentCount) + "건" : "-", iDocumentCount ? oFilters.period + "월 전표 기준" : "전표 데이터 없음", "None", "sap-icon://documents"),
                 this.createKpi("하위 코스트센터 수", this.formatter.amount(iChildCount) + "개", oSelectedOrg.childId ? "선택 조직 범위" : "전체 기준", "None", "sap-icon://org-chart")
             ]);
             oModel.setProperty("/monthlyTrend", aTrendRows);
@@ -177,82 +190,28 @@ sap.ui.define([
             oModel.setProperty("/hasCompositionData", bHasCompositionData);
             oModel.setProperty("/selectedMonthSummary", {});
             oModel.setProperty("/selectedAccountSummary", {});
+            oModel.setProperty("/selectedAccountKey", "");
             oModel.setProperty("/hasSelectedMonthSummary", false);
             oModel.setProperty("/hasSelectedAccountSummary", false);
             oModel.setProperty("/childCostCenterRows", aChildRows);
             oModel.setProperty("/accountRows", aAccountRows);
+            oModel.setProperty("/accountSummary", oAccountSummary);
 
-            this._configureCharts(!!aOrgBudgetRows.length);
-        },
-
-        _configureCharts: function (bHasBudget) {
-            var oTrendChart = this.byId("departmentTrendChart");
-            var oCompositionChart = this.byId("departmentCompositionChart");
-
-            if (oTrendChart) {
-                oTrendChart.removeAllFeeds();
-                oTrendChart.addFeed(new FeedItem({
-                    uid: "valueAxis",
-                    type: "Measure",
-                    values: bHasBudget ? ["실적", "예산"] : ["실적"]
-                }));
-                oTrendChart.addFeed(new FeedItem({
-                    uid: "categoryAxis",
-                    type: "Dimension",
-                    values: ["월"]
-                }));
-                oTrendChart.setVizProperties({
-                    title: { visible: false },
-                    tooltip: { visible: true },
-                    interaction: { selectability: { mode: "single" } },
-                    legend: {
-                        visible: true,
-                        label: { style: { color: "#24384f", fontWeight: "700" } }
-                    },
-                    valueAxis: { title: { visible: false }, label: { style: { color: "#24384f", fontWeight: "700" } } },
-                    categoryAxis: { title: { visible: false }, label: { style: { color: "#24384f", fontWeight: "700" } } },
-                    plotArea: {
-                        drawingEffect: "glossy",
-                        dataLabel: { visible: true },
-                        line: { width: 3 },
-                        colorPalette: ["#256fdb", "#8392a5"]
-                    }
-                });
-            }
-
-            if (oCompositionChart) {
-                oCompositionChart.removeAllFeeds();
-                oCompositionChart.addFeed(new FeedItem({
-                    uid: "size",
-                    type: "Measure",
-                    values: ["금액"]
-                }));
-                oCompositionChart.addFeed(new FeedItem({
-                    uid: "color",
-                    type: "Dimension",
-                    values: ["계정"]
-                }));
-                oCompositionChart.setVizProperties({
-                    title: { visible: false },
-                    tooltip: { visible: true },
-                    interaction: { selectability: { mode: "single" } },
-                    legend: {
-                        visible: true,
-                        position: "right",
-                        label: { style: { color: "#24384f", fontWeight: "700" } }
-                    },
-                    plotArea: {
-                        drawingEffect: "glossy",
-                        dataLabel: { visible: true, type: "percentage" },
-                        colorPalette: ["#256fdb", "#37a2a2", "#6abf4b", "#e39b2f", "#9b72d0", "#d86b8f", "#7c8ea3", "#a56b46"]
-                    }
-                });
-            }
+            this.configureVizFrame(this.byId("departmentTrendChart"), this.byId("departmentTrendChartPopover"), {
+                type: "trend",
+                categoryAxisTitle: "조회 월",
+                valueAxisTitle: "누적금액(KRW)",
+                legendPosition: "top"
+            });
+            this.configureVizFrame(this.byId("departmentCompositionChart"), this.byId("departmentCompositionChartPopover"), {
+                type: "donut",
+                legendPosition: "right"
+            });
         },
 
         onTrendChartSelectData: function (oEvent) {
             var oModel = this.getView().getModel("department");
-            var sMonthText = this.extractVizDataValue(oEvent, "월");
+            var sMonthText = this.extractVizDataValue(oEvent, "조회 월");
             var aTrendRows = oModel.getProperty("/monthlyTrend") || [];
             var oSummary = this.buildSelectedMonthSummary(sMonthText, aTrendRows);
 
@@ -263,11 +222,11 @@ sap.ui.define([
 
         onCompositionChartSelectData: function (oEvent) {
             var oModel = this.getView().getModel("department");
-            var sAccountText = this.extractVizDataValue(oEvent, "계정");
+            var sAccountText = this.extractVizDataValue(oEvent, "계정명");
             var aCompositionRows = oModel.getProperty("/accountComposition") || [];
             var oSummary = this.buildSelectedAccountSummary(sAccountText, aCompositionRows);
 
-            oModel.setProperty("/accountComposition", this.markSelectedByProperty(aCompositionRows, "accountLabel", sAccountText));
+            oModel.setProperty("/selectedAccountKey", sAccountText);
             oModel.setProperty("/selectedAccountSummary", oSummary || {});
             oModel.setProperty("/hasSelectedAccountSummary", !!oSummary);
         },

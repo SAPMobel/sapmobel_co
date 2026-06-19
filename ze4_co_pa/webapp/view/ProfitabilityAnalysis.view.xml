@@ -1,0 +1,6 @@
+<mvc:View controllerName="ze4.co.pa.ze4copa.controller.ProfitabilityAnalysis"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <Page id="page" title="{i18n>title}">
+    </Page>
+</mvc:View>

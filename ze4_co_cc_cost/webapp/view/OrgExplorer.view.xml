@@ -1,0 +1,259 @@
+<mvc:View
+    controllerName="ZE4_CC_COST.controller.OrgExplorer"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:t="sap.ui.table"
+    xmlns:ng="sap.suite.ui.commons.networkgraph"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:vizData="sap.viz.ui5.data">
+    <Page
+        class="ze4DynamicPage sapUiSizeCompact"
+        showHeader="false"
+        enableScrolling="true"
+        busy="{org>/busy}"
+        busyIndicatorDelay="0">
+        <content>
+            <VBox class="ze4PageContent ze4OrgExplorerContent">
+                <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
+                    <Title text="{org>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
+                    <ToolbarSpacer />
+                    <HBox class="ze4PageActions" alignItems="Center">
+                        <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
+                        <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
+                        <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                    </HBox>
+                </HBox>
+
+                <VBox class="ze4FilterBar">
+                    <HBox class="ze4FilterHeader" alignItems="Center">
+                        <Title text="조회 조건" level="H3" />
+                        <ToolbarSpacer />
+                        <Button text="{org>/filterToggleText}" type="Transparent" press=".onToggleFilter" />
+                    </HBox>
+                    <FlexBox class="ze4FilterFields" visible="{org>/filterVisible}" wrap="Wrap" alignItems="End">
+                        <VBox class="ze4FilterField">
+                            <Label text="회사코드" />
+                            <Input value="{org>/filters/bukrs}" editable="false" enabled="false" class="ze4FixedInput" width="9rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="회계연도" required="true" />
+                            <Input
+                                value="{org>/filters/gjahr}"
+                                valueState="{org>/filterStates/gjahrState}"
+                                valueStateText="{org>/filterStates/gjahrStateText}"
+                                maxLength="4"
+                                width="8rem" />
+                        </VBox>
+                        <VBox class="ze4FilterField">
+                            <Label text="기간" required="true" />
+                            <Select
+                                selectedKey="{org>/filters/period}"
+                                valueState="{org>/filterStates/periodState}"
+                                valueStateText="{org>/filterStates/periodStateText}"
+                                items="{org>/periodOptions}"
+                                width="8rem">
+                                <core:Item key="{org>key}" text="{org>text}" />
+                            </Select>
+                        </VBox>
+                        <Button class="ze4SearchButton" text="검색" icon="sap-icon://search" type="Emphasized" press=".onSearch" />
+                        <Button text="초기화" type="Transparent" press=".onResetFilters" />
+                    </FlexBox>
+                    <MessageStrip
+                        class="ze4MessageStrip"
+                        visible="{org>/warningVisible}"
+                        text="{org>/warningText}"
+                        type="Warning"
+                        showIcon="true" />
+                </VBox>
+
+                <HBox class="ze4OrgExplorerMain">
+                    <VBox class="ze4Card ze4OrgExplorerTreeCard">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="조직도 영역" level="H3" />
+                            <ToolbarSpacer />
+                            <Text class="ze4CardUnit" text="단위: KRW" />
+                        </HBox>
+                        <HBox class="ze4OrgNetworkLegend" alignItems="Center" wrap="Wrap">
+                            <ObjectStatus text="선택 조직" icon="sap-icon://circle-task-2" state="Information" />
+                            <ObjectStatus text="비용 발생 조직" icon="sap-icon://circle-task-2" state="Success" />
+                            <ObjectStatus text="예산 초과" icon="sap-icon://circle-task-2" state="Warning" />
+                            <ObjectStatus text="데이터 없음" icon="sap-icon://circle-task" state="None" />
+                        </HBox>
+                        <ng:Graph
+                            id="orgNetworkGraph"
+                            class="ze4OrgNetworkGraph"
+                            width="100%"
+                            height="32rem"
+                            orientation="TopBottom"
+                            renderType="Html"
+                            enableZoom="true"
+                            enableWheelZoom="false"
+                            noData="{org>/networkGraph/noData}"
+                            noDataText="표시할 데이터가 없습니다."
+                            selectionChange=".onOrgGraphSelectionChange"
+                            graphReady=".onOrgGraphReady"
+                            nodes="{org>/networkGraph/nodes}"
+                            lines="{org>/networkGraph/lines}">
+                            <ng:statuses>
+                                <ng:Status key="selected" title="선택 조직" borderColor="#0A6ED1" backgroundColor="#0A6ED1" contentColor="#0F1F33" headerContentColor="#FFFFFF" hoverBackgroundColor="#0854A0" hoverBorderColor="#0854A0" selectedBackgroundColor="#D8EBFF" selectedBorderColor="#0A6ED1" selectedContentColor="#0F1F33" legendColor="#0A6ED1" borderWidth="2px" />
+                                <ng:Status key="actual" title="비용 발생 조직" borderColor="#188918" backgroundColor="#2B9348" contentColor="#0F1F33" headerContentColor="#FFFFFF" hoverBackgroundColor="#107E3E" hoverBorderColor="#107E3E" selectedBackgroundColor="#EAF7EA" selectedBorderColor="#107E3E" selectedContentColor="#0F1F33" legendColor="#2B9348" borderWidth="2px" />
+                                <ng:Status key="overBudget" title="예산 초과" borderColor="#E9730C" backgroundColor="#F18F01" contentColor="#0F1F33" headerContentColor="#FFFFFF" hoverBackgroundColor="#D66B00" hoverBorderColor="#D66B00" selectedBackgroundColor="#FFF3E0" selectedBorderColor="#E9730C" selectedContentColor="#0F1F33" legendColor="#F18F01" borderWidth="2px" />
+                                <ng:Status key="empty" title="데이터 없음" borderColor="#9AA8B6" backgroundColor="#DDE6EF" contentColor="#0F1F33" headerContentColor="#0F1F33" hoverBackgroundColor="#CBD9E8" hoverBorderColor="#8392A5" selectedBackgroundColor="#EEF3F8" selectedBorderColor="#8392A5" selectedContentColor="#0F1F33" legendColor="#9AA8B6" borderWidth="1.5px" />
+                                <ng:Status key="path" title="선택 경로" borderColor="#0A6ED1" backgroundColor="#0A6ED1" contentColor="#0A6ED1" legendColor="#0A6ED1" borderWidth="2.5px" />
+                                <ng:Status key="treeLine" title="조직 연결선" borderColor="#9DB8D6" backgroundColor="#9DB8D6" contentColor="#425B76" legendColor="#9DB8D6" borderWidth="2px" />
+                            </ng:statuses>
+                            <ng:nodes>
+                                <ng:Node
+                                    key="{org>key}"
+                                    title="{org>title}"
+                                    description="{org>description}"
+                                    icon="{org>icon}"
+                                    status="{org>status}"
+                                    selected="{org>selected}"
+                                    shape="Box"
+                                    width="292"
+                                    maxWidth="308"
+                                    titleLineSize="1"
+                                    descriptionLineSize="1"
+                                    showExpandButton="{org>expandable}"
+                                    showDetailButton="false"
+                                    showActionLinksButton="false"
+                                    press=".onOrgGraphNodePress"
+                                    attributes="{org>attributes}">
+                                    <ng:attributes>
+                                        <ng:ElementAttribute
+                                            label="{org>label}"
+                                            value="{org>value}"
+                                            icon="{org>icon}"
+                                            labelStatus="{org>labelStatus}"
+                                            valueStatus="{org>valueStatus}" />
+                                    </ng:attributes>
+                                </ng:Node>
+                            </ng:nodes>
+                            <ng:lines>
+                                <ng:Line
+                                    from="{org>from}"
+                                    to="{org>to}"
+                                    title="{org>title}"
+                                    description="{org>description}"
+                                    status="{org>status}"
+                                    lineType="Solid"
+                                    arrowPosition="End"
+                                    arrowOrientation="ParentOf" />
+                            </ng:lines>
+                        </ng:Graph>
+                    </VBox>
+
+                    <VBox class="ze4Card ze4OrgInfoPanel">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="선택 조직 정보" level="H3" />
+                        </HBox>
+                        <VBox class="ze4OrgInfoHero">
+                            <HBox class="ze4OrgInfoHeroTop" alignItems="Center">
+                                <core:Icon src="sap-icon://org-chart" class="ze4OrgInfoIcon" />
+                                <VBox class="ze4OrgInfoTitleBlock">
+                                    <Title text="{org>/selectedInfo/name}" level="H2" class="ze4OrgInfoTitle" />
+                                    <ObjectStatus text="{org>/selectedInfo/code}" state="Information" class="ze4OrgCodeBadge" />
+                                </VBox>
+                            </HBox>
+                            <HBox class="ze4OrgInfoMeta" alignItems="Center" wrap="Wrap">
+                                <ObjectStatus text="{= '책임자: ' + ${org>/selectedInfo/manager} }" state="None" />
+                                <ObjectStatus text="{= '조회 기준일: ' + ${org>/selectedInfo/asOfDate} }" state="None" />
+                            </HBox>
+                        </VBox>
+                        <FlexBox class="ze4OrgInfoMetricGrid" wrap="Wrap">
+                            <VBox class="ze4OrgInfoMetric ze4OrgInfoMetricPrimary">
+                                <Label text="이번달비용" />
+                                <Text text="{org>/selectedInfo/actualText}" class="ze4OrgInfoMetricValue" wrapping="false" tooltip="{org>/selectedInfo/actualText}" />
+                            </VBox>
+                            <VBox class="ze4OrgInfoMetric">
+                                <Label text="누적비용" />
+                                <Text text="{org>/selectedInfo/cumulativeText}" class="ze4OrgInfoMetricValue" wrapping="false" tooltip="{org>/selectedInfo/cumulativeText}" />
+                            </VBox>
+                            <VBox class="ze4OrgInfoMetric">
+                                <Label text="전표건수" />
+                                <Text text="{org>/selectedInfo/documentCountText}" class="ze4OrgInfoMetricValue" wrapping="false" />
+                            </VBox>
+                            <VBox class="ze4OrgInfoMetric">
+                                <Label text="하위조직 수" />
+                                <Text text="{org>/selectedInfo/childCountText}" class="ze4OrgInfoMetricValue" wrapping="false" />
+                            </VBox>
+                        </FlexBox>
+                        <VBox class="ze4DetailList ze4OrgInfoDetailList">
+                            <Label text="상위조직" class="ze4DetailLabel" /><Text text="{org>/selectedInfo/parentText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="예산" class="ze4DetailLabel" /><Text text="{org>/selectedInfo/budgetText}" class="ze4DetailValue" wrapping="true" />
+                            <Label text="예산대비 차이" class="ze4DetailLabel" /><ObjectStatus text="{org>/selectedInfo/varianceText}" state="{org>/selectedInfo/varianceState}" class="ze4DetailValue" />
+                            <Label text="전월대비 증감" class="ze4DetailLabel" /><ObjectStatus text="{org>/selectedInfo/momText}" state="{org>/selectedInfo/momState}" class="ze4DetailValue" />
+                        </VBox>
+                    </VBox>
+                </HBox>
+
+                <HBox class="ze4OrgExplorerLower">
+                    <VBox class="ze4Card ze4TableCard ze4OrgChildTableCard">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="하위 조직 이번달 비용 현황" level="H3" />
+                            <ToolbarSpacer />
+                            <Text class="ze4CardUnit" text="단위: KRW" />
+                        </HBox>
+                        <t:Table
+                            id="orgChildTable"
+                            rows="{org>/childRows}"
+                            selectionMode="Single"
+                            selectionBehavior="Row"
+                            rowSelectionChange=".onChildRowSelection"
+                            visibleRowCount="8"
+                            width="100%"
+                            fixedColumnCount="2"
+                            enableColumnReordering="true"
+                            noData="표시할 데이터가 없습니다."
+                            class="ze4GridTable ze4Table">
+                            <t:columns>
+                                <t:Column width="8rem"><Label text="부서코드" /><t:template><Text text="{org>code}" wrapping="false" /></t:template></t:Column>
+                                <t:Column width="14rem"><Label text="부서명" /><t:template><Text text="{org>name}" wrapping="false" tooltip="{org>name}" class="ze4NoWrapText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'org>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'org>cumulativeAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'org>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><Text text="{path: 'org>varianceAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><Text text="{path: 'org>varianceRate', formatter: '.formatter.rate'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                <t:Column width="7rem"><Label text="상태" /><t:template><Text text="{org>statusText}" wrapping="false" /></t:template></t:Column>
+                            </t:columns>
+                        </t:Table>
+                    </VBox>
+
+                    <VBox class="ze4Card ze4ChartCard ze4OrgCompositionCard">
+                        <HBox class="ze4CardHeader" alignItems="Center">
+                            <Title text="비용 구성" level="H3" />
+                            <ToolbarSpacer />
+                            <Text class="ze4CardUnit" text="단위: KRW" />
+                        </HBox>
+                        <viz:VizFrame id="orgCompositionChart" height="22rem" width="100%" vizType="donut" uiConfig="{applicationSet:'fiori'}" visible="{org>/hasCompositionData}" selectData=".onCompositionChartSelectData">
+                            <viz:dataset>
+                                <vizData:FlattenedDataset data="{org>/accountComposition}">
+                                    <vizData:dimensions>
+                                        <vizData:DimensionDefinition name="계정명" value="{org>accountLabel}" />
+                                    </vizData:dimensions>
+                                    <vizData:measures>
+                                        <vizData:MeasureDefinition name="금액" value="{org>amount}" />
+                                    </vizData:measures>
+                                </vizData:FlattenedDataset>
+                            </viz:dataset>
+                            <viz:feeds>
+                                <vizFeeds:FeedItem uid="size" type="Measure" values="금액" />
+                                <vizFeeds:FeedItem uid="color" type="Dimension" values="계정명" />
+                            </viz:feeds>
+                            <viz:dependents>
+                                <viz:Popover id="orgCompositionChartPopover" />
+                            </viz:dependents>
+                        </viz:VizFrame>
+                        <VBox class="ze4ChartEmptyState" visible="{= !${org>/hasCompositionData} }">
+                            <Text text="표시할 데이터가 없습니다." />
+                        </VBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

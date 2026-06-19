@@ -5,106 +5,18 @@
     min-width: 0;
 }
 
-.ze4ShellHeader {
-    background: #fff;
-    border-bottom: 1px solid #dfe7ef;
-    box-shadow: 0 0.125rem 0.5rem rgba(34, 53, 72, 0.06);
-    box-sizing: border-box;
-    flex: 0 0 3.75rem;
-    min-height: 3.75rem;
-    padding: 0 1.25rem;
-    z-index: 2;
-}
-
-.ze4ShellBrand {
-    gap: 0.75rem;
-    min-width: 18rem;
-}
-
-.ze4SapLogo {
-    background: #1b74d6;
-    color: #fff;
-    display: inline-block;
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 2rem;
-    padding: 0 0.5rem;
-    transform: skew(-12deg);
-}
-
-.ze4ShellTitle {
-    font-size: 1.125rem;
-    font-weight: 800;
-}
-
-.ze4ShellTitleIcon {
-    color: #5f6f82;
-    font-size: 0.75rem;
-}
-
-.ze4ShellSearch .sapMSFF {
-    background: #f3f6fa;
-    border: 1px solid #e0e7ef;
-    border-radius: 0.75rem;
-}
-
-.ze4UserAvatar {
-    margin-left: 0.5rem;
-}
-
-.ze4UserName {
-    font-weight: 700;
-    margin-left: 0.25rem;
+.ze4AppShell {
+    background: #f5f7fb;
+    min-width: 0;
+    width: 100%;
 }
 
 .ze4DashboardShell {
     flex: 1 1 auto;
+    height: 100%;
     min-height: 0;
     min-width: 0;
-}
-
-.ze4SideNav {
-    background: #fff;
-    border-right: 1px solid #dfe7ef;
-    box-sizing: border-box;
-    flex: 0 0 13.75rem;
-    padding: 1.5rem 0.5rem 1rem;
-    width: 13.75rem;
-}
-
-.ze4SideNavItems {
-    gap: 0.375rem;
-}
-
-.ze4NavItem.sapMBtn {
-    height: 2.75rem;
     width: 100%;
-}
-
-.ze4NavItem .sapMBtnInner {
-    border: 0;
-    border-radius: 0.5rem;
-    justify-content: flex-start;
-    padding-left: 0.75rem;
-}
-
-.ze4NavItem .sapMBtnContent {
-    font-weight: 700;
-    text-align: left;
-}
-
-.ze4NavItemActive .sapMBtnInner {
-    background: #eaf2ff;
-}
-
-.ze4NavItemActive .sapMBtnContent,
-.ze4NavItemActive .sapMBtnIcon {
-    color: #0a6ed1;
-}
-
-.ze4NavCollapse {
-    border-top: 1px solid #e4ebf2;
-    padding-top: 0.75rem;
 }
 
 .ze4DashboardScroll {
@@ -115,39 +27,45 @@
 .ze4DashboardContent {
     box-sizing: border-box;
     gap: 0.875rem;
-    min-width: 72rem;
+    max-width: none;
+    min-width: 0;
     padding: 1.5rem;
+    width: 100%;
 }
 
-.ze4PageTop {
-    gap: 1rem;
+.ze4ObjectPageContent,
+.ze4DocumentContent {
+    box-sizing: border-box;
+    max-width: none;
+    min-width: 0;
+    padding: 1.5rem;
+    width: 100%;
 }
 
-.ze4TitleBlock {
+.ze4PageHeroTitle {
+    color: #0b1f3a;
+    flex: 1 1 auto;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0.75rem 0 0.5rem;
+    min-width: 18rem;
+    white-space: normal;
+}
+
+.ze4PageTitleBar {
+    gap: 0.75rem 1rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4PageActions {
+    flex: 0 0 auto;
     gap: 0.375rem;
 }
 
-.ze4Breadcrumb {
-    color: #4a6f9d;
-    gap: 0.5rem;
-}
-
-.ze4Breadcrumb .sapMLnk,
-.ze4Breadcrumb .sapMText,
-.ze4Breadcrumb .sapUiIcon {
-    font-size: 0.8125rem;
-}
-
-.ze4PageTitle {
-    color: #132235;
-    font-size: 1.625rem;
-    font-weight: 800;
-}
-
-.ze4HeaderMeta {
-    color: #607286;
-    gap: 0.5rem;
-    padding-top: 0.25rem;
+.ze4PageActions .sapMBtnInner {
+    border-radius: 0.5rem;
 }
 
 .ze4FilterCard,
@@ -205,14 +123,15 @@
 
 .ze4KpiGrid {
     gap: 0.75rem;
+    flex-wrap: nowrap !important;
 }
 
 .ze4KpiCard {
     box-sizing: border-box;
-    flex: 1 1 15rem;
-    min-height: 6.75rem;
-    min-width: 14rem;
-    padding: 1rem;
+    flex: 1 1 10.75rem;
+    min-height: 5.85rem;
+    min-width: 10.75rem;
+    padding: 0.85rem;
 }
 
 .ze4KpiHeader {
@@ -228,10 +147,12 @@
 
 .ze4KpiValue {
     color: #132235;
-    font-size: 1.375rem;
+    font-size: clamp(1rem, 1.05vw, 1.25rem);
     font-weight: 800;
     margin-top: 0.375rem;
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ze4KpiIcon {
@@ -340,7 +261,7 @@
     width: 100%;
 }
 
-.ze4ChartGrid {
+.ze4SvgGridLine {
     stroke: #e7edf3;
     stroke-width: 1;
 }
@@ -426,29 +347,6 @@
     justify-content: center;
 }
 
-.ze4DepartmentTable {
-    border: 1px solid #e1e8ef;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.ze4DepartmentTable .sapMListTblHeaderCell {
-    background: #f3f6fa;
-}
-
-.ze4DepartmentTable .sapMColumnHeader {
-    color: #3c4f63;
-    font-weight: 800;
-}
-
-.ze4DepartmentTable .sapMLIB {
-    border-bottom-color: #edf1f5;
-}
-
-.ze4DepartmentTable .sapMLIB:hover {
-    background: #f6f9fc;
-}
-
 .ze4AmountText {
     display: block;
     font-weight: 700;
@@ -480,10 +378,6 @@
 }
 
 @media (max-width: 900px) {
-    .ze4SideNav {
-        display: none;
-    }
-
     .ze4DashboardContent {
         min-width: 48rem;
     }
@@ -492,26 +386,7 @@
 .ze4AppShell {
     background: #f5f7fb;
     color: #1d2d3e;
-    height: 100%;
-    min-height: 100%;
     min-width: 0;
-}
-
-.ze4Header {
-    background: #fff;
-    border-bottom: 1px solid #dfe7ef;
-    box-shadow: 0 0.125rem 0.5rem rgba(34, 53, 72, 0.06);
-    box-sizing: border-box;
-    flex: 0 0 3.75rem;
-    min-height: 3.75rem;
-    padding: 0 1.5rem;
-    z-index: 2;
-}
-
-.ze4AppTitle {
-    font-size: 1.125rem;
-    font-weight: 800;
-    margin-left: 0.875rem;
 }
 
 .ze4ContextBar {
@@ -521,13 +396,28 @@
 
 .ze4ShellBody {
     flex: 1 1 auto;
+    height: 100%;
     min-height: 0;
     min-width: 0;
+    width: 100%;
 }
 
 .ze4DynamicPage {
+    background: #f5f7fb;
     flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
     min-width: 0;
+    width: 100%;
+}
+
+.ze4DynamicPage.sapMPage,
+.ze4DynamicPage .sapMPageEnableScrolling {
+    background: #f5f7fb;
+}
+
+.ze4DynamicPage .sapMPageEnableScrolling {
+    box-sizing: border-box;
 }
 
 .ze4DynamicPage .sapFDynamicPageContent,
@@ -546,8 +436,12 @@
 }
 
 .ze4PageContent {
+    box-sizing: border-box;
     gap: 1rem;
-    min-width: 74rem;
+    max-width: none;
+    min-width: 0;
+    padding: 1.5rem;
+    width: 100%;
 }
 
 .ze4FilterBar {
@@ -613,8 +507,31 @@
     white-space: nowrap;
 }
 
+.ze4TableHeaderMetric {
+    background: #edf6ff;
+    border: 1px solid #cfe5ff;
+    border-radius: 0.375rem;
+    gap: 0.375rem;
+    margin-left: 0.875rem;
+    padding: 0.125rem 0.5rem;
+    white-space: nowrap;
+}
+
+.ze4TableHeaderMetricLabel {
+    color: #36516d;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.ze4TableHeaderMetricValue {
+    color: #0a6ed1;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
 .ze4KpiGrid {
     gap: 0.75rem;
+    flex-wrap: nowrap !important;
 }
 
 .ze4KpiCard {
@@ -623,10 +540,10 @@
     border-radius: 0.75rem;
     box-shadow: 0 0.25rem 0.875rem rgba(34, 53, 72, 0.07);
     box-sizing: border-box;
-    flex: 1 1 14rem;
-    min-height: 6.5rem;
-    min-width: 13rem;
-    padding: 1rem;
+    flex: 1 1 10.75rem;
+    min-height: 5.85rem;
+    min-width: 10.75rem;
+    padding: 0.85rem;
 }
 
 .ze4KpiText {
@@ -644,7 +561,7 @@
 
 .ze4KpiValue {
     color: #132235;
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 1.05vw, 1.25rem);
     font-weight: 800;
     margin-top: 0.375rem;
     overflow: hidden;
@@ -770,10 +687,6 @@
     box-shadow: none;
 }
 
-.ze4DocumentHeader {
-    min-height: 4.5rem;
-}
-
 .ze4DocumentLayout {
     align-items: stretch;
     gap: 1rem;
@@ -833,6 +746,11 @@
 .ze4DynamicPage,
 .ze4ObjectScroll,
 .ze4PageContent,
+.ze4DashboardContent,
+.ze4DepartmentContent,
+.ze4DocumentContent,
+.ze4AllocationContent,
+.ze4OrgExplorerContent,
 .ze4ObjectPage,
 .ze4TableCard,
 .ze4ChartCard {
@@ -843,13 +761,7 @@
 }
 
 .ze4ShellBody {
-    display: flex;
     overflow: hidden;
-}
-
-.ze4SideNav {
-    flex: 0 0 13rem !important;
-    width: 13rem !important;
 }
 
 .ze4DynamicPage,
@@ -949,7 +861,7 @@
 .ze4DocumentMain {
     display: grid !important;
     gap: 1rem;
-    grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-columns: minmax(0, 1fr) 24rem;
     min-width: 0;
     width: 100%;
 }
@@ -963,13 +875,13 @@
 .ze4DocumentDetailPanel {
     box-sizing: border-box;
     min-width: 0;
-    width: 22rem;
+    width: 24rem;
 }
 
 .ze4KpiGrid {
     display: grid !important;
     gap: 0.75rem;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     width: 100%;
 }
 
@@ -994,42 +906,6 @@
     width: 2rem;
 }
 
-.ze4Table,
-.ze4GridTable {
-    color: #1d2d3e;
-    opacity: 1;
-}
-
-.ze4GridTable .sapUiTableCell,
-.ze4GridTable .sapUiTableCellInner,
-.ze4GridTable .sapMText,
-.ze4GridTable .sapMLabel {
-    color: #1d2d3e !important;
-    opacity: 1 !important;
-}
-
-.ze4GridTable .sapUiTableHeaderCell,
-.ze4GridTable .sapUiTableColHdrCnt {
-    background: #f3f6fa !important;
-}
-
-.ze4GridTable .sapUiTableColCell .sapMLabel,
-.ze4GridTable .sapUiTableColCell .sapMText {
-    color: #354a5f !important;
-    font-weight: 700;
-}
-
-.ze4GridTable .sapUiTableCell,
-.ze4GridTable .sapUiTableCellInner {
-    white-space: nowrap;
-}
-
-.ze4GridTable .sapMObjStatus,
-.ze4GridTable .sapMObjStatusText {
-    font-weight: 700;
-    opacity: 1 !important;
-}
-
 .ze4AmountText {
     color: #132235 !important;
     font-weight: 800;
@@ -1042,25 +918,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.ze4NavItem .sapMBtnInner,
-.ze4NavItem .sapMBtnInner.sapMFocusable:focus {
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-.ze4NavItem .sapMBtnInner:hover {
-    background: #f3f7fc;
-}
-
-.ze4NavItemActive .sapMBtnInner,
-.ze4NavItemActive .sapMBtnInner:hover {
-    background: #eaf2ff !important;
-}
-
-#shell-header {
-    display: none !important;
 }
 
 #canvas,
@@ -1090,10 +947,6 @@
 }
 
 @media (max-width: 760px) {
-    .ze4SideNav {
-        display: none;
-    }
-
     .ze4KpiGrid {
         grid-template-columns: 1fr;
     }
@@ -1102,8 +955,11 @@
 /* Layout/design correction pass for the three route pages. */
 .ze4DashboardContent,
 .ze4PageContent,
+.ze4ObjectPageContent,
 .ze4DepartmentContent,
-.ze4DocumentContent {
+.ze4DocumentContent,
+.ze4AllocationContent,
+.ze4OrgExplorerContent {
     box-sizing: border-box;
     max-width: none !important;
     min-width: 0 !important;
@@ -1112,26 +968,8 @@
 
 .ze4DynamicPage .sapFDynamicPageContent {
     box-sizing: border-box;
-    padding: 1rem 1.5rem 1.5rem !important;
+    padding: 0 !important;
     width: 100% !important;
-}
-
-.ze4DynamicPage .sapFDynamicPageHeader {
-    box-sizing: border-box;
-    padding: 1rem 1.5rem !important;
-    width: 100% !important;
-}
-
-.ze4DynamicPage .sapFDynamicPageTitle {
-    box-sizing: border-box;
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-}
-
-.ze4DynamicPage .sapFDynamicPageToggleHeaderIndicator,
-.ze4DynamicPage .sapFDynamicPageHeaderPinButton {
-    display: none !important;
-    visibility: hidden !important;
 }
 
 .ze4DepartmentHeaderStack {
@@ -1165,12 +1003,7 @@
     width: 100%;
 }
 
-.ze4DepartmentContent .ze4TableCard {
-    min-height: 23rem;
-}
-
 .ze4DepartmentContent .ze4ChartCard,
-.ze4DepartmentContent .ze4TableCard,
 .ze4DepartmentContent .ze4DepartmentTrendPanel,
 .ze4DepartmentContent .ze4DepartmentCompositionPanel {
     min-width: 0 !important;
@@ -1215,50 +1048,6 @@
     width: 2rem;
 }
 
-.ze4Table,
-.ze4Table *,
-.ze4DepartmentTable,
-.ze4DepartmentTable *,
-.ze4DocumentTable,
-.ze4DocumentTable *,
-.sapUiTable,
-.sapUiTable * {
-    opacity: 1 !important;
-}
-
-.ze4GridTable .sapUiTableCell,
-.ze4GridTable .sapUiTableCellInner,
-.ze4GridTable .sapUiTableCell .sapMText,
-.ze4GridTable .sapUiTableCell .sapMLabel,
-.ze4DepartmentTable .sapMText,
-.ze4DocumentTable .sapMText {
-    color: #1d2d3e !important;
-}
-
-.ze4GridTable .sapUiTableColCell .sapMText,
-.ze4GridTable .sapUiTableColCell .sapMLabel,
-.sapMListTblHeaderCell .sapMText {
-    color: #354a5f !important;
-    font-weight: 800 !important;
-}
-
-.ze4GridTable .sapUiTableCell,
-.ze4GridTable .sapUiTableCellInner {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap !important;
-}
-
-.ze4GridTable .sapUiTableRow,
-.ze4GridTable .sapUiTableCell {
-    min-height: 2.25rem;
-}
-
-.ze4GridTable .sapMObjStatusText,
-.ze4GridTable .sapMObjStatusIcon {
-    opacity: 1 !important;
-}
-
 .ze4AmountText {
     color: #132235 !important;
     font-weight: 800 !important;
@@ -1277,21 +1066,13 @@
     min-width: 22rem;
 }
 
-.ze4ShellBody > .ze4DynamicPage {
-    flex: 1 1 0 !important;
-    max-width: calc(100vw - 13rem) !important;
-    min-width: 0 !important;
-    overflow: hidden;
-    width: auto !important;
-}
-
+.ze4ShellBody > .ze4DynamicPage,
 .ze4ShellBody .ze4DynamicPage,
-.ze4ShellBody > .sapMFlexItem:not(:first-child) {
-    flex: 1 1 0 !important;
-    max-width: calc(100vw - 13rem) !important;
+.ze4ShellBody > .sapMFlexItem {
+    flex: 1 1 auto !important;
+    max-width: none !important;
     min-width: 0 !important;
-    overflow: hidden;
-    width: calc(100vw - 13rem) !important;
+    width: 100% !important;
 }
 
 .ze4DepartmentContent .ze4TableCard,
@@ -1307,21 +1088,52 @@
 }
 
 .ze4KpiIcon {
-    display: none !important;
+    align-items: center;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: inline-flex !important;
+    flex: 0 0 3rem;
+    font-size: 1.5rem;
+    height: 3rem;
+    justify-content: center;
+    line-height: 3rem;
+    margin-right: 0.875rem;
+    min-height: 3rem;
+    min-width: 3rem;
+    position: static !important;
+    width: 3rem;
 }
 
-.ze4NavItem.sapMBtn:focus,
-.ze4NavItem .sapMBtnInner:focus,
-.ze4NavItem .sapMBtnInner.sapMFocusable:focus {
-    box-shadow: none !important;
-    outline: none !important;
+.ze4KpiIconBlue {
+    background: #eaf3ff !important;
+    color: #0a6ed1 !important;
 }
 
-.ze4NavItem .sapMBtnFocusDiv {
-    border: 0 !important;
+.ze4KpiIconPurple {
+    background: #f2ecff !important;
+    color: #6f42c1 !important;
+}
+
+.ze4KpiIconGreen {
+    background: #edf7ed !important;
+    color: #107e3e !important;
+}
+
+.ze4KpiIconOrange {
+    background: #fff3e5 !important;
+    color: #e9730c !important;
+}
+
+.ze4KpiIconTeal {
+    background: #e8f6f6 !important;
+    color: #008080 !important;
 }
 
 @media (max-width: 1200px) {
+    .ze4KpiGrid {
+        flex-wrap: wrap !important;
+    }
+
     .ze4DepartmentContent .ze4ChartGrid {
         grid-template-columns: 1fr;
     }
@@ -1332,58 +1144,18 @@
     }
 
     .ze4ShellBody > .ze4DynamicPage {
-        max-width: 100vw !important;
+        max-width: none !important;
     }
 
     .ze4ShellBody .ze4DynamicPage,
-    .ze4ShellBody > .sapMFlexItem:not(:first-child) {
-        max-width: 100vw !important;
-        width: 100vw !important;
+    .ze4ShellBody > .sapMFlexItem {
+        max-width: none !important;
+        width: 100% !important;
     }
 }
 
-/* Final hierarchy/data readability pass. */
-.ze4Header {
-    gap: 1.25rem;
-    min-height: 3.75rem;
-}
-
-.ze4HeaderBrand {
-    flex: 0 0 auto;
-    gap: 0.75rem;
-    min-width: max-content;
-}
-
-.ze4AppTitle {
-    margin-left: 0 !important;
-    white-space: nowrap;
-}
-
-.ze4HeaderMeta {
-    color: #425b76 !important;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    margin-left: auto;
-}
-
-.ze4HeaderMeta .sapMText {
-    color: #425b76 !important;
-    font-size: 0.875rem;
-    font-weight: 800;
-    opacity: 1 !important;
-    white-space: nowrap;
-}
-
 .ze4TreeTable,
-.ze4TreeTable *,
-.ze4GridTable,
-.ze4GridTable *,
-.ze4ChartCard,
-.ze4ChartCard *,
-.sapVizFrame,
-.sapVizFrame *,
-.sapVizChart,
-.sapVizChart * {
+.ze4TreeTable * {
     filter: none !important;
     opacity: 1 !important;
 }
@@ -1450,79 +1222,23 @@
     height: 100%;
 }
 
-.ze4ChartCard svg text,
-.ze4ChartCard svg tspan,
-.ze4ChartCard .v-axis text,
-.ze4ChartCard .v-legend text {
-    fill: #354a5f !important;
-    font-weight: 700 !important;
-    opacity: 1 !important;
-}
-
-.ze4ChartCard .v-datalabel text {
-    fill: #1d2d3e !important;
-    font-weight: 800 !important;
-}
-
 .ze4DocumentDetailPanel .sapMObjectAttributeTitle,
-.ze4DocumentDetailPanel .sapMObjectAttributeText,
-.ze4DocumentHeader .sapMObjectAttributeTitle,
-.ze4DocumentHeader .sapMObjectAttributeText {
+.ze4DocumentDetailPanel .sapMObjectAttributeText {
     color: #1d2d3e !important;
     opacity: 1 !important;
 }
 
-.ze4DocumentDetailPanel .sapMObjectAttributeTitle,
-.ze4DocumentHeader .sapMObjectAttributeTitle {
+.ze4DocumentDetailPanel .sapMObjectAttributeTitle {
     color: #5f7084 !important;
     font-weight: 800;
 }
 
-@media (max-width: 1200px) {
-    .ze4HeaderMeta {
-        flex-basis: 100%;
-        justify-content: flex-start;
-        margin-left: 0;
-    }
-}
-
-/* Strong readability pass for cost analysis screens. */
-.ze4DashboardRoot,
-.ze4AppShell,
-.ze4AppShell .sapMText,
-.ze4AppShell .sapMLabel,
-.ze4AppShell .sapMTitle,
-.ze4AppShell .sapUiTableCell,
-.ze4AppShell .sapUiTableCellInner,
-.ze4AppShell .sapMObjectNumberText,
-.ze4AppShell .sapMInputBaseInner,
-.ze4Card .sapMText,
-.ze4Card .sapMLabel,
-.ze4TableCard .sapMText,
-.ze4DocumentDetailPanel .sapMText,
-.ze4DocumentDetailPanel .sapMLabel {
-    color: #0f1f33 !important;
-    opacity: 1 !important;
-}
-
 .ze4SubText,
 .ze4CardUnit,
-.ze4HeaderMeta,
-.ze4HeaderMeta .sapMText,
 .ze4FilterField .sapMLabel,
 .ze4DetailLabel,
 .ze4MutedText {
     color: #425b76 !important;
-    opacity: 1 !important;
-}
-
-.sapUiTableColCell .sapMText,
-.sapUiTableColCell .sapMLabel,
-.sapMListTblHeaderCell .sapMText,
-.sapMListTblHeaderCell .sapMLabel,
-.ze4TableHeaderText {
-    color: #24384f !important;
-    font-weight: 800 !important;
     opacity: 1 !important;
 }
 
@@ -1539,24 +1255,6 @@
     color: #0f1f33 !important;
 }
 
-.ze4ChartCard svg text,
-.ze4ChartCard svg tspan,
-.ze4ChartCard .v-label,
-.ze4ChartCard .v-legend text,
-.ze4ChartCard .v-axis text {
-    fill: #24384f !important;
-    color: #24384f !important;
-    opacity: 1 !important;
-    font-weight: 700 !important;
-}
-
-.ze4ChartCard .v-datalabel text {
-    fill: #0f1f33 !important;
-    color: #0f1f33 !important;
-    opacity: 1 !important;
-    font-weight: 800 !important;
-}
-
 .sapMObjStatusSuccess .sapMObjStatusText,
 .sapMObjStatusSuccess .sapMObjStatusIcon {
     color: #188038 !important;
@@ -1567,9 +1265,50 @@
     color: #b35c00 !important;
 }
 
+.sapMObjStatusInformation .sapMObjStatusText,
+.sapMObjStatusInformation .sapMObjStatusIcon {
+    color: #075caf !important;
+}
+
 .sapMObjStatusError .sapMObjStatusText,
 .sapMObjStatusError .sapMObjStatusIcon {
     color: #d93025 !important;
+}
+
+.ze4KpiValueStatus {
+    display: block;
+    margin-top: 0.375rem;
+}
+
+.ze4KpiValueStatus .sapMObjStatusText {
+    font-size: 1.375rem;
+    font-weight: 900 !important;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4DocumentAmountStatus {
+    display: block;
+    text-align: right;
+    width: 100%;
+}
+
+.ze4DocumentAmountStatus .sapMObjStatusText {
+    font-weight: 900 !important;
+}
+
+.ze4DocumentDetailAmountStatus {
+    display: block;
+    text-align: left;
+    width: auto;
+}
+
+.ze4DocumentDetailAmountStatus .sapMObjStatusText {
+    font-weight: 900 !important;
+    text-align: left;
 }
 
 .ze4ChartSelectionInfo {
@@ -1657,54 +1396,1302 @@
     }
 }
 
-/* Hard text contrast override after UI5 theme/VizFrame rendering. */
-.ze4DashboardRoot,
-.ze4AppShell,
-.ze4DashboardRoot .sapMText,
-.ze4DashboardRoot .sapMLabel,
-.ze4DashboardRoot .sapMTitle,
-.ze4DashboardRoot .sapUiTableCell,
-.ze4DashboardRoot .sapUiTableCellInner,
-.ze4DashboardRoot .sapMInputBaseInner,
-.ze4AppShell .sapMText,
-.ze4AppShell .sapMLabel,
-.ze4AppShell .sapMTitle,
-.ze4AppShell .sapUiTableCell,
-.ze4AppShell .sapUiTableCellInner,
-.ze4AppShell .sapMInputBaseInner,
-.ze4FilterBar .sapMText,
-.ze4FilterBar .sapMLabel,
-.ze4FilterBar .sapMInputBaseInner,
-.ze4KpiCard .sapMText,
-.ze4KpiCard .sapMLabel,
-.ze4KpiCard .sapMObjStatusText,
-.ze4DetailList .sapMText,
-.ze4DetailList .sapMLabel,
-.ze4SelectionFacts .sapMObjectAttributeText,
-.ze4SelectionFacts .sapMObjectAttributeTitle {
-    color: #0f1f33 !important;
-    opacity: 1 !important;
+.ze4AllocationContent,
+.ze4OrgExplorerContent {
+    min-width: 0;
+    width: 100%;
 }
 
-.ze4GridTable .sapUiTableColCell .sapMText,
-.ze4GridTable .sapUiTableColCell .sapMLabel,
-.ze4GridTable .sapUiTableHeaderCell .sapMText,
-.ze4GridTable .sapUiTableHeaderCell .sapMLabel,
-.ze4AccountValueHelpTable .sapMListTblHeaderCell .sapMText,
-.ze4AccountValueHelpTable .sapMListTblHeaderCell .sapMLabel {
-    color: #0f1f33 !important;
+.ze4AllocationContent {
+    min-height: calc(100vh - 3.75rem);
+}
+
+.ze4AllocationMainRow,
+.ze4OrgExplorerMain,
+.ze4OrgExplorerLower {
+    display: grid !important;
+    gap: 1rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationMainRow {
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 1fr);
+}
+
+.ze4AllocationFlowCard,
+.ze4AllocationTrendCard,
+.ze4AllocationDetailCard,
+.ze4OrgExplorerTreeCard,
+.ze4OrgInfoPanel,
+.ze4OrgChildTableCard,
+.ze4OrgCompositionCard {
+    min-width: 0 !important;
+    width: 100%;
+}
+
+.ze4AllocationFlowTable .sapUiTableCell,
+.ze4AllocationDetailTable .sapUiTableCell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4OrgExplorerMain {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 28rem);
+}
+
+.ze4OrgExplorerLower {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 28rem);
+}
+
+.ze4OrgExplorerTreeCard,
+.ze4OrgInfoPanel {
+    min-height: 34rem;
+}
+
+.ze4OrgInfoPanel {
+    gap: 0.875rem;
+}
+
+.ze4OrgCompositionCard {
+    min-height: 29rem;
+}
+
+.ze4OrgCompositionCard .ze4ChartEmptyState {
+    height: 22rem;
+}
+
+.ze4OrgNetworkLegend {
+    background: #f7fbff;
+    border: 1px solid #e1ecf7;
+    border-radius: 0.75rem;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.ze4OrgNetworkLegend .sapMObjStatus {
+    min-width: 0;
+}
+
+.ze4OrgNetworkLegend .sapMObjStatusText,
+.ze4OrgNetworkLegend .sapMObjStatusIcon {
+    font-size: 0.78rem;
+    font-weight: 900 !important;
+}
+
+.ze4OrgNetworkGraph {
+    background:
+        linear-gradient(180deg, rgba(248, 251, 255, 0.96) 0%, rgba(255, 255, 255, 1) 70%),
+        radial-gradient(circle at 50% 0%, rgba(10, 110, 209, 0.08), transparent 32rem);
+    border: 1px solid #d8e3ef;
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+    min-height: 32rem;
+    overflow: hidden;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphWrapper,
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphScroller {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ze4OrgNetworkGraph * {
+    scroll-behavior: smooth;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphToolbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e4edf6;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNode {
+    cursor: pointer;
+    filter: drop-shadow(0 0.35rem 0.75rem rgba(34, 53, 72, 0.12));
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivInner {
+    border-radius: 0.75rem !important;
+    overflow: hidden;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivHeader {
+    min-height: 2.15rem;
+    padding: 0.2rem 0.55rem !important;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeTitle,
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeText,
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeDescription,
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivAttributeIcon {
     font-weight: 800 !important;
+    line-height: 1.28 !important;
     opacity: 1 !important;
+    text-shadow: none !important;
+    word-break: keep-all;
 }
 
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeTitleText {
+    display: block;
+    font-size: 0.86rem !important;
+    font-weight: 900 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeDescription,
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeText {
+    font-size: 0.72rem !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeAttributes {
+    display: none !important;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeAttributesRow {
+    min-height: 0;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkGraphDivNodeValues .sapMText {
+    color: #075caf !important;
+    font-weight: 900 !important;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkLine path {
+    opacity: 0.86;
+}
+
+.ze4OrgNetworkGraph .sapSuiteUiCommonsNetworkLine:hover path {
+    opacity: 1;
+}
+
+.ze4SvgEmptyState {
+    align-items: center;
+    color: #425b76;
+    display: flex;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 18rem;
+}
+
+.ze4AllocationFlowSvgWrap,
+.ze4OrgChartWrap {
+    background:
+        linear-gradient(180deg, rgba(248, 251, 255, 0.88) 0%, rgba(255, 255, 255, 0.98) 100%),
+        radial-gradient(circle at 50% 0%, rgba(10, 110, 209, 0.07), transparent 34rem);
+    border: 1px solid #d8e3ef;
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+    min-height: 24rem;
+    overflow: auto;
+    padding: 1rem;
+    width: 100%;
+}
+
+.ze4AllocationFlowSvgWrap {
+    max-height: 24rem;
+}
+
+.ze4OrgChartWrap {
+    max-height: 31rem;
+}
+
+.ze4AllocationFlowSvg,
+.ze4OrgChartSvg {
+    display: block;
+    min-width: 100%;
+}
+
+.ze4FlowSideTitle {
+    fill: #233a53;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.ze4FlowLink {
+    cursor: pointer;
+    fill: none;
+    opacity: 0.28;
+    stroke: #2f6ddf;
+    stroke-linecap: round;
+}
+
+.ze4FlowLink:hover,
+.ze4FlowLinkSelected {
+    opacity: 0.82;
+    stroke: #0b5bd3;
+}
+
+.ze4FlowNode rect {
+    fill: #ffffff;
+    stroke: #cbd9e8;
+    stroke-width: 1.5;
+}
+
+.ze4FlowNodeTitle,
+.ze4FlowNodeAmount,
+.ze4OrgChartNodeTitle,
+.ze4OrgChartNodeMeta,
+.ze4OrgChartNodeAmount,
+.ze4OrgChartNodeBudget {
+    fill: #0f1f33;
+    stroke: none;
+}
+
+.ze4FlowNodeTitle,
+.ze4OrgChartNodeTitle {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ze4FlowNodeAmount,
+.ze4OrgChartNodeAmount {
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.ze4FlowSelectionInfo {
+    background: #f8fafc;
+    border: 1px solid #d8e3ef;
+    border-left: 0.25rem solid #256fdb;
+    border-radius: 0.5rem;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+}
+
+.ze4FlowSelectionInfo .sapMTitle {
+    color: #0f1f33 !important;
+    font-size: 0.875rem;
+    font-weight: 800;
+}
+
+.ze4OrgChartLink {
+    fill: none;
+    stroke: #c5d5e7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.25;
+}
+
+.ze4OrgChartLinkSelectedPath {
+    stroke: #0a6ed1;
+    stroke-width: 3;
+}
+
+.ze4OrgChartNode {
+    cursor: pointer;
+}
+
+.ze4OrgChartNodeRect {
+    fill: #ffffff;
+    filter: drop-shadow(0 0.2rem 0.45rem rgba(34, 53, 72, 0.12));
+    stroke: #c9d8e8;
+    stroke-width: 1.35;
+}
+
+.ze4OrgChartNodeAccent {
+    fill: #7b8ea4;
+}
+
+.ze4OrgChartNodePath .ze4OrgChartNodeAccent {
+    fill: #58a6ff;
+}
+
+.ze4OrgChartNode:hover .ze4OrgChartNodeRect,
+.ze4OrgChartNodeSelected .ze4OrgChartNodeRect {
+    fill: #f3f8ff;
+    stroke: #256fdb;
+    stroke-width: 2.25;
+}
+
+.ze4OrgChartNodeSelected .ze4OrgChartNodeAccentSelected {
+    fill: #0a6ed1;
+}
+
+.ze4OrgChartNodeMeta,
+.ze4OrgChartNodeBudget {
+    fill: #425b76;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ze4OrgChartNodeTitle {
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.ze4OrgChartNodeAmount {
+    fill: #075caf;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.ze4OrgInfoHero {
+    background: linear-gradient(135deg, #f3f8ff 0%, #ffffff 72%);
+    border: 1px solid #d4e6f8;
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.ze4OrgInfoHeroTop {
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.ze4OrgInfoIcon {
+    align-items: center;
+    background: #e6f2ff;
+    border-radius: 0.75rem;
+    color: #0a6ed1;
+    display: inline-flex;
+    flex: 0 0 2.75rem;
+    font-size: 1.45rem;
+    height: 2.75rem;
+    justify-content: center;
+    line-height: 2.75rem;
+    text-align: center;
+    width: 2.75rem;
+}
+
+.ze4OrgInfoTitleBlock {
+    min-width: 0;
+}
+
+.ze4OrgInfoTitle {
+    color: #0f1f33 !important;
+    font-size: 1.2rem;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.ze4OrgCodeBadge {
+    margin-top: 0.25rem;
+}
+
+.ze4OrgCodeBadge .sapMObjStatusText {
+    font-weight: 900 !important;
+}
+
+.ze4OrgInfoMeta {
+    gap: 0.4rem 0.75rem;
+}
+
+.ze4OrgInfoMeta .sapMObjStatusText {
+    color: #425b76 !important;
+    font-size: 0.78rem;
+    font-weight: 800 !important;
+}
+
+.ze4OrgInfoMetricGrid {
+    gap: 0.625rem;
+    width: 100%;
+}
+
+.ze4OrgInfoMetric {
+    background: #ffffff;
+    border: 1px solid #dde9f5;
+    border-radius: 0.625rem;
+    box-sizing: border-box;
+    flex: 1 1 calc(50% - 0.625rem);
+    min-width: 10rem;
+    padding: 0.75rem;
+}
+
+.ze4OrgInfoMetricPrimary {
+    border-left: 0.25rem solid #0a6ed1;
+}
+
+.ze4OrgInfoMetric .sapMLabel {
+    color: #425b76 !important;
+    font-size: 0.75rem;
+    font-weight: 900 !important;
+}
+
+.ze4OrgInfoMetricValue {
+    color: #075caf !important;
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900 !important;
+    line-height: 1.25;
+    margin-top: 0.35rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4OrgInfoDetailList {
+    background: #fbfdff;
+    border: 1px solid #e2ebf4;
+    border-radius: 0.75rem;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    padding: 0.875rem;
+    row-gap: 0.55rem;
+}
+
+.ze4OrgInfoDetailList .sapMObjStatusText {
+    font-weight: 900 !important;
+}
+
+@media (max-width: 1200px) {
+    .ze4AllocationMainRow,
+    .ze4OrgExplorerMain,
+    .ze4OrgExplorerLower {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* VizFrame text readability fix */
 .ze4ChartCard svg text,
 .ze4ChartCard svg tspan,
 .ze4ChartCard .v-label,
-.ze4ChartCard .v-legend text,
 .ze4ChartCard .v-axis text,
+.ze4ChartCard .v-legend text,
 .ze4ChartCard .v-datalabel text {
     fill: #0f1f33 !important;
     color: #0f1f33 !important;
-    font-weight: 800 !important;
+    stroke: none !important;
+    stroke-width: 0 !important;
     opacity: 1 !important;
+    filter: none !important;
+    font-weight: 600 !important;
+}
+
+.ze4AllocationSummaryGrid {
+    display: grid !important;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationMapPage {
+    background: #f5f7fb;
+}
+
+.ze4AllocationMapPage.sapMPage,
+.ze4AllocationMapPage .sapMPageEnableScrolling {
+    background: #f5f7fb;
+}
+
+.ze4AllocationMapContent {
+    box-sizing: border-box;
+    gap: 0.75rem;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    padding: 1rem 1.5rem;
+    width: 100%;
+}
+
+.ze4AllocationMapTitleBar .ze4PageHeroTitle {
+    font-size: 1.75rem;
+    margin: 0;
+}
+
+.ze4AllocationMapFilterBar,
+.ze4AllocationMapLegendPanel,
+.ze4AllocationMapDetailPanel,
+.ze4AllocationMapTablePanel,
+.ze4AllocationMapSummaryStrip {
+    background: #fff;
+    border: 1px solid #d8e3ef;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.25rem 0.875rem rgba(34, 53, 72, 0.06);
+    box-sizing: border-box;
+}
+
+.ze4AllocationMapFilterBar {
+    padding: 0.875rem 1rem;
+}
+
+.ze4AllocationMapSummaryStrip {
+    gap: 0;
+    overflow: hidden;
+}
+
+.ze4AllocationMapSummaryItem {
+    border-right: 1px solid #e5edf5;
+    box-sizing: border-box;
+    gap: 0.25rem;
+    min-width: 10rem;
+    padding: 0.75rem 1rem;
+}
+
+.ze4AllocationMapSummaryItem:last-child {
+    border-right: 0;
+}
+
+.ze4AllocationMapShell {
+    display: grid !important;
+    flex: 1 1 auto;
+    gap: 1rem;
+    grid-template-columns: 18rem minmax(0, 1fr) 26rem;
+    min-height: 42rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationMapLegendPanel,
+.ze4AllocationMapDetailPanel {
+    gap: 0.75rem;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.ze4AllocationMapCanvasCard {
+    background: #fff;
+    border: 1px solid #d8e3ef;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.25rem 0.875rem rgba(34, 53, 72, 0.08);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ze4MapToolbar {
+    border-bottom: 1px solid #e5edf5;
+    box-sizing: border-box;
+    gap: 0.25rem;
+    min-height: 3rem;
+    padding: 0.5rem 0.875rem;
+}
+
+.ze4AllocationMapScroll {
+    height: calc(100vh - 21rem) !important;
+    min-height: 38rem;
+    width: 100%;
+}
+
+.ze4SankeyHost {
+    min-height: 760px;
+    min-width: 1800px;
+    position: relative;
+}
+
+.ze4SankeySvg {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    height: 100%;
+    width: 100%;
+}
+
+.ze4SankeyLink {
+    cursor: pointer;
+    fill: none;
+    opacity: 0.34;
+    stroke-linecap: butt;
+    transition: opacity 0.16s ease, stroke-width 0.16s ease;
+}
+
+.ze4SankeyLink:hover {
+    opacity: 0.85 !important;
+}
+
+.ze4SankeyLinkDimmed {
+    opacity: 0.08 !important;
+}
+
+.ze4SankeyLinkSelected {
+    filter: drop-shadow(0 0.125rem 0.25rem rgba(10, 110, 209, 0.25));
+    opacity: 0.9 !important;
+}
+
+.ze4SankeyBridgeLink {
+    opacity: 0.45;
+    stroke: #9aa8b8;
+    stroke-dasharray: 6 6;
+}
+
+.ze4SankeyNode {
+    cursor: pointer;
+    transition: opacity 0.16s ease;
+}
+
+.ze4SankeyNodeDimmed {
+    opacity: 0.18;
+}
+
+.ze4SankeyNodeRect {
+    fill: #ffffff;
+    filter: drop-shadow(0 0.125rem 0.375rem rgba(34, 53, 72, 0.12));
+    rx: 7;
+    stroke: #c9d6e4;
+    stroke-width: 1.25;
+}
+
+.ze4SankeyNode:hover .ze4SankeyNodeRect {
+    filter: drop-shadow(0 0.25rem 0.625rem rgba(34, 53, 72, 0.18));
+    stroke-width: 2;
+}
+
+.ze4SankeyNodeSelected .ze4SankeyNodeRect {
+    fill: #f0f6ff;
+    stroke-width: 2.5;
+}
+
+.ze4SankeyNodeBadgeText {
+    fill: #fff;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.ze4SankeyNodeTitle {
+    fill: #0f1f33;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.ze4SankeyNodeSub {
+    fill: #425b76;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ze4SankeyNodeAmount {
+    fill: #0f1f33;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ze4SankeyStageLabel {
+    fill: #425b76;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ze4SankeyColumnGuide {
+    stroke: #e7edf3;
+    stroke-dasharray: 4 6;
+    stroke-width: 1;
+}
+
+.ze4AllocationLegendItem {
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.25rem 0;
+}
+
+.ze4AllocationCycleLegend {
+    border: 0;
+}
+
+.ze4AllocationCycleLegend .sapMLIB {
+    border-bottom: 1px solid #edf2f7;
+}
+
+.ze4AllocationMapLegendStats {
+    border-top: 1px solid #e5edf5;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.ze4AllocationMapDetailList {
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+}
+
+.ze4AllocationMapEmptyDetail {
+    background: #f8fafc;
+    border: 1px dashed #c9d6e4;
+    border-radius: 0.5rem;
+    gap: 0.375rem;
+    padding: 1rem;
+}
+
+.ze4AllocationMapDetailButtons {
+    border-top: 1px solid #e5edf5;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.ze4AllocationMapTablePanel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ze4AllocationMapTablePanel .sapMPanelContent {
+    padding: 0 !important;
+}
+
+@media (max-width: 1400px) {
+    .ze4AllocationMapShell {
+        grid-template-columns: 16rem minmax(48rem, 1fr) 22rem;
+    }
+}
+
+@media (max-width: 1100px) {
+    .ze4AllocationSummaryGrid,
+    .ze4AllocationMapShell {
+        grid-template-columns: 1fr;
+    }
+
+    .ze4AllocationMapScroll {
+        height: 42rem !important;
+    }
+}
+
+.ze4AllocationFlowPage,
+.ze4AllocationFlowPage.sapMPage {
+    background: #f4f7fb;
+}
+
+.ze4AllocationFlowDetailPage,
+.ze4AllocationFlowDetailPage.sapMPage {
+    overflow: hidden;
+}
+
+.ze4AllocationFlowDetailPage .sapMPageEnableScrolling,
+.ze4AllocationFlowDetailPage .sapMPageScroll,
+.ze4AllocationFlowDetailPage > section {
+    height: 100%;
+    overflow: hidden !important;
+}
+
+.ze4AllocationFlowContent {
+    box-sizing: border-box;
+    gap: 0.75rem;
+    min-height: calc(100vh - 3.75rem);
+    padding: 0.875rem 1.125rem 1.125rem;
+    width: 100% !important;
+}
+
+.ze4AllocationFlowDetailContent {
+    gap: 0.5rem;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0.55rem 1rem 0.7rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4PageTitleBar {
+    min-height: 2rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4PageHeroTitle {
+    font-size: 1.55rem;
+    line-height: 1.1;
+    margin: 0.15rem 0;
+}
+
+.ze4PageSubtitle {
+    color: #425b76;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
+}
+
+.ze4AllocationFilterBar {
+    background: #fff;
+    border: 1px solid #d8e3ef;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.25rem 0.875rem rgba(34, 53, 72, 0.06);
+    box-sizing: border-box;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+}
+
+.ze4AllocationFlowDetailContent .ze4AllocationFilterBar {
+    gap: 0.35rem;
+    padding: 0.55rem 0.875rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4FilterHeader {
+    margin-bottom: 0.35rem;
+    min-height: 1.35rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4FilterFields {
+    gap: 0.45rem 0.75rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4FilterField {
+    gap: 0.15rem;
+}
+
+.ze4AllocationKpiGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(5, minmax(13rem, 1fr));
+    width: 100%;
+}
+
+.ze4AllocationKpiGrid .ze4AllocationKpiCard {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border-left: 0.25rem solid #0a6ed1;
+    min-height: 5.85rem;
+    min-width: 0;
+    padding-bottom: 0.75rem;
+    padding-top: 0.75rem;
+    width: 100%;
+}
+
+.ze4AllocationFlowDetailContent .ze4AllocationKpiGrid {
+    gap: 0.6rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4AllocationKpiGrid .ze4AllocationKpiCard {
+    min-height: 5.25rem;
+    padding: 0.65rem 0.875rem 0.6rem;
+}
+
+.ze4AllocationKpiGrid .ze4KpiCardBody,
+.ze4AllocationKpiGrid .ze4KpiText {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationKpiGrid .ze4KpiTitle,
+.ze4AllocationKpiGrid .ze4KpiValue,
+.ze4AllocationKpiGrid .ze4KpiValueStatus .sapMObjStatusText,
+.ze4AllocationKpiGrid .ze4KpiSub .sapMObjStatusText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4AllocationKpiGrid .ze4KpiValue {
+    color: #075caf !important;
+}
+
+.ze4AllocationKpiGrid .ze4KpiValue,
+.ze4AllocationKpiGrid .ze4KpiValueStatus .sapMObjStatusText {
+    font-size: clamp(1.15rem, 1.25vw, 1.55rem);
+    font-weight: 900 !important;
+    line-height: 1.2;
+}
+
+.ze4AllocationFlowDetailContent .ze4AllocationKpiGrid .ze4KpiValue,
+.ze4AllocationFlowDetailContent .ze4AllocationKpiGrid .ze4KpiValueStatus .sapMObjStatusText {
+    font-size: clamp(1.1rem, 1.15vw, 1.4rem);
+}
+
+.ze4KpiDetailList {
+    align-items: stretch;
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+    width: 100%;
+}
+
+.ze4AllocationKpiGrid .ze4KpiDetailList > .sapMFlexItem {
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4KpiDetailLine {
+    align-items: center;
+    background: #eef6ff;
+    border: 1px solid #d2e6fa;
+    border-radius: 0.375rem;
+    box-sizing: border-box;
+    display: grid !important;
+    gap: 0.5rem;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    min-height: 1.25rem;
+    min-width: 0;
+    padding: 0.1rem 0.4rem;
+    width: 100%;
+}
+
+.ze4KpiDetailLabel,
+.ze4KpiDetailValue {
+    color: #0f1f33 !important;
+    font-size: 0.75rem;
+    font-weight: 800 !important;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ze4KpiDetailValue {
+    color: #075caf !important;
+    max-width: none;
+    min-width: max-content;
+    text-align: right;
+}
+
+.ze4AllocationSankeyCard {
+    min-height: 36rem;
+    overflow: visible;
+    width: 100%;
+}
+
+.ze4AllocationLandingSankeyCard {
+    min-height: 32rem;
+}
+
+.ze4AllocationSankeyCard .ze4SankeyHost {
+    min-height: 0;
+    min-width: 0;
+}
+
+.ze4SankeyScroll {
+    border-top: 1px solid #e7edf3;
+    height: auto !important;
+    margin-top: 0.5rem;
+    max-height: none !important;
+    min-height: 40rem;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    width: 100%;
+}
+
+.ze4SankeyScrollCompact {
+    height: auto !important;
+    min-height: 34rem;
+}
+
+.ze4SankeyScroll .sapMScrollContScroll,
+.ze4SankeyScroll .sapMScrollContScroll > div {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+}
+
+.ze4AllocationSankeyCard .ze4SankeySvg {
+    background: #fff;
+}
+
+.ze4AllocationSankeyCard .ze4SankeySvg text,
+.ze4AllocationSankeyCard .ze4SankeySvg tspan {
+    paint-order: normal;
+    stroke: none;
+}
+
+.ze4AllocationCycleLegend {
+    gap: 0.75rem;
+    padding: 0.35rem 0 0;
+}
+
+.ze4AllocationLowerGrid,
+.ze4AllocationLandingTopGrid,
+.ze4AllocationLandingLowerGrid,
+.ze4AllocationDetailMainGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationLowerGrid {
+    grid-template-columns: minmax(22rem, 1.1fr) minmax(34rem, 1.8fr) minmax(18rem, 0.8fr);
+}
+
+.ze4AllocationLandingTopGrid {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) minmax(23rem, 28rem);
+}
+
+.ze4AllocationLandingLowerGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.36fr);
+}
+
+.ze4AllocationDetailMainGrid {
+    align-items: stretch;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23rem);
+    height: auto;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ze4AllocationSelectedPanel,
+.ze4AllocationGroupSummaryCard,
+.ze4AllocationHelpPanel,
+.ze4AllocationLandingTableCard,
+.ze4AllocationDetailMainTable,
+.ze4AllocationRulePanel,
+.ze4AllocationSkfPanel,
+.ze4AllocationDetailTabsCard {
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4SelectedFlowPath {
+    border-bottom: 1px solid #e7edf3;
+    gap: 0.75rem;
+    padding: 0.75rem 0 1rem;
+}
+
+.ze4SelectedFlowFacts {
+    gap: 2rem;
+    padding-top: 1rem;
+}
+
+.ze4SelectedFlowDetails {
+    border-top: 1px solid #e7edf3;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.ze4SelectedFlowDetailItem {
+    background: #f4f8fc;
+    border: 1px solid #dce8f5;
+    border-radius: 0.5rem;
+    box-sizing: border-box;
+    min-width: 8.75rem;
+    padding: 0.55rem 0.7rem;
+}
+
+.ze4SelectedFlowValue {
+    color: #0a6ed1;
+    font-size: 1.45rem;
+    font-weight: 800;
+}
+
+.ze4SelectedFlowMeta {
+    color: #0f1f33 !important;
+    font-size: 0.875rem;
+    font-weight: 800;
+}
+
+.ze4AllocationGroupSummaryCard .sapUiTable {
+    min-height: 18rem;
+}
+
+.ze4AllocationHelpPanel {
+    gap: 1rem;
+}
+
+.ze4HelpList {
+    gap: 0.625rem;
+    width: 100%;
+}
+
+.ze4HelpItem {
+    background: #f8fbff;
+    border: 1px solid #d8e8f7;
+    border-radius: 0.625rem;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.ze4HelpIcon {
+    background: #e6f2ff;
+    border-radius: 999px;
+    color: #0a6ed1;
+    flex: 0 0 auto;
+    font-size: 1rem;
+    height: 2rem;
+    line-height: 2rem;
+    text-align: center;
+    width: 2rem;
+}
+
+.ze4HelpTextBlock {
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.ze4HelpTitle {
+    color: #0f1f33 !important;
+    font-weight: 900 !important;
+}
+
+.ze4HelpText {
+    color: #425b76 !important;
+    font-weight: 700 !important;
+    line-height: 1.35;
+}
+
+.ze4CardHeader {
+    width: 100%;
+}
+
+.ze4AllocationRightStack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    height: 100%;
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.ze4AllocationSelectedReceiver {
+    grid-template-columns: 8rem minmax(0, 1fr);
+    margin-top: 1rem;
+}
+
+.ze4ContextChipBar {
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.ze4ContextChipBar .sapMObjStatus {
+    background: #eef6ff;
+    border: 1px solid #b8d5f2;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.65rem;
+}
+
+.ze4ContextChipBar .sapMObjStatusText {
+    color: #075caf !important;
+    font-weight: 800 !important;
+}
+
+.ze4AllocationFlowDetailContent .ze4ContextChipBar {
+    gap: 0.35rem;
+}
+
+.ze4AllocationFlowDetailContent .ze4ContextChipBar .sapMObjStatus {
+    padding: 0.25rem 0.55rem;
+}
+
+.ze4AllocationRulePanel .ze4DetailList {
+    row-gap: 0.3rem;
+    grid-template-columns: 6rem minmax(0, 1fr);
+}
+
+.ze4AllocationDetailMainTable {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0 !important;
+    overflow: hidden;
+}
+
+.ze4AllocationDetailMainTable .ze4AllocationDetailTable {
+    flex: 1 1 auto;
+    height: 100% !important;
+    min-height: 0;
+}
+
+.ze4AllocationRulePanel,
+.ze4AllocationSkfPanel,
+.ze4AllocationDetailTabsCard {
+    min-height: 0 !important;
+    padding: 0.65rem;
+}
+
+.ze4AllocationRulePanel {
+    flex: 0 0 auto;
+}
+
+.ze4AllocationSkfPanel {
+    flex: 0 0 auto;
+}
+
+.ze4AllocationRulePanel .ze4CardHeader,
+.ze4AllocationSkfPanel .ze4CardHeader,
+.ze4AllocationDetailMainTable .ze4CardHeader {
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.55rem;
+}
+
+.ze4RuleStatusBadge {
+    background: #eefaf1;
+    border: 1px solid #b8e3c2;
+    border-radius: 999px;
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+}
+
+.ze4RuleStatusBadge .sapMObjStatusText {
+    font-weight: 800 !important;
+}
+
+.ze4AllocationRulePanel .ze4MetricValue,
+.ze4AllocationDetailTable .ze4AmountText,
+.ze4SkfSummaryTable .ze4AmountText,
+.ze4AllocationDetailTable .ze4RateText,
+.ze4SkfSummaryTable .ze4RateText {
+    background: #eef6ff;
+    border-radius: 0.375rem;
+    color: #075caf !important;
+    display: inline-block;
+    font-weight: 900 !important;
+    padding: 0.05rem 0.35rem;
+}
+
+.ze4AllocationDetailTable .ze4RateText,
+.ze4SkfSummaryTable .ze4RateText {
+    background: #f0faf5;
+    color: #107e3e !important;
+}
+
+.ze4AllocationDetailTable .sapUiTableCellInner {
+    padding-left: 0.45rem !important;
+    padding-right: 0.45rem !important;
+}
+
+.ze4AllocationDetailTabsCard {
+    flex: 1 1 auto;
+    min-height: 7.75rem;
+    overflow: hidden;
+    padding: 0;
+}
+
+.ze4AllocationDetailTabsCard .sapMITBContent {
+    padding: 0 !important;
+}
+
+.ze4AllocationDetailTabsCard .sapMITBHead {
+    padding-left: 0.5rem;
+}
+
+.ze4TabFactGrid {
+    gap: 0.35rem;
+    padding: 0.55rem 0.8rem 0.7rem;
+}
+
+.ze4AllocationDetailTabsCard .sapMObjectAttributeDiv {
+    margin-bottom: 0.15rem;
+}
+
+.ze4SkfSummaryTable .sapUiTableHSb,
+.ze4SkfSummaryTable .sapUiTableHSbBg {
+    display: none !important;
+}
+
+.ze4SkfSummaryTable .sapUiTableCellInner {
+    padding-left: 0.3rem !important;
+    padding-right: 0.3rem !important;
+}
+
+.ze4SkfSummaryTable .sapUiTableColCell .sapMLabel,
+.ze4SkfSummaryTable .sapUiTableCell .sapMText {
+    font-size: 0.8rem;
+}
+
+@media (max-width: 1500px) {
+    .ze4AllocationKpiGrid {
+        grid-template-columns: repeat(3, minmax(11rem, 1fr));
+    }
+
+    .ze4AllocationLowerGrid,
+    .ze4AllocationLandingTopGrid,
+    .ze4AllocationLandingLowerGrid,
+    .ze4AllocationDetailMainGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .ze4AllocationKpiGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .ze4AllocationFlowContent {
+        padding: 0.75rem;
+    }
 }

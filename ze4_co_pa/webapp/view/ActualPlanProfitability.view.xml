@@ -1,0 +1,266 @@
+<mvc:View
+    controllerName="ze4.co.pa.ze4copa.controller.ProfitabilityAnalysis"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:vizData="sap.viz.ui5.data"
+    xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds">
+    <f:DynamicPage id="actualPlanPage" class="coPage" fitContent="false">
+        <f:title>
+            <f:DynamicPageTitle>
+                <f:heading>
+                    <VBox>
+                        <Title text="[EverNiture-CO] 실적 / 계획 수익성 비교" level="H1" class="coPageTitle"/>
+                        <Text text="CO/FI 전표 및 예산 기준 Actual vs Plan 분석" class="coPageSubtitle"/>
+                    </VBox>
+                </f:heading>
+                <f:actions>
+                    <Button text="Cockpit" icon="sap-icon://home" type="Transparent" press=".onGoCockpit"/>
+                    <Button text="제품/옵션 분석" icon="sap-icon://product" type="Transparent" press=".onGoProduct"/>
+                </f:actions>
+            </f:DynamicPageTitle>
+        </f:title>
+        <f:header>
+            <f:DynamicPageHeader pinnable="true">
+                <VBox class="coHeaderContent">
+                    <HBox class="coFilterBar" wrap="Wrap" alignItems="End">
+                        <VBox class="coFilterItem">
+                            <Label text="관리회계영역" required="true"/>
+                            <Input value="{app>/filters/controllingArea}" editable="false"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="회사코드" required="true"/>
+                            <Input value="{app>/filters/companyCode}" editable="false"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="회계연도" required="true"/>
+                            <Select selectedKey="{app>/filters/fiscalYear}" width="100%" items="{app>/yearOptions}">
+                                <core:Item key="{app>key}" text="{app>text}"/>
+                            </Select>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="회계기간" required="true"/>
+                            <Select selectedKey="{app>/filters/month}" width="100%" items="{app>/monthOptions}">
+                                <core:Item key="{app>key}" text="{app>text}"/>
+                            </Select>
+                        </VBox>
+                        <VBox class="coFilterItem coFilterItemSmall">
+                            <Label text="계획 버전" required="true"/>
+                            <Input value="{app>/filters/planVersion}" maxLength="3" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="Segment"/>
+                            <Input value="{app>/filters/segment}" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="Profit Center"/>
+                            <Input value="{app>/filters/prctr}" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="PCG"/>
+                            <Input value="{app>/filters/pcg}" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="기능영역(FKBER)"/>
+                            <Input value="{app>/filters/fkber}" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem coFilterItemSmall">
+                            <Label text="계정그룹"/>
+                            <Input value="{app>/filters/acctGroup}" submit=".onSearch"/>
+                        </VBox>
+                        <HBox class="coFilterActions" alignItems="End">
+                            <Button text="조회" type="Emphasized" press=".onSearch"/>
+                            <Button text="필터 초기화" type="Transparent" press=".onResetFilters"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+            </f:DynamicPageHeader>
+        </f:header>
+        <f:content>
+            <VBox class="coContent" busy="{app>/actualPlanBusy}">
+                <MessageStrip
+                    text="{app>/actualPlanMessage}"
+                    type="Information"
+                    showIcon="true"
+                    visible="{= !!${app>/actualPlanMessage} }"
+                    class="coMessageStrip"/>
+
+                <HBox class="coKpiGrid" wrap="Wrap">
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://bar-chart" class="coKpiIcon coKpiIconBlue"/>
+                            <VBox>
+                                <Text text="매출 실적" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesActual', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="Information"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://target-group" class="coKpiIcon coKpiIconPurple"/>
+                            <VBox>
+                                <Text text="매출 계획" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesPlan', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="Information"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://compare" class="coKpiIcon coKpiIconOrange"/>
+                            <VBox>
+                                <Text text="매출 차이" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesDiff', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/salesDiff', formatter:'.formatter.stateByAmount'}"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://trend-up" class="coKpiIcon coKpiIconTeal"/>
+                            <VBox>
+                                <Text text="영업이익 실적" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitActual', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitActual', formatter:'.formatter.stateByAmount'}"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://target-group" class="coKpiIcon coKpiIconGreen"/>
+                            <VBox>
+                                <Text text="영업이익 계획" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitPlan', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitPlan', formatter:'.formatter.stateByAmount'}"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://compare" class="coKpiIcon coKpiIconOrange"/>
+                            <VBox>
+                                <Text text="영업이익 차이" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitDiff', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitDiff', formatter:'.formatter.stateByAmount'}"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox class="coKpiCard">
+                        <HBox alignItems="Center">
+                            <core:Icon src="sap-icon://percentage" class="coKpiIcon coKpiIconBlue"/>
+                            <VBox>
+                                <Text text="영업이익률 차이" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitRateDiff', formatter:'.formatter.percent'}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitRateDiff', formatter:'.formatter.stateByRate'}"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <HBox class="coMainGrid" wrap="Wrap">
+                    <VBox class="coPanel coPanelHalf">
+                        <Title text="1. 월별 Actual vs Plan" level="H3" class="coPanelTitle"/>
+                        <viz:VizFrame
+                            id="actualPlanMonthlyChart"
+                            width="100%"
+                            height="21rem"
+                            vizType="column"
+                            uiConfig="{applicationSet:'fiori'}"
+                            noDataText="조회 결과가 없습니다.">
+                            <viz:dataset>
+                                <vizData:FlattenedDataset data="{app>/actualPlanMonthlyChart}">
+                                    <vizData:dimensions>
+                                        <vizData:DimensionDefinition name="월" value="{app>monthText}"/>
+                                    </vizData:dimensions>
+                                    <vizData:measures>
+                                        <vizData:MeasureDefinition name="실적" value="{app>actual}"/>
+                                        <vizData:MeasureDefinition name="계획" value="{app>plan}"/>
+                                    </vizData:measures>
+                                </vizData:FlattenedDataset>
+                            </viz:dataset>
+                            <viz:feeds>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="실적,계획"/>
+                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월"/>
+                            </viz:feeds>
+                        </viz:VizFrame>
+                    </VBox>
+
+                    <VBox class="coPanel coPanelHalf">
+                        <Title text="2. 계정그룹별 차이" level="H3" class="coPanelTitle"/>
+                        <viz:VizFrame
+                            id="accountVarianceChart"
+                            width="100%"
+                            height="21rem"
+                            vizType="bar"
+                            uiConfig="{applicationSet:'fiori'}"
+                            noDataText="조회 결과가 없습니다.">
+                            <viz:dataset>
+                                <vizData:FlattenedDataset data="{app>/accountVarianceChart}">
+                                    <vizData:dimensions>
+                                        <vizData:DimensionDefinition name="계정그룹" value="{app>accountGroup}"/>
+                                    </vizData:dimensions>
+                                    <vizData:measures>
+                                        <vizData:MeasureDefinition name="차이" value="{app>diff}"/>
+                                    </vizData:measures>
+                                </vizData:FlattenedDataset>
+                            </viz:dataset>
+                            <viz:feeds>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="차이"/>
+                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="계정그룹"/>
+                            </viz:feeds>
+                        </viz:VizFrame>
+                    </VBox>
+                </HBox>
+
+                <VBox class="coPanel">
+                    <Toolbar class="coPanelToolbar">
+                        <Title text="3. Segment / 기능영역 차이 Matrix" level="H3"/>
+                        <ToolbarSpacer/>
+                        <Button icon="sap-icon://product" text="제품/옵션 분석" type="Transparent" press=".onGoProduct"/>
+                    </Toolbar>
+                    <ScrollContainer horizontal="true" vertical="false" width="100%">
+                        <Table
+                            width="102rem"
+                            items="{app>/actualPlanRows}"
+                            noDataText="조회 결과가 없습니다."
+                            growing="true"
+                            growingThreshold="20"
+                            class="coTable">
+                            <columns>
+                                <Column width="6rem"><Text text="회계월"/></Column>
+                                <Column width="10rem"><Text text="Segment"/></Column>
+                                <Column width="10rem"><Text text="Profit Center"/></Column>
+                                <Column width="8rem"><Text text="PCG"/></Column>
+                                <Column width="8rem"><Text text="FKBER"/></Column>
+                                <Column width="12rem"><Text text="기능영역명"/></Column>
+                                <Column width="9rem"><Text text="계정그룹"/></Column>
+                                <Column width="12rem"><Text text="계정그룹명"/></Column>
+                                <Column width="10rem" hAlign="End"><Text text="실적"/></Column>
+                                <Column width="10rem" hAlign="End"><Text text="계획"/></Column>
+                                <Column width="10rem" hAlign="End"><Text text="차이"/></Column>
+                                <Column width="8rem" hAlign="End"><Text text="달성률"/></Column>
+                                <Column width="6rem"><Text text="통화"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem>
+                                    <cells>
+                                        <Text text="{app>monat}"/>
+                                        <Text text="{app>segment}"/>
+                                        <Text text="{app>prctr}"/>
+                                        <Text text="{app>pcg}"/>
+                                        <Text text="{app>fkber}"/>
+                                        <Text text="{app>fkber_txt}"/>
+                                        <Text text="{app>acct_group}"/>
+                                        <Text text="{app>acct_group_txt}"/>
+                                        <ObjectNumber number="{path:'app>actual', formatter:'.formatter.amount'}" unit="{app>waers}"/>
+                                        <ObjectNumber number="{path:'app>plan', formatter:'.formatter.amount'}" unit="{app>waers}"/>
+                                        <ObjectNumber number="{path:'app>diff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>diffState}"/>
+                                        <Text text="{path:'app>achievementRate', formatter:'.formatter.percent'}"/>
+                                        <Text text="{app>waers}"/>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </ScrollContainer>
+                </VBox>
+            </VBox>
+        </f:content>
+    </f:DynamicPage>
+</mvc:View>

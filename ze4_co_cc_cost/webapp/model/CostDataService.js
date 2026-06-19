@@ -12,13 +12,17 @@ sap.ui.define([
         actual: "/sap/opu/odata/sap/ZCDS_E4_CO_0023_CDS/",
         hierarchy: "/sap/opu/odata/sap/ZCDS_E4_CO_0024_CDS/",
         budget: "/sap/opu/odata/sap/ZCDS_E4_CO_0025_CDS/",
-        document: "/sap/opu/odata/sap/ZCDS_E4_CO_0026_CDS/"
+        document: "/sap/opu/odata/sap/ZCDS_E4_CO_0026_CDS/",
+        allocationRule: "/sap/opu/odata/sap/ZCDS_E4_CO_0031_CDS/",
+        allocationResult: "/sap/opu/odata/sap/ZCDS_E4_CO_0032_CDS/"
     };
     var FALLBACK_ENTITY_SETS = {
         actual: "zcds_e4_co_0023",
         hierarchy: "zcds_e4_co_0024",
         budget: "zcds_e4_co_0025",
-        document: "zcds_e4_co_0026"
+        document: "zcds_e4_co_0026",
+        allocationRule: "",
+        allocationResult: ""
     };
 
     var mEntitySets = Object.assign({}, FALLBACK_ENTITY_SETS);
@@ -256,12 +260,16 @@ sap.ui.define([
                 resolveEntitySet(SERVICE_URLS.actual, "zcdse4co0023", FALLBACK_ENTITY_SETS.actual),
                 resolveEntitySet(SERVICE_URLS.hierarchy, "zcdse4co0024", FALLBACK_ENTITY_SETS.hierarchy),
                 resolveEntitySet(SERVICE_URLS.budget, "zcdse4co0025", FALLBACK_ENTITY_SETS.budget),
-                resolveEntitySet(SERVICE_URLS.document, "zcdse4co0026", FALLBACK_ENTITY_SETS.document)
+                resolveEntitySet(SERVICE_URLS.document, "zcdse4co0026", FALLBACK_ENTITY_SETS.document),
+                resolveEntitySet(SERVICE_URLS.allocationRule, "zcdse4co0031", FALLBACK_ENTITY_SETS.allocationRule),
+                resolveEntitySet(SERVICE_URLS.allocationResult, "zcdse4co0032", FALLBACK_ENTITY_SETS.allocationResult)
             ]).then(function (aEntitySets) {
                 mEntitySets.actual = aEntitySets[0] || FALLBACK_ENTITY_SETS.actual;
                 mEntitySets.hierarchy = aEntitySets[1] || FALLBACK_ENTITY_SETS.hierarchy;
                 mEntitySets.budget = aEntitySets[2] || FALLBACK_ENTITY_SETS.budget;
                 mEntitySets.document = aEntitySets[3] || FALLBACK_ENTITY_SETS.document;
+                mEntitySets.allocationRule = aEntitySets[4] || FALLBACK_ENTITY_SETS.allocationRule;
+                mEntitySets.allocationResult = aEntitySets[5] || FALLBACK_ENTITY_SETS.allocationResult;
                 return mEntitySets;
             });
         }
@@ -368,7 +376,11 @@ sap.ui.define([
 
         addEqFilterPart(aFilterParts, "Bukrs", "0001");
         addEqFilterPart(aFilterParts, "Gjahr", oFilters.gjahr);
-        addLeFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
+        if (bDetailMode) {
+            addEqFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
+        } else {
+            addLeFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
+        }
 
         if (oFilters.saknr) {
             addEqFilterPart(aFilterParts, "Saknr", oFilters.saknr);
@@ -382,6 +394,41 @@ sap.ui.define([
         }
 
         return readODataJson(SERVICE_URLS.document + mEntitySets.document, oRequestData);
+    }
+
+    function readAllocationRuleRows() {
+        var oRequestData = createBaseRequestData();
+
+        oRequestData.$top = 10000;
+
+        return readODataJson(SERVICE_URLS.allocationRule + mEntitySets.allocationRule, oRequestData);
+    }
+
+    function readAllocationResultRows(oFilters, bExactPeriod) {
+        var aFilterParts = [];
+        var oRequestData;
+
+        addEqFilterPart(aFilterParts, "Bukrs", "0001");
+        addEqFilterPart(aFilterParts, "Gjahr", oFilters.gjahr);
+
+        if (bExactPeriod) {
+            addEqFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
+        }
+
+        addEqFilterPart(aFilterParts, "Cycle", oFilters.cycle);
+        addEqFilterPart(aFilterParts, "SenderKostl", oFilters.senderKostl);
+        addEqFilterPart(aFilterParts, "ReceiverKostl", oFilters.receiverKostl);
+        addEqFilterPart(aFilterParts, "SkfId", oFilters.skfId);
+
+        oRequestData = createRequestDataWithFilter(aFilterParts);
+        oRequestData.$top = bExactPeriod ? 10000 : 20000;
+        oRequestData.$orderby = "Budat desc,Belnr desc";
+
+        return readODataJson(SERVICE_URLS.allocationResult + mEntitySets.allocationResult, oRequestData);
+    }
+
+    function readAllocationRows(oFilters) {
+        return readAllocationResultRows(oFilters || {}, false);
     }
 
     function buildChildrenMap(aHierarchyRows) {
@@ -685,6 +732,14 @@ sap.ui.define([
         return documentCountsByField(aRows, "Monat");
     }
 
+    function currentDocumentRows(aRows, sPeriod) {
+        var sNormalizedPeriod = normalizeMonth(sPeriod);
+
+        return (aRows || []).filter(function (oRow) {
+            return normalizeMonth(getField(oRow, "Monat")) === sNormalizedPeriod;
+        });
+    }
+
     function buildAccountValueHelpRows(aDocumentRows) {
         var mAccounts = {};
 
@@ -908,6 +963,7 @@ sap.ui.define([
         var mBudget = {};
         var mCurrent = {};
         var mPrevious = {};
+        var bHasPreviousRows = (aPreviousRows || []).length > 0;
         var mDocuments = documentCountsByField(aDocumentRows, "Kostl");
         var mRows = {};
 
@@ -960,10 +1016,13 @@ sap.ui.define([
             var bHasBudget = fBudget > 0;
             var fVariance = bHasBudget ? oRow.actualAmount - fBudget : null;
             var fVarianceRate = bHasBudget ? fVariance / fBudget * 100 : null;
-            var fMom = (mCurrent[sKostl] || 0) - (mPrevious[sKostl] || 0);
+            var fPrevious = mPrevious[sKostl] || 0;
+            var fMom = bHasPreviousRows ? (mCurrent[sKostl] || 0) - fPrevious : null;
             var sStatus = !bHasBudget ? "예산없음" : (fVarianceRate > 10 ? "주의" : "정상");
 
             return Object.assign(oRow, {
+                currentAmount: mCurrent[sKostl] || 0,
+                previousAmount: bHasPreviousRows ? fPrevious : null,
                 budgetAmount: bHasBudget ? fBudget : null,
                 varianceAmount: fVariance,
                 varianceRate: fVarianceRate,
@@ -972,7 +1031,7 @@ sap.ui.define([
                 statusText: sStatus,
                 statusState: sStatus === "주의" ? "Warning" : (sStatus === "정상" ? "Success" : "None"),
                 varianceState: !bHasBudget || fVariance === 0 || fVariance === null ? "None" : (fVariance > 0 ? "Error" : "Success"),
-                momState: fMom === 0 ? "None" : (fMom > 0 ? "Error" : "Success")
+                momState: fMom === null || fMom === 0 ? "None" : (fMom > 0 ? "Error" : "Success")
             });
         }).sort(function (oFirst, oSecond) {
             return Math.abs(oSecond.actualAmount || 0) - Math.abs(oFirst.actualAmount || 0) ||
@@ -988,6 +1047,7 @@ sap.ui.define([
         var mBudget = {};
         var mCurrent = {};
         var mPrevious = {};
+        var bHasPreviousRows = (aPreviousRows || []).length > 0;
         var mDocuments = documentCountsByField(aDocumentRows, "Saknr");
         var mRows = {};
 
@@ -1040,9 +1100,12 @@ sap.ui.define([
             var bHasBudget = fBudget > 0;
             var fVariance = bHasBudget ? oRow.actualAmount - fBudget : null;
             var fVarianceRate = bHasBudget ? fVariance / fBudget * 100 : null;
-            var fMom = (mCurrent[sSaknr] || 0) - (mPrevious[sSaknr] || 0);
+            var fPrevious = mPrevious[sSaknr] || 0;
+            var fMom = bHasPreviousRows ? (mCurrent[sSaknr] || 0) - fPrevious : null;
 
             return Object.assign(oRow, {
+                currentAmount: mCurrent[sSaknr] || 0,
+                previousAmount: bHasPreviousRows ? fPrevious : null,
                 budgetAmount: bHasBudget ? fBudget : null,
                 varianceAmount: fVariance,
                 varianceRate: fVarianceRate,
@@ -1050,7 +1113,7 @@ sap.ui.define([
                 documentCount: mDocuments[sSaknr] || 0,
                 ratio: fTotal ? oRow.actualAmount / fTotal * 100 : null,
                 varianceState: !bHasBudget || fVariance === 0 || fVariance === null ? "None" : (fVariance > 0 ? "Error" : "Success"),
-                momState: fMom === 0 ? "None" : (fMom > 0 ? "Error" : "Success")
+                momState: fMom === null || fMom === 0 ? "None" : (fMom > 0 ? "Error" : "Success")
             });
         }).sort(function (oFirst, oSecond) {
             return Math.abs(oSecond.actualAmount || 0) - Math.abs(oFirst.actualAmount || 0) ||
@@ -1095,6 +1158,7 @@ sap.ui.define([
                 KtoksTxt: clean(getField(oRow, "KtoksTxt")),
                 Drcrk: clean(getField(oRow, "Drcrk")),
                 DrcrkTxt: clean(getField(oRow, "DrcrkTxt")),
+                CostFlowType: clean(getField(oRow, "CostFlowType")),
                 CostFlowTypeTxt: clean(getField(oRow, "CostFlowTypeTxt")),
                 Kostl: sKostl,
                 KostlTxt: resolveCostCenterText(sKostl, getField(oRow, "KostlTxt"), oTextMaps),
@@ -1147,6 +1211,9 @@ sap.ui.define([
         readBudgetRows: readBudgetRows,
         readHierarchyRows: readHierarchyRows,
         readDocumentRows: readDocumentRows,
+        readAllocationRuleRows: readAllocationRuleRows,
+        readAllocationRows: readAllocationRows,
+        readAllocationResultRows: readAllocationResultRows,
         buildHierarchyOptions: buildHierarchyOptions,
         buildHierarchyOptionTree: buildHierarchyOptionTree,
         filterHierarchyTree: filterHierarchyTree,
@@ -1168,6 +1235,7 @@ sap.ui.define([
         distinctDocumentCount: distinctDocumentCount,
         documentCountsByField: documentCountsByField,
         documentCountsByMonth: documentCountsByMonth,
+        currentDocumentRows: currentDocumentRows,
         mapDocumentRows: mapDocumentRows,
         sum: sum,
         clean: clean,
