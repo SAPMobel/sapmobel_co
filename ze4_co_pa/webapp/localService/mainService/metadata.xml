@@ -52,6 +52,13 @@
                 <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label=""/>
                 <Property Name="matnr" Type="Edm.String" Nullable="false" MaxLength="40" sap:display-format="UpperCase" sap:label=""/>
                 <Property Name="mtopt" Type="Edm.String" Nullable="false" MaxLength="8" sap:display-format="UpperCase" sap:label=""/>
+                <Property Name="maktx" Type="Edm.String" MaxLength="40" sap:label="제품명"/>
+                <Property Name="mtart" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="제품유형"/>
+                <Property Name="mtbez" Type="Edm.String" MaxLength="25" sap:label="제품유형명"/>
+                <Property Name="matkl" Type="Edm.String" MaxLength="9" sap:display-format="UpperCase" sap:label="제품그룹"/>
+                <Property Name="wgbez" Type="Edm.String" MaxLength="20" sap:label="제품그룹명"/>
+                <Property Name="mat_meins" Type="Edm.String" MaxLength="3" sap:display-format="UpperCase" sap:label="제품 기본단위"/>
+                <Property Name="mtopt_t" Type="Edm.String" MaxLength="40" sap:label="옵션명"/>
                 <Property Name="waers" Type="Edm.String" Nullable="false" MaxLength="5" sap:display-format="UpperCase" sap:label="통화" sap:quickinfo="통화 키" sap:semantics="currency-code"/>
                 <Property Name="sales_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="cogs_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
@@ -59,7 +66,8 @@
                 <Property Name="gross_profit_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>
                 <Property Name="variance_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="sga_pool_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
-                <Property Name="product_count" Type="Edm.Int32"/>
+                <Property Name="total_sales_base_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="sga_allocation_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>
                 <Property Name="allocated_sga_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="operating_profit_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="operating_profit_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>

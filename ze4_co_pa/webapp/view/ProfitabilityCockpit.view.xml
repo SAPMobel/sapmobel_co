@@ -13,12 +13,12 @@
             <f:DynamicPageTitle>
                 <f:heading>
                     <VBox>
-                        <Title text="[EverNiture-CO] 수익성 분석 Cockpit" level="H1" class="coPageTitle"/>
+                        <Title text="[EverNiture-CO] 수익성 분석 종합 현황" level="H1" class="coPageTitle"/>
                         <Text text="CO/FI 구조 기반 수익성 분석" class="coPageSubtitle"/>
                     </VBox>
                 </f:heading>
                 <f:actions>
-                    <Button text="제품/옵션 분석" icon="sap-icon://product" type="Transparent" press=".onGoProduct"/>
+                    <Button text="제품/옵션 상세보기" icon="sap-icon://product" type="Transparent" press=".onGoProduct"/>
                     <Button text="실적/계획 비교" icon="sap-icon://compare" type="Transparent" press=".onGoActualPlan"/>
                 </f:actions>
             </f:DynamicPageTitle>
@@ -27,10 +27,6 @@
             <f:DynamicPageHeader pinnable="true">
                 <VBox class="coHeaderContent">
                     <HBox class="coFilterBar" wrap="Wrap" alignItems="End">
-                        <VBox class="coFilterItem">
-                            <Label text="관리회계영역" required="true"/>
-                            <Input value="{app>/filters/controllingArea}" editable="false"/>
-                        </VBox>
                         <VBox class="coFilterItem">
                             <Label text="회사코드" required="true"/>
                             <Input value="{app>/filters/companyCode}" editable="false"/>
@@ -46,10 +42,6 @@
                             <Select selectedKey="{app>/filters/month}" width="100%" items="{app>/monthOptions}">
                                 <core:Item key="{app>key}" text="{app>text}"/>
                             </Select>
-                        </VBox>
-                        <VBox class="coFilterItem">
-                            <Label text="계획 버전"/>
-                            <Input value="{app>/filters/planVersion}" maxLength="3" submit=".onSearch"/>
                         </VBox>
                         <HBox class="coFilterActions" alignItems="End">
                             <Button text="조회" type="Emphasized" press=".onSearch"/>
@@ -100,7 +92,7 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://org-chart" class="coKpiIcon coKpiIconOrange"/>
                             <VBox>
-                                <Text text="판관비 Pool" class="coKpiLabel"/>
+                                <Text text="배부 대상 판관비" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/sgaPool', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning"/>
                             </VBox>
                         </HBox>
@@ -116,7 +108,7 @@
                     </VBox>
                     <VBox class="coKpiCard">
                         <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://percentage" class="coKpiIcon coKpiIconBlue"/>
+                            <core:Icon src="sap-icon://pie-chart" class="coKpiIcon coKpiIconBlue"/>
                             <VBox>
                                 <Text text="영업이익률" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.percent'}" emphasized="true" state="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.stateByRate'}"/>
@@ -125,7 +117,7 @@
                     </VBox>
                 </HBox>
 
-                <HBox class="coMainGrid" wrap="Wrap">
+                <HBox class="coMainGrid coCockpitMainGrid" wrap="Wrap">
                     <VBox class="coPanel coPanelWide">
                         <Title text="1. 월별 손익 추이" level="H3" class="coPanelTitle"/>
                         <viz:VizFrame
@@ -133,8 +125,7 @@
                             width="100%"
                             height="20rem"
                             vizType="combination"
-                            uiConfig="{applicationSet:'fiori'}"
-                            noDataText="조회 결과가 없습니다.">
+                            uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
                                 <vizData:FlattenedDataset data="{app>/monthlyChart}">
                                     <vizData:dimensions>
@@ -143,41 +134,67 @@
                                     <vizData:measures>
                                         <vizData:MeasureDefinition name="매출" value="{app>sales}"/>
                                         <vizData:MeasureDefinition name="매출원가" value="{app>cogs}"/>
+                                        <vizData:MeasureDefinition name="매출총이익" value="{app>grossProfit}"/>
+                                        <vizData:MeasureDefinition name="판관비" value="{app>sga}"/>
                                         <vizData:MeasureDefinition name="영업이익" value="{app>operatingProfit}"/>
                                     </vizData:measures>
                                 </vizData:FlattenedDataset>
                             </viz:dataset>
                             <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출,매출원가,영업이익"/>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출,매출원가,매출총이익,판관비,영업이익"/>
                                 <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월"/>
                             </viz:feeds>
                         </viz:VizFrame>
                     </VBox>
 
                     <VBox class="coPanel coPanelNarrow">
-                        <Title text="2. 제품/옵션 비중" level="H3" class="coPanelTitle"/>
+                        <Title text="2. 사업부문 비중" level="H3" class="coPanelTitle"/>
+                        <MessageStrip
+                            text="{app>/segmentShareMessage}"
+                            type="Information"
+                            showIcon="true"
+                            visible="{= !!${app>/segmentShareMessage} }"
+                            class="coMessageStrip"/>
                         <viz:VizFrame
                             id="cockpitShareChart"
                             width="100%"
-                            height="20rem"
+                            height="15rem"
                             vizType="donut"
-                            uiConfig="{applicationSet:'fiori'}"
-                            noDataText="조회 결과가 없습니다.">
+                            uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
-                                <vizData:FlattenedDataset data="{app>/productShareChart}">
+                                <vizData:FlattenedDataset data="{app>/segmentShareChart}">
                                     <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="제품/옵션" value="{app>productKey}"/>
+                                        <vizData:DimensionDefinition name="사업부문" value="{app>segmentDisplay}"/>
                                     </vizData:dimensions>
                                     <vizData:measures>
-                                        <vizData:MeasureDefinition name="매출" value="{app>sales}"/>
+                                        <vizData:MeasureDefinition name="매출" value="{app>amount}"/>
                                     </vizData:measures>
                                 </vizData:FlattenedDataset>
                             </viz:dataset>
                             <viz:feeds>
                                 <vizFeeds:FeedItem uid="size" type="Measure" values="매출"/>
-                                <vizFeeds:FeedItem uid="color" type="Dimension" values="제품/옵션"/>
+                                <vizFeeds:FeedItem uid="color" type="Dimension" values="사업부문"/>
                             </viz:feeds>
                         </viz:VizFrame>
+                        <Table
+                            items="{app>/segmentShareChart}"
+                            noDataText="사업부문 기준 매출 데이터가 없습니다."
+                            class="coMiniTable">
+                            <columns>
+                                <Column><Text text="사업부문"/></Column>
+                                <Column hAlign="End"><Text text="매출"/></Column>
+                                <Column hAlign="End"><Text text="비중"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem>
+                                    <cells>
+                                        <ObjectIdentifier title="{app>segmentDisplay}"/>
+                                        <ObjectNumber number="{path:'app>amount', formatter:'.formatter.amount'}" unit="{app>waers}"/>
+                                        <ObjectNumber number="{path:'app>share', formatter:'.formatter.percent'}"/>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
                     </VBox>
 
                     <VBox class="coPanel coPanelMedium">
@@ -187,72 +204,94 @@
                             width="100%"
                             height="20rem"
                             vizType="column"
-                            uiConfig="{applicationSet:'fiori'}"
-                            noDataText="조회 결과가 없습니다.">
+                            uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
-                                <vizData:FlattenedDataset data="{app>/structureChart}">
+                                <vizData:FlattenedDataset data="{app>/monthlyChart}">
                                     <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="구분" value="{app>item}"/>
+                                        <vizData:DimensionDefinition name="구분" value="{app>structureText}"/>
                                     </vizData:dimensions>
                                     <vizData:measures>
-                                        <vizData:MeasureDefinition name="금액" value="{app>amount}"/>
+                                        <vizData:MeasureDefinition name="매출" value="{app>sales}"/>
+                                        <vizData:MeasureDefinition name="매출원가" value="{app>cogs}"/>
+                                        <vizData:MeasureDefinition name="매출총이익" value="{app>grossProfit}"/>
+                                        <vizData:MeasureDefinition name="판관비" value="{app>sga}"/>
+                                        <vizData:MeasureDefinition name="영업이익" value="{app>operatingProfit}"/>
                                     </vizData:measures>
                                 </vizData:FlattenedDataset>
                             </viz:dataset>
                             <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="금액"/>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출,매출원가,매출총이익,판관비,영업이익"/>
                                 <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="구분"/>
                             </viz:feeds>
                         </viz:VizFrame>
                     </VBox>
 
-                    <VBox class="coPanel coPanelInfo">
-                        <Title text="분석 기준" level="H3" class="coPanelTitle"/>
+                    <VBox class="coPanel coPanelInfo coCriteriaPanel">
+                        <Title text="분석 기준" level="H3" class="coPanelTitle coCriteriaTitle"/>
                         <VBox class="coCriteriaList">
-                            <Text text="매출 계정군: 4xxxx"/>
-                            <Text text="매출원가 계정군: 6xxxx"/>
-                            <Text text="판관비 계정군: 7xxxx"/>
-                            <Text text="제조/차이 계정군: 8xxxx"/>
+                            <HBox class="coCriteriaItem coCriteriaRevenue" alignItems="Center">
+                                <core:Icon src="sap-icon://sales-order" class="coCriteriaIcon"/>
+                                <VBox class="coCriteriaText">
+                                    <Text text="매출" class="coCriteriaName"/>
+                                    <Text text="4xxxx" class="coCriteriaBadge"/>
+                                </VBox>
+                            </HBox>
+                            <HBox class="coCriteriaItem coCriteriaCogs" alignItems="Center">
+                                <core:Icon src="sap-icon://cart" class="coCriteriaIcon"/>
+                                <VBox class="coCriteriaText">
+                                    <Text text="매출원가" class="coCriteriaName"/>
+                                    <Text text="6xxxx" class="coCriteriaBadge"/>
+                                </VBox>
+                            </HBox>
+                            <HBox class="coCriteriaItem coCriteriaSga" alignItems="Center">
+                                <core:Icon src="sap-icon://account" class="coCriteriaIcon"/>
+                                <VBox class="coCriteriaText">
+                                    <Text text="판관비" class="coCriteriaName"/>
+                                    <Text text="7xxxx" class="coCriteriaBadge"/>
+                                </VBox>
+                            </HBox>
+                            <HBox class="coCriteriaItem coCriteriaVariance" alignItems="Center">
+                                <core:Icon src="sap-icon://factory" class="coCriteriaIcon"/>
+                                <VBox class="coCriteriaText">
+                                    <Text text="제조/차이" class="coCriteriaName"/>
+                                    <Text text="8xxxx" class="coCriteriaBadge"/>
+                                </VBox>
+                            </HBox>
                         </VBox>
-                        <MessageStrip
-                            text="판관비는 회사/기간 내 제품-옵션 수 기준으로 균등배부됩니다. 본 영업이익은 관리손익 분석 목적의 배부 기준 금액입니다."
-                            type="Information"
-                            showIcon="true"
-                            class="coInfoStrip"/>
                     </VBox>
                 </HBox>
 
                 <VBox class="coPanel">
                     <Toolbar class="coPanelToolbar">
                         <Title text="4. 제품/옵션 수익성 Top" level="H3"/>
-                        <ToolbarSpacer/>
-                        <Button text="전체 보기" icon="sap-icon://open-command-field" type="Transparent" press=".onGoProduct"/>
                     </Toolbar>
                     <Table
+                        width="100%"
+                        fixedLayout="true"
                         items="{app>/topRows}"
                         noDataText="조회 결과가 없습니다."
                         growing="true"
                         growingThreshold="10"
                         class="coTable">
                         <columns>
-                            <Column><Text text="MATNR"/></Column>
-                            <Column><Text text="MTOPT"/></Column>
-                            <Column hAlign="End"><Text text="매출"/></Column>
-                            <Column hAlign="End"><Text text="매출총이익"/></Column>
-                            <Column hAlign="End"><Text text="영업이익"/></Column>
-                            <Column hAlign="End"><Text text="영업이익률"/></Column>
-                            <Column><Text text="상태"/></Column>
+                            <Column width="12%"><Text text="제품"/></Column>
+                            <Column width="6%"><Text text="옵션"/></Column>
+                            <Column width="22%" hAlign="End"><Text text="매출"/></Column>
+                            <Column width="22%" hAlign="End"><Text text="매출총이익"/></Column>
+                            <Column width="22%" hAlign="End"><Text text="영업이익"/></Column>
+                            <Column width="10%" hAlign="End"><Text text="영업이익률"/></Column>
+                            <Column width="6%" hAlign="Center"><Text text="상태"/></Column>
                         </columns>
                         <items>
-                            <ColumnListItem type="Navigation" press=".onGoProduct">
+                            <ColumnListItem>
                                 <cells>
-                                    <ObjectIdentifier title="{app>matnr}"/>
-                                    <Text text="{app>mtopt}"/>
+                                    <ObjectIdentifier title="{app>productDisplay}" text="{app>materialGroupDisplay}" class="coProductCell"/>
+                                    <Text text="{app>optionDisplay}" wrapping="false"/>
                                     <ObjectNumber number="{path:'app>sales', formatter:'.formatter.amount'}" unit="{app>waers}"/>
                                     <ObjectNumber number="{path:'app>grossProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
                                     <ObjectNumber number="{path:'app>operatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
-                                    <Text text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}"/>
-                                    <ObjectStatus text="{= ${app>operatingProfit} > 0 ? '흑자' : (${app>operatingProfit} &lt; 0 ? '적자' : '-') }" state="{app>profitState}"/>
+                                    <ObjectStatus text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}" state="{path:'app>operatingProfitRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
+                                    <ObjectStatus text="{= ${app>operatingProfit} > 0 ? '흑자' : (${app>operatingProfit} &lt; 0 ? '적자' : '-') }" state="{app>profitState}" class="coStatusCell"/>
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -261,4 +300,5 @@
             </VBox>
         </f:content>
     </f:DynamicPage>
+
 </mvc:View>

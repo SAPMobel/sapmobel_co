@@ -14,11 +14,11 @@
                 <f:heading>
                     <VBox>
                         <Title text="[EverNiture-CO] 제품 / 옵션 수익성 분석" level="H1" class="coPageTitle"/>
-                        <Text text="MATNR + MTOPT 기준 손익 및 판관비 균등배부 분석" class="coPageSubtitle"/>
+                        <Text text="제품/옵션 기준 손익 및 판관비 매출비례 배부 분석" class="coPageSubtitle"/>
                     </VBox>
                 </f:heading>
                 <f:actions>
-                    <Button text="Cockpit" icon="sap-icon://home" type="Transparent" press=".onGoCockpit"/>
+                    <Button text="종합 현황" icon="sap-icon://home" type="Transparent" press=".onGoCockpit"/>
                     <Button text="실적/계획 비교" icon="sap-icon://compare" type="Transparent" press=".onGoActualPlan"/>
                 </f:actions>
             </f:DynamicPageTitle>
@@ -27,10 +27,6 @@
             <f:DynamicPageHeader pinnable="true">
                 <VBox class="coHeaderContent">
                     <HBox class="coFilterBar" wrap="Wrap" alignItems="End">
-                        <VBox class="coFilterItem">
-                            <Label text="관리회계영역" required="true"/>
-                            <Input value="{app>/filters/controllingArea}" editable="false"/>
-                        </VBox>
                         <VBox class="coFilterItem">
                             <Label text="회사코드" required="true"/>
                             <Input value="{app>/filters/companyCode}" editable="false"/>
@@ -48,16 +44,20 @@
                             </Select>
                         </VBox>
                         <VBox class="coFilterItem">
-                            <Label text="MATNR"/>
+                            <Label text="제품"/>
                             <Input value="{app>/filters/matnr}" maxLength="40" submit=".onSearch"/>
                         </VBox>
                         <VBox class="coFilterItem">
-                            <Label text="MTOPT"/>
+                            <Label text="옵션"/>
                             <Input value="{app>/filters/mtopt}" maxLength="8" submit=".onSearch"/>
                         </VBox>
                         <VBox class="coFilterItem coFilterItemSmall">
-                            <Label text="통화"/>
-                            <Input value="{app>/filters/waers}" maxLength="5" submit=".onSearch"/>
+                            <Label text="자재유형"/>
+                            <Input value="{app>/filters/mtart}" maxLength="4" submit=".onSearch"/>
+                        </VBox>
+                        <VBox class="coFilterItem">
+                            <Label text="자재그룹"/>
+                            <Input value="{app>/filters/matkl}" maxLength="9" submit=".onSearch"/>
                         </VBox>
                         <HBox class="coFilterActions" alignItems="End">
                             <Button text="조회" type="Emphasized" press=".onSearch"/>
@@ -75,12 +75,6 @@
                     showIcon="true"
                     visible="{= !!${app>/productMessage} }"
                     class="coMessageStrip"/>
-                <MessageStrip
-                    text="판관비는 회사/기간 내 제품-옵션 수 기준으로 균등배부됩니다. 본 영업이익은 관리손익 분석 목적의 배부 기준 금액입니다."
-                    type="Information"
-                    showIcon="true"
-                    class="coMessageStrip"/>
-
                 <HBox class="coKpiGrid" wrap="Wrap">
                     <VBox class="coKpiCard">
                         <HBox alignItems="Center">
@@ -118,21 +112,13 @@
                             </VBox>
                         </HBox>
                     </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://product" class="coKpiIcon coKpiIconTeal"/>
-                            <VBox>
-                                <Text text="제품 수" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/kpi/productCount', formatter:'.formatter.integer'}" emphasized="true" state="Information"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
+                    <VBox class="coKpiCard coKpiCardWithNote">
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://business-objects-experience" class="coKpiIcon coKpiIconOrange"/>
                             <VBox>
-                                <Text text="균등배부 판관비" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/kpi/allocatedSga', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning"/>
+                                <Text text="매출비례 배부 판관비" tooltip="{app>/kpi/allocationNote}" class="coKpiLabel"/>
+                                <ObjectNumber number="{path:'app>/kpi/allocatedSga', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning" tooltip="{app>/kpi/allocationNote}"/>
+                                <Text text="제품/옵션 매출 비중만큼 배부" wrapping="true" class="coKpiHint"/>
                             </VBox>
                         </HBox>
                     </VBox>
@@ -147,7 +133,7 @@
                     </VBox>
                     <VBox class="coKpiCard">
                         <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://percentage" class="coKpiIcon coKpiIconBlue"/>
+                            <core:Icon src="sap-icon://pie-chart" class="coKpiIcon coKpiIconBlue"/>
                             <VBox>
                                 <Text text="영업이익률" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.percent'}" emphasized="true" state="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.stateByRate'}"/>
@@ -164,8 +150,7 @@
                             width="100%"
                             height="21rem"
                             vizType="bar"
-                            uiConfig="{applicationSet:'fiori'}"
-                            noDataText="조회 결과가 없습니다.">
+                            uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
                                 <vizData:FlattenedDataset data="{app>/topRows}">
                                     <vizData:dimensions>
@@ -184,18 +169,17 @@
                     </VBox>
 
                     <VBox class="coPanel coPanelHalf">
-                        <Title text="2. 이익률 비교" level="H3" class="coPanelTitle"/>
+                        <Title text="2. 제품그룹별 이익률 비교" level="H3" class="coPanelTitle"/>
                         <viz:VizFrame
                             id="productMarginChart"
                             width="100%"
                             height="21rem"
-                            vizType="line"
-                            uiConfig="{applicationSet:'fiori'}"
-                            noDataText="조회 결과가 없습니다.">
+                            vizType="column"
+                            uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
                                 <vizData:FlattenedDataset data="{app>/marginChart}">
                                     <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="제품/옵션" value="{app>productKey}"/>
+                                        <vizData:DimensionDefinition name="제품그룹" value="{app>productKey}"/>
                                     </vizData:dimensions>
                                     <vizData:measures>
                                         <vizData:MeasureDefinition name="매출총이익률" value="{app>grossProfitRate}"/>
@@ -205,7 +189,7 @@
                             </viz:dataset>
                             <viz:feeds>
                                 <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출총이익률,영업이익률"/>
-                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="제품/옵션"/>
+                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="제품그룹"/>
                             </viz:feeds>
                         </viz:VizFrame>
                     </VBox>
@@ -215,49 +199,53 @@
                     <Toolbar class="coPanelToolbar">
                         <Title text="3. 제품/옵션 수익성 상세" level="H3"/>
                         <ToolbarSpacer/>
-                        <Button icon="sap-icon://home" text="Cockpit" type="Transparent" press=".onGoCockpit"/>
+                        <Button icon="sap-icon://home" text="종합 현황" type="Transparent" press=".onGoCockpit"/>
                     </Toolbar>
-                    <ScrollContainer horizontal="true" vertical="false" width="100%">
+                    <ScrollContainer horizontal="true" vertical="true" width="100%" height="34rem" class="coProductDetailScroller">
                         <Table
-                            width="118rem"
+                            width="100%"
+                            fixedLayout="true"
                             items="{app>/productRows}"
                             noDataText="조회 결과가 없습니다."
-                            growing="true"
-                            growingThreshold="20"
-                            class="coTable">
+                            sticky="ColumnHeaders"
+                            class="coTable coProductDetailTable">
                             <columns>
-                                <Column width="9rem"><Text text="MATNR"/></Column>
-                                <Column width="7rem"><Text text="MTOPT"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="매출"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="매출원가"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="매출총이익"/></Column>
-                                <Column width="8rem" hAlign="End"><Text text="매출총이익률"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="제조/차이 영향"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="판관비 Pool"/></Column>
-                                <Column width="7rem" hAlign="End"><Text text="제품 수"/></Column>
-                                <Column width="10rem" hAlign="End"><Text text="균등배부 판관비"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="영업이익"/></Column>
-                                <Column width="8rem" hAlign="End"><Text text="영업이익률"/></Column>
-                                <Column width="16rem"><Text text="안내문구"/></Column>
-                                <Column width="5rem" hAlign="Center"><Text text="전표"/></Column>
+                                <Column width="14.5%"><Text text="제품"/></Column>
+                                <Column width="3.5%"><Text text="옵션"/></Column>
+                                <Column width="3.5%"><Text text="제품유형"/></Column>
+                                <Column width="3.5%"><Text text="제품그룹"/></Column>
+                                <Column width="8%" hAlign="End"><Text text="매출"/></Column>
+                                <Column width="6.5%" hAlign="End"><Text text="원가"/></Column>
+                                <Column width="8%" hAlign="End"><Text text="매출총이익"/></Column>
+                                <Column width="4.5%" hAlign="End"><Text text="총이익률"/></Column>
+                                <Column width="5.5%" hAlign="End"><Text text="제조/차이"/></Column>
+                                <Column width="7%" hAlign="End"><Text text="판관비 Pool"/></Column>
+                                <Column width="8%" hAlign="End"><Text text="전체 배부 기준 매출" tooltip="제품/옵션별 양수 매출 합계입니다."/></Column>
+                                <Column width="5%" hAlign="End"><Text text="매출 비중" tooltip="제품/옵션 매출액을 전체 배부 기준 매출로 나눈 비율입니다."/></Column>
+                                <Column width="8%" hAlign="End"><Text text="매출비례 배부 판관비" tooltip="판관비에 매출 비중을 곱한 금액입니다."/></Column>
+                                <Column width="8.5%" hAlign="End"><Text text="영업이익"/></Column>
+                                <Column width="3.5%" hAlign="End"><Text text="영업이익률"/></Column>
+                                <Column width="2.5%" hAlign="Center"><Text text="전표"/></Column>
                             </columns>
                             <items>
                                 <ColumnListItem>
                                     <cells>
-                                        <ObjectIdentifier title="{app>matnr}"/>
-                                        <Text text="{app>mtopt}"/>
+                                        <ObjectIdentifier title="{app>productDisplay}" text="{app>materialGroupDisplay}" class="coProductCell"/>
+                                        <Text text="{app>optionDisplay}" wrapping="false"/>
+                                        <Text text="{app>materialTypeDisplay}"/>
+                                        <Text text="{app>materialGroupDisplay}"/>
                                         <ObjectNumber number="{path:'app>sales', formatter:'.formatter.amount'}" unit="{app>waers}"/>
                                         <ObjectNumber number="{path:'app>cogs', formatter:'.formatter.amount'}" unit="{app>waers}"/>
                                         <ObjectNumber number="{path:'app>grossProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
-                                        <Text text="{path:'app>grossProfitRate', formatter:'.formatter.percent'}"/>
+                                        <ObjectStatus text="{path:'app>grossProfitRate', formatter:'.formatter.percent'}" state="{path:'app>grossProfitRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
                                         <ObjectNumber number="{path:'app>variance', formatter:'.formatter.amount'}" unit="{app>waers}" state="{path:'app>variance', formatter:'.formatter.stateByAmount'}"/>
                                         <ObjectNumber number="{path:'app>sgaPool', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <Text text="{path:'app>productCount', formatter:'.formatter.integer'}"/>
+                                        <ObjectNumber number="{path:'app>totalSalesBase', formatter:'.formatter.amount'}" unit="{app>waers}"/>
+                                        <ObjectStatus text="{path:'app>sgaAllocationRate', formatter:'.formatter.percent'}" state="Information" inverted="true" class="coRateChip"/>
                                         <ObjectNumber number="{path:'app>allocatedSga', formatter:'.formatter.amount'}" unit="{app>waers}"/>
                                         <ObjectNumber number="{path:'app>operatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
-                                        <Text text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}"/>
-                                        <Text text="{app>allocation_note}" wrapping="false"/>
-                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="전표 Drill-Down" press=".onOpenProductDrilldown"/>
+                                        <ObjectStatus text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}" state="{path:'app>operatingProfitRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
+                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="전표 상세" press=".onOpenProductDrilldown"/>
                                     </cells>
                                 </ColumnListItem>
                             </items>
@@ -268,7 +256,7 @@
         </f:content>
     </f:DynamicPage>
 
-    <Dialog id="drilldownDialog" title="전표 Drill-Down - {app>/selectedProductTitle}" contentWidth="88rem" contentHeight="38rem" resizable="true" draggable="true">
+    <Dialog id="drilldownDialog" title="전표 상세 - {app>/selectedProductTitle}" contentWidth="88rem" contentHeight="38rem" resizable="true" draggable="true">
         <VBox class="coDialogContent" busy="{app>/drilldownBusy}">
             <MessageStrip
                 text="{app>/drilldownMessage}"
@@ -278,38 +266,39 @@
                 class="coMessageStrip"/>
             <ScrollContainer horizontal="true" vertical="true" width="100%" height="32rem">
                 <Table
-                    width="160rem"
+                    width="172rem"
                     items="{app>/drilldownRows}"
                     noDataText="조회 결과가 없습니다."
                     growing="true"
                     growingThreshold="30"
                     class="coTable">
                     <columns>
-                        <Column width="6rem"><Text text="BLART"/></Column>
-                        <Column width="9rem"><Text text="BELNR"/></Column>
-                        <Column width="6rem"><Text text="DOCLN"/></Column>
-                        <Column width="6rem"><Text text="GJAHR"/></Column>
-                        <Column width="6rem"><Text text="MONAT"/></Column>
-                        <Column width="8rem"><Text text="BUDAT"/></Column>
-                        <Column width="8rem"><Text text="RACCT"/></Column>
-                        <Column width="13rem"><Text text="RACCT_TXT"/></Column>
-                        <Column width="12rem"><Text text="ACCT_GROUP_TXT"/></Column>
-                        <Column width="6rem"><Text text="DRCRK"/></Column>
-                        <Column width="10rem" hAlign="End"><Text text="RAW_AMOUNT"/></Column>
-                        <Column width="10rem" hAlign="End"><Text text="PL_AMOUNT"/></Column>
-                        <Column width="6rem"><Text text="WAERS"/></Column>
-                        <Column width="8rem" hAlign="End"><Text text="QUANTITY"/></Column>
-                        <Column width="6rem"><Text text="MEINS"/></Column>
-                        <Column width="9rem"><Text text="S_KOSTL"/></Column>
-                        <Column width="9rem"><Text text="R_KOSTL"/></Column>
-                        <Column width="9rem"><Text text="KOSTL"/></Column>
-                        <Column width="9rem"><Text text="PRCTR"/></Column>
-                        <Column width="12rem"><Text text="PRCTR_TXT"/></Column>
-                        <Column width="8rem"><Text text="PCG"/></Column>
-                        <Column width="9rem"><Text text="SEGMENT"/></Column>
-                        <Column width="8rem"><Text text="FKBER"/></Column>
-                        <Column width="12rem"><Text text="FKBER_TXT"/></Column>
-                        <Column width="10rem"><Text text="WERKS"/></Column>
+                        <Column width="6rem"><Text text="전표유형"/></Column>
+                        <Column width="9rem"><Text text="전표번호"/></Column>
+                        <Column width="6rem"><Text text="라인"/></Column>
+                        <Column width="6rem"><Text text="연도"/></Column>
+                        <Column width="6rem"><Text text="기간"/></Column>
+                        <Column width="8rem"><Text text="전기일"/></Column>
+                        <Column width="8rem"><Text text="계정"/></Column>
+                        <Column width="13rem"><Text text="계정명"/></Column>
+                        <Column width="12rem"><Text text="계정 성격"/></Column>
+                        <Column width="12rem"><Text text="프로세스 단계"/></Column>
+                        <Column width="8rem"><Text text="최종 반영"/></Column>
+                        <Column width="12rem"><Text text="계정그룹"/></Column>
+                        <Column width="6rem"><Text text="차대"/></Column>
+                        <Column width="10rem" hAlign="End"><Text text="전표금액"/></Column>
+                        <Column width="10rem" hAlign="End"><Text text="손익금액"/></Column>
+                        <Column width="6rem"><Text text="통화"/></Column>
+                        <Column width="8rem" hAlign="End"><Text text="수량"/></Column>
+                        <Column width="6rem"><Text text="단위"/></Column>
+                        <Column width="9rem"><Text text="송신 코스트센터"/></Column>
+                        <Column width="9rem"><Text text="수신 코스트센터"/></Column>
+                        <Column width="16rem"><Text text="손익센터"/></Column>
+                        <Column width="16rem"><Text text="사업부문"/></Column>
+                        <Column width="24rem"><Text text="제품"/></Column>
+                        <Column width="10rem"><Text text="옵션"/></Column>
+                        <Column width="12rem"><Text text="제품유형"/></Column>
+                        <Column width="12rem"><Text text="제품그룹"/></Column>
                     </columns>
                     <items>
                         <ColumnListItem>
@@ -322,6 +311,9 @@
                                 <Text text="{app>budat}"/>
                                 <Text text="{app>racct}"/>
                                 <Text text="{app>racct_txt}"/>
+                                <ObjectStatus text="{app>accountRoleText}" tooltip="{app>accountRoleDetail}" state="Information"/>
+                                <ObjectStatus text="{app>processStepText}" tooltip="{app>processStepDetail}" state="Information"/>
+                                <Text text="{app>finalManufacturingText}" wrapping="false"/>
                                 <Text text="{app>acct_group_txt}"/>
                                 <Text text="{app>drcrk}"/>
                                 <ObjectNumber number="{path:'app>raw_amount', formatter:'.formatter.amount'}" unit="{app>waers}"/>
@@ -329,16 +321,14 @@
                                 <Text text="{app>waers}"/>
                                 <Text text="{path:'app>quantity', formatter:'.formatter.decimal'}"/>
                                 <Text text="{app>meins}"/>
-                                <Text text="{app>s_kostl}"/>
-                                <Text text="{app>r_kostl}"/>
-                                <Text text="{app>kostl}"/>
-                                <Text text="{app>prctr}"/>
-                                <Text text="{app>prctr_txt}"/>
-                                <Text text="{app>pcg}"/>
-                                <Text text="{app>segment}"/>
-                                <Text text="{app>fkber}"/>
-                                <Text text="{app>fkber_txt}"/>
-                                <Text text="{app>werks}"/>
+                                <Text text="{app>s_kostl}" wrapping="false"/>
+                                <Text text="{app>r_kostl}" wrapping="false"/>
+                                <ObjectIdentifier title="{app>prctrDisplay}"/>
+                                <ObjectIdentifier title="{app>segmentDisplay}"/>
+                                <ObjectIdentifier title="{app>productDisplay}" text="{app>materialGroupDisplay}" class="coProductCell"/>
+                                <Text text="{app>optionDisplay}" wrapping="false"/>
+                                <Text text="{app>materialTypeDisplay}"/>
+                                <Text text="{app>materialGroupDisplay}"/>
                             </cells>
                         </ColumnListItem>
                     </items>
@@ -349,4 +339,5 @@
             <Button text="닫기" press=".onCloseDrilldown"/>
         </endButton>
     </Dialog>
+
 </mvc:View>

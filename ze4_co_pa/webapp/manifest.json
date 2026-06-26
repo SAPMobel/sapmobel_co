@@ -35,7 +35,7 @@
         }
       },
       "actualPlanService": {
-        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0043_CDS/",
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0046_CDS/",
         "type": "OData",
         "settings": {
           "odataVersion": "2.0"
