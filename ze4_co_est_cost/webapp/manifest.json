@@ -47,8 +47,8 @@
           "odataVersion": "2.0"
         }
       },
-      "historyService": {
-        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0030_CDS/",
+      "settlementService": {
+        "uri": "/sap/opu/odata/sap/ZGWE4CO0001_SRV/",
         "type": "OData",
         "settings": {
           "odataVersion": "2.0"
@@ -56,6 +56,13 @@
       },
       "materialTypeService": {
         "uri": "/sap/opu/odata/sap/ZCDS_E4_MM_0007_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "bomPriceImpactService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0047_CDS/",
         "type": "OData",
         "settings": {
           "odataVersion": "2.0"

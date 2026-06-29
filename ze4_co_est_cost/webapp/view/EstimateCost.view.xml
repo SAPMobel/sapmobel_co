@@ -14,67 +14,100 @@
         id="estimateCostPage"
         class="zecPage"
         busy="{ui>/busy}"
-        fitContent="false">
+        fitContent="true">
         <f:title>
-            <f:DynamicPageTitle>
+            <f:DynamicPageTitle class="zecPageTitle">
                 <f:heading>
-                    <Title text="{i18n>title}" level="H1"/>
+                    <VBox class="zecTitleBlock">
+                        <Title text="{i18n>title}" level="H1" class="zecPageHeading"/>
+                        <Text text="{i18n>pageSubtitle}" class="zecPageSubtitle"/>
+                    </VBox>
                 </f:heading>
                 <f:actions>
                     <Button
-                        text="{i18n>executeActualCost}"
-                        icon="sap-icon://begin"
-                        type="Emphasized"
-                        press=".onExecuteSettlement"/>
-                    <Button
                         text="{i18n>search}"
                         icon="sap-icon://search"
+                        type="Emphasized"
                         press=".onSearch"/>
+                    <Button
+                        text="{i18n>executeActualCost}"
+                        icon="sap-icon://begin"
+                        type="Accept"
+                        enabled="{ui>/executeEnabled}"
+                        press=".onExecuteSettlement"/>
                     <Button
                         text="{i18n>reset}"
                         icon="sap-icon://reset"
+                        type="Transparent"
                         press=".onReset"/>
+                    <Button
+                        text="Excel 다운로드"
+                        icon="sap-icon://excel-attachment"
+                        type="Transparent"
+                        press=".onExportExcel"/>
+                    <Button
+                        text="PDF 다운로드"
+                        icon="sap-icon://print"
+                        type="Transparent"
+                        press=".onExportPdf"/>
                 </f:actions>
             </f:DynamicPageTitle>
         </f:title>
         <f:header>
             <f:DynamicPageHeader pinnable="false">
-                <VBox class="zecFilterCard">
+                <VBox class="zecHeaderStack">
                     <MessageStrip
-                        class="sapUiSmallMarginBottom"
                         text="{ui>/message}"
                         type="{ui>/messageType}"
                         showIcon="true"
                         showCloseButton="true"
                         visible="{ui>/messageVisible}"
                         close=".onCloseMessage"/>
-                    <FlexBox
-                        class="zecFilterBar"
-                        wrap="Wrap"
-                        renderType="Bare"
-                        alignItems="End">
-                        <VBox class="zecFilterItem zecCompanyItem">
-                            <Label text="{i18n>companyCode}" labelFor="companyCodeInput"/>
-                            <Input
-                                id="companyCodeInput"
-                                value="{filters>/bukrs}"
-                                enabled="false"
-                                width="100%"/>
-                        </VBox>
-                        <VBox class="zecFilterItem zecBasisItem">
-                            <Label text="{i18n>filterBasis}" required="true"/>
-                            <HBox class="zecPeriodBox" renderType="Bare" alignItems="Center">
+                    <VBox class="zecFilterCard">
+                        <HBox class="zecSectionHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                            <VBox class="zecSectionTitleBlock">
+                                <Title text="{i18n>filterSectionTitle}" level="H2"/>
+                                <Text text="{i18n>filterSectionDescription}" class="zecMutedText"/>
+                            </VBox>
+                        </HBox>
+                        <layout:Grid
+                            class="zecFilterGrid"
+                            hSpacing="1"
+                            vSpacing="0"
+                            defaultSpan="XL2 L3 M6 S12">
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL1 L2 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>companyCode}" labelFor="companyCodeInput"/>
+                                <Input
+                                    id="companyCodeInput"
+                                    value="{filters>/bukrs}"
+                                    enabled="false"
+                                    width="100%"/>
+                            </VBox>
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL1 L2 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>periodYear}" required="true" labelFor="fiscalYearInput"/>
                                 <Input
                                     id="fiscalYearInput"
                                     value="{filters>/gjahr}"
                                     maxLength="4"
                                     type="Number"
                                     valueLiveUpdate="true"
-                                    width="7rem"/>
+                                    width="100%"/>
+                            </VBox>
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL1 L2 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>periodMonth}" required="true" labelFor="periodInput"/>
                                 <ComboBox
                                     id="periodInput"
                                     selectedKey="{filters>/monat}"
-                                    width="7rem">
+                                    width="100%">
                                     <core:Item key="001" text="{i18n>month001}"/>
                                     <core:Item key="002" text="{i18n>month002}"/>
                                     <core:Item key="003" text="{i18n>month003}"/>
@@ -88,130 +121,326 @@
                                     <core:Item key="011" text="{i18n>month011}"/>
                                     <core:Item key="012" text="{i18n>month012}"/>
                                 </ComboBox>
-                            </HBox>
-                        </VBox>
-                        <VBox class="zecFilterItem zecFilterItemWide">
-                            <Label text="{i18n>material}" labelFor="materialInput"/>
-                            <Input
-                                id="materialInput"
-                                value="{filters>/matnr}"
-                                maxLength="40"
-                                valueLiveUpdate="true"
-                                placeholder="{i18n>materialPlaceholder}"
-                                width="100%"/>
-                        </VBox>
-                        <VBox class="zecFilterItem zecFilterItemWide">
-                            <Label text="{i18n>materialType}" labelFor="materialTypeInput"/>
-                            <ComboBox
-                                id="materialTypeInput"
-                                selectedKey="{filters>/mtart}"
-                                items="{materialTypes>/items}"
-                                placeholder="{i18n>materialTypePlaceholder}"
-                                width="100%">
-                                <core:Item
-                                    key="{materialTypes>mtart}"
-                                    text="{parts: [{path: 'materialTypes>mtart'}, {path: 'materialTypes>mtbez'}], formatter: '.formatter.codeText'}"/>
-                            </ComboBox>
-                        </VBox>
-                    </FlexBox>
+                            </VBox>
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL3 L3 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>material}" labelFor="materialInput"/>
+                                <Input
+                                    id="materialInput"
+                                    value="{filters>/matnr}"
+                                    maxLength="40"
+                                    valueLiveUpdate="true"
+                                    showValueHelp="true"
+                                    valueHelpIconSrc="sap-icon://search"
+                                    valueHelpRequest=".onMaterialValueHelp"
+                                    placeholder="{i18n>materialPlaceholder}"
+                                    width="100%"/>
+                            </VBox>
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL2 L2 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>materialType}" labelFor="materialTypeInput"/>
+                                <ComboBox
+                                    id="materialTypeInput"
+                                    selectedKey="{filters>/mtart}"
+                                    items="{materialTypes>/items}"
+                                    placeholder="{i18n>materialTypePlaceholder}"
+                                    width="100%">
+                                    <core:Item
+                                        key="{materialTypes>mtart}"
+                                        text="{materialTypes>mtbez}"/>
+                                </ComboBox>
+                            </VBox>
+                            <VBox class="zecFilterItem">
+                                <layoutData>
+                                    <layout:GridData span="XL2 L2 M6 S12"/>
+                                </layoutData>
+                                <Label text="{i18n>productGroup}" labelFor="materialGroupInput"/>
+                                <Input
+                                    id="materialGroupInput"
+                                    value="{filters>/matkl}"
+                                    maxLength="9"
+                                    valueLiveUpdate="true"
+                                    showValueHelp="true"
+                                    valueHelpIconSrc="sap-icon://search"
+                                    valueHelpRequest=".onMaterialGroupValueHelp"
+                                    placeholder="{i18n>materialGroupPlaceholder}"
+                                    width="100%"/>
+                            </VBox>
+                        </layout:Grid>
+                    </VBox>
                 </VBox>
             </f:DynamicPageHeader>
         </f:header>
         <f:content>
-            <VBox width="100%" class="zecContent sapUiContentPadding">
+            <VBox width="100%" class="zecContent">
                 <VBox class="zecKpiBand">
-                    <Title text="{i18n>kpiSectionTitle}" level="H2" class="sapUiTinyMarginBottom"/>
+                    <HBox class="zecSectionHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                        <VBox class="zecSectionTitleBlock">
+                            <Title text="{i18n>kpiSectionTitle}" level="H2"/>
+                            <Text text="{i18n>kpiSectionSubtitle}" class="zecMutedText"/>
+                        </VBox>
+                    </HBox>
                     <FlexBox
                         class="zecKpiGrid"
                         wrap="Wrap"
                         renderType="Bare">
-                        <VBox class="zecKpiItem">
-                            <HBox alignItems="Center">
-                                <core:Icon src="sap-icon://target-group" class="zecKpiIcon zecKpiIconBlue"/>
-                                <VBox class="zecKpiText">
-                                    <Label text="{i18n>kpiTargetMaterialCount}"/>
-                                    <ObjectNumber number="{path: 'kpi>/data/actual_calc_target_cnt', formatter: '.formatter.integer'}" state="Information"/>
-                                    <Text text="{i18n>kpiTargetSubtitle}" class="zecMutedText"/>
-                                </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiClosing">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://locked" class="zecKpiIcon"/>
+                                <Label text="{i18n>kpiClosingStatus}"/>
                             </HBox>
+                            <ObjectStatus
+                                class="zecKpiStatus"
+                                text="{kpi>/data/closing_status_text}"
+                                state="{kpi>/data/closing_status_state}"/>
+                            <Text text="{kpi>/data/closing_status_subtitle}" class="zecMutedText"/>
                         </VBox>
-                        <VBox class="zecKpiItem">
-                            <HBox alignItems="Center">
-                                <core:Icon src="sap-icon://complete" class="zecKpiIcon zecKpiIconGreen"/>
-                                <VBox class="zecKpiText">
-                                    <Label text="{i18n>kpiDoneCount}"/>
-                                    <ObjectNumber
-                                        number="{path: 'kpi>/data/actual_calc_done_cnt', formatter: '.formatter.integer'}"
-                                        state="Success"/>
-                                    <Text text="{i18n>kpiDoneSubtitle}" class="zecMutedText"/>
-                                </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiPrimary">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://sum" class="zecKpiIcon"/>
+                                <Label text="{i18n>totalSettlementDiff}"/>
                             </HBox>
+                            <ObjectNumber
+                                class="zecKpiValue"
+                                number="{parts: [{path: 'kpi>/data/display_total_settlement_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
+                                state="{path: 'kpi>/data/display_total_settlement_amt', formatter: '.formatter.amountState'}"/>
+                            <Text text="{i18n>kpiVarianceSubtitle}" class="zecMutedText"/>
                         </VBox>
-                        <VBox class="zecKpiItem">
-                            <HBox alignItems="Center">
-                                <core:Icon src="sap-icon://sum" class="zecKpiIcon zecKpiIconOrange"/>
-                                <VBox class="zecKpiText">
-                                    <Label text="{i18n>kpiSettlementVariance}"/>
-                                    <ObjectNumber
-                                        number="{parts: [{path: 'kpi>/data/display_total_variance_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                        state="{path: 'kpi>/data/display_total_variance_amt', formatter: '.formatter.amountState'}"/>
-                                    <Text text="{i18n>kpiVarianceSubtitle}" class="zecMutedText"/>
-                                </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiPrice">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://money-bills" class="zecKpiIcon"/>
+                                <Label text="{i18n>kpiPriceDiff}"/>
                             </HBox>
+                            <ObjectNumber
+                                class="zecKpiValue"
+                                number="{parts: [{path: 'kpi>/data/display_total_price_diff_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
+                                state="{path: 'kpi>/data/display_total_price_diff_amt', formatter: '.formatter.amountState'}"/>
+                            <Text text="{i18n>kpiPriceSubtitle}" class="zecMutedText"/>
                         </VBox>
-                        <VBox class="zecKpiItem">
-                            <HBox alignItems="Center">
-                                <core:Icon src="sap-icon://trend-up" class="zecKpiIcon zecKpiIconTeal"/>
-                                <VBox class="zecKpiText">
-                                    <Label text="{i18n>kpiPriceDiff}"/>
-                                    <ObjectNumber
-                                        number="{parts: [{path: 'kpi>/data/price_diff_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                        state="{path: 'kpi>/data/price_diff_amt', formatter: '.formatter.amountState'}"/>
-                                    <Text text="{i18n>kpiPriceSubtitle}" class="zecMutedText"/>
-                                </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiProcessing">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://factory" class="zecKpiIcon"/>
+                                <Label text="{i18n>kpiProcessingDiff}"/>
                             </HBox>
+                            <ObjectNumber
+                                class="zecKpiValue"
+                                number="{parts: [{path: 'kpi>/data/display_total_processing_diff_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
+                                state="{path: 'kpi>/data/display_total_processing_diff_amt', formatter: '.formatter.amountState'}"/>
+                            <Text text="{i18n>kpiProcessingSubtitle}" class="zecMutedText"/>
                         </VBox>
-                        <VBox class="zecKpiItem">
-                            <HBox alignItems="Center">
-                                <core:Icon src="sap-icon://factory" class="zecKpiIcon zecKpiIconPurple"/>
-                                <VBox class="zecKpiText">
-                                    <Label text="{i18n>kpiProcessingDiff}"/>
-                                    <ObjectNumber
-                                        number="{parts: [{path: 'kpi>/data/processing_diff_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                        state="{path: 'kpi>/data/processing_diff_amt', formatter: '.formatter.amountState'}"/>
-                                    <Text text="{i18n>kpiProcessingSubtitle}" class="zecMutedText"/>
-                                </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiReason">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                <HBox renderType="Bare" alignItems="Center" class="zecKpiHeaderText">
+                                    <core:Icon src="sap-icon://cause" class="zecKpiIcon"/>
+                                    <Label text="{i18n>analysisDominantReason}"/>
+                                </HBox>
+                                <ObjectNumber
+                                    number="{path: 'chart>/dominantShare', formatter: '.formatter.percent'}"
+                                    state="Information"/>
                             </HBox>
+                            <Title text="{chart>/dominantReason}" level="H4" class="zecKpiReasonText"/>
+                            <Text text="{i18n>analysisDominantReasonSubtitle}" class="zecMutedText"/>
+                        </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiMagnitude">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://bar-chart" class="zecKpiIcon"/>
+                                <Label text="{i18n>analysisTotalMagnitude}"/>
+                            </HBox>
+                            <ObjectNumber
+                                class="zecKpiValue"
+                                number="{parts: [{path: 'chart>/totalAbsAmount'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
+                                state="Information"/>
+                            <Text text="{i18n>analysisTotalMagnitudeSubtitle}" class="zecMutedText"/>
+                        </VBox>
+                        <VBox class="zecKpiItem zecKpiCompact zecKpiTopProducts">
+                            <HBox class="zecKpiHeader" renderType="Bare" alignItems="Center">
+                                <core:Icon src="sap-icon://vertical-bar-chart" class="zecKpiIcon"/>
+                                <Label text="{i18n>topVarianceTitle}"/>
+                            </HBox>
+                            <List
+                                class="zecKpiTopList"
+                                showSeparators="None"
+                                items="{topVariance>/items}"
+                                visible="{topVariance>/hasItems}">
+                                <CustomListItem>
+                                    <HBox class="zecKpiTopItem" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                        <Text text="{topVariance>maktx}" wrapping="false"/>
+                                        <ObjectStatus
+                                            text="{parts: [{path: 'topVariance>display_total_settlement_amt'}, {path: 'topVariance>waers'}], formatter: '.formatter.currency'}"
+                                            state="{path: 'topVariance>display_total_settlement_amt', formatter: '.formatter.amountState'}"/>
+                                    </HBox>
+                                </CustomListItem>
+                            </List>
+                            <Text
+                                text="{i18n>topVarianceNoData}"
+                                class="zecMutedText"
+                                visible="{= !${topVariance>/hasItems} }"/>
                         </VBox>
                     </FlexBox>
                 </VBox>
 
-                <IconTabBar
-                    id="estimateCostTabs"
-                    class="zecTabs"
-                    expandable="false"
-                    stretchContentHeight="false">
-                    <items>
-                        <IconTabFilter
-                            key="price"
-                            text="{i18n>tabPriceVariance}">
-                            <VBox class="zecTabBody">
-                                <layout:Grid
-                                    class="zecWorkGrid"
-                                    hSpacing="1"
-                                    vSpacing="1"
-                                    defaultSpan="XL12 L12 M12 S12">
-                                    <VBox class="zecPanel zecMainPanel">
+                <VBox class="zecCostChartBand">
+                    <HBox class="zecSectionHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                        <VBox class="zecSectionTitleBlock">
+                            <Title text="{i18n>costChartSectionTitle}" level="H2"/>
+                            <Text text="{i18n>costChartSectionSubtitle}" class="zecMutedText"/>
+                        </VBox>
+                    </HBox>
+                    <layout:Grid
+                        class="zecCostChartGrid"
+                        hSpacing="0"
+                        vSpacing="1"
+                        defaultSpan="XL4 L4 M12 S12">
+                        <VBox class="zecCostChartBlock">
+                            <layoutData>
+                                <layout:GridData span="XL3 L3 M12 S12"/>
+                            </layoutData>
+                            <Title text="{i18n>groupCostChartTitle}" level="H3"/>
+                            <MessageStrip
+                                text="{i18n>chartNoGroupData}"
+                                type="Information"
+                                showIcon="true"
+                                visible="{= !${costCompare>/hasGroupCostRows} }"/>
+                            <viz:VizFrame
+                                id="groupCostChart"
+                                class="zecVizFrame zecCostVizFrame"
+                                uiConfig="{applicationSet:'fiori'}"
+                                vizType="column"
+                                width="100%"
+                                height="14.5rem"
+                                visible="{costCompare>/hasGroupCostRows}">
+                                <viz:dataset>
+                                    <viz.data:FlattenedDataset data="{costCompare>/groupCostRows}">
+                                        <viz.data:dimensions>
+                                            <viz.data:DimensionDefinition
+                                                name="{i18n>chartDimension}"
+                                                value="{costCompare>dimensionText}"/>
+                                        </viz.data:dimensions>
+                                        <viz.data:measures>
+                                            <viz.data:MeasureDefinition
+                                                name="{i18n>chartVarianceRateMeasure}"
+                                                value="{costCompare>varianceRate}"/>
+                                        </viz.data:measures>
+                                    </viz.data:FlattenedDataset>
+                                </viz:dataset>
+                            </viz:VizFrame>
+                        </VBox>
+                        <VBox class="zecCostChartBlock">
+                            <layoutData>
+                                <layout:GridData span="XL3 L3 M12 S12"/>
+                            </layoutData>
+                            <Title text="{i18n>typeCostChartTitle}" level="H3"/>
+                            <MessageStrip
+                                text="{i18n>chartNoTypeData}"
+                                type="Information"
+                                showIcon="true"
+                                visible="{= !${costCompare>/hasTypeCostRows} }"/>
+                            <viz:VizFrame
+                                id="typeCostChart"
+                                class="zecVizFrame zecCostVizFrame"
+                                uiConfig="{applicationSet:'fiori'}"
+                                vizType="column"
+                                width="100%"
+                                height="14.5rem"
+                                visible="{costCompare>/hasTypeCostRows}">
+                                <viz:dataset>
+                                    <viz.data:FlattenedDataset data="{costCompare>/typeCostRows}">
+                                        <viz.data:dimensions>
+                                            <viz.data:DimensionDefinition
+                                                name="{i18n>chartDimension}"
+                                                value="{costCompare>dimensionText}"/>
+                                        </viz.data:dimensions>
+                                        <viz.data:measures>
+                                            <viz.data:MeasureDefinition
+                                                name="{i18n>chartVarianceRateMeasure}"
+                                                value="{costCompare>varianceRate}"/>
+                                        </viz.data:measures>
+                                    </viz.data:FlattenedDataset>
+                                </viz:dataset>
+                            </viz:VizFrame>
+                        </VBox>
+                        <VBox class="zecCostChartBlock">
+                            <layoutData>
+                                <layout:GridData span="XL6 L6 M12 S12"/>
+                            </layoutData>
+                            <Title text="{i18n>criteriaVarianceChartTitle}" level="H3"/>
+                            <MessageStrip
+                                text="{i18n>chartNoVarianceData}"
+                                type="Information"
+                                showIcon="true"
+                                visible="{= !${costCompare>/hasCriteriaVarianceRows} }"/>
+                            <viz:VizFrame
+                                id="criteriaVarianceChart"
+                                class="zecVizFrame zecCostVizFrame"
+                                uiConfig="{applicationSet:'fiori'}"
+                                vizType="combination"
+                                width="100%"
+                                height="14.5rem"
+                                visible="{costCompare>/hasCriteriaVarianceRows}">
+                                <viz:dataset>
+                                    <viz.data:FlattenedDataset data="{costCompare>/criteriaVarianceRows}">
+                                        <viz.data:dimensions>
+                                            <viz.data:DimensionDefinition
+                                                name="{i18n>chartDimension}"
+                                                value="{costCompare>dimensionText}"/>
+                                        </viz.data:dimensions>
+                                        <viz.data:measures>
+                                            <viz.data:MeasureDefinition
+                                                name="{i18n>chartPriceDiffRateMeasure}"
+                                                value="{costCompare>priceDiffRatio}"/>
+                                            <viz.data:MeasureDefinition
+                                                name="{i18n>chartProcessingDiffRateMeasure}"
+                                                value="{costCompare>processingDiffRatio}"/>
+                                            <viz.data:MeasureDefinition
+                                                name="{i18n>chartTotalDiffRateMeasure}"
+                                                value="{costCompare>totalDiffRatio}"/>
+                                        </viz.data:measures>
+                                    </viz.data:FlattenedDataset>
+                                </viz:dataset>
+                            </viz:VizFrame>
+                        </VBox>
+                    </layout:Grid>
+                </VBox>
+
+                <VBox
+                    id="varianceAnalysisSection"
+                    class="zecVarianceLayout">
+                    <MessageStrip
+                        class="zecPostRunStrip"
+                        text="{ui>/postRunMessage}"
+                        type="Success"
+                        showIcon="true"
+                        visible="{ui>/postRunVisible}">
+                        <link>
+                            <Link text="{i18n>goCostVarianceAnalysis}" press=".onGoVarianceAnalysis"/>
+                        </link>
+                    </MessageStrip>
+
+                    <layout:Grid
+                        class="zecComparisonGrid"
+                        hSpacing="0"
+                        vSpacing="1"
+                        defaultSpan="XL12 L12 M12 S12">
+                    <VBox
+                        id="priceVariancePanel"
+                        class="zecPanel zecMainPanel zecPricePanel">
                                         <layoutData>
-                                            <layout:GridData span="XL9 L8 M12 S12"/>
+                                            <layout:GridData span="XL9 L9 M12 S12"/>
                                         </layoutData>
-                                        <OverflowToolbar>
-                                            <Title text="{i18n>mainTableTitle}" level="H3"/>
+                                        <OverflowToolbar class="zecPanelToolbar">
+                                            <VBox class="zecToolbarTitle">
+                                                <Title text="{i18n>mainTableTitle}" level="H3"/>
+                                                <Text text="{i18n>mainTableSubtitle}" class="zecToolbarSubText"/>
+                                            </VBox>
                                             <ToolbarSpacer/>
-                                            <Text text="{parts: [{path: 'main>/items'}], formatter: '.formatter.listCount'}"/>
+                                            <Text text="{parts: [{path: 'main>/items'}], formatter: '.formatter.listCount'}" class="zecCountText"/>
                                             <SearchField
                                                 value="{filters>/matnr}"
-                                                width="14rem"
+                                                width="16rem"
                                                 placeholder="{i18n>tableSearchPlaceholder}"
                                                 search=".onSearch"/>
                                             <Button
@@ -233,108 +462,88 @@
                                             rows="{main>/items}"
                                             selectionMode="MultiToggle"
                                             selectionBehavior="RowSelector"
+                                            rowSelectionChange=".onMainSelectionChange"
                                             visibleRowCount="{ui>/mainTableVisibleRowCount}"
                                             visibleRowCountMode="Fixed"
-                                            rowSelectionChange=".onMainSelectionChange"
+                                            fixedColumnCount="0"
                                             enableColumnReordering="true"
                                             enableCellFilter="true"
                                             width="100%"
                                             noData="{i18n>noData}">
                                             <table:columns>
-                                                <table:Column width="9rem" sortProperty="matnr" filterProperty="matnr">
+                                                <table:Column width="14%" sortProperty="maktx" filterProperty="maktx" headerSpan="5">
                                                     <table:multiLabels>
-                                                        <Label text=""/>
-                                                        <Label text="{i18n>material}"/>
+                                                        <Text text="{i18n>basicInfo}" textAlign="Center" width="100%" class="zecColumnGroupLabel"/>
+                                                        <Label text="{i18n>productName}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <ObjectIdentifier title="{main>matnr}"/>
+                                                        <Text text="{main>maktx}" tooltip="{main>maktx}" wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="18rem" sortProperty="maktx" filterProperty="maktx">
+                                                <table:Column width="8%" sortProperty="mtopt_t" filterProperty="mtopt_t">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>materialName}"/>
+                                                        <Label text="{i18n>option}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{main>maktx}" wrapping="false"/>
+                                                        <Text text="{main>mtopt_t}" tooltip="{main>mtopt_t}" wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="14rem" sortProperty="mtopt" filterProperty="mtopt">
+                                                <table:Column width="7%" sortProperty="mtbez" filterProperty="mtbez">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>specification}"/>
+                                                        <Label text="{i18n>productType}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{parts: [{path: 'main>mtopt'}, {path: 'main>mtopt_t'}], formatter: '.formatter.optionText'}" wrapping="false"/>
+                                                        <Text
+                                                            text="{main>mtbez}"
+                                                            tooltip="{main>mtbez}"
+                                                            wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="9rem" sortProperty="mtart" filterProperty="mtart">
+                                                <table:Column width="7%" sortProperty="wgbez" filterProperty="wgbez">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>materialType}"/>
+                                                        <Label text="{i18n>productGroup}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{parts: [{path: 'main>mtart'}, {path: 'main>mtbez'}], formatter: '.formatter.codeText'}" wrapping="false"/>
+                                                        <Text
+                                                            text="{main>wgbez}"
+                                                            tooltip="{main>wgbez}"
+                                                            wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="8rem" sortProperty="matkl" filterProperty="matkl">
-                                                    <table:multiLabels>
-                                                        <Label text=""/>
-                                                        <Label text="{i18n>materialGroup}"/>
-                                                    </table:multiLabels>
-                                                    <table:template>
-                                                        <Text text="{main>matkl}" wrapping="false"/>
-                                                    </table:template>
-                                                </table:Column>
-                                                <table:Column width="5rem" sortProperty="meins" filterProperty="meins">
+                                                <table:Column width="4%" sortProperty="meins" filterProperty="meins" hAlign="Center">
                                                     <table:multiLabels>
                                                         <Label text=""/>
                                                         <Label text="{i18n>unit}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{main>meins}" wrapping="false"/>
+                                                        <Text text="{main>meins}" textAlign="Center" wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="std_total_cost" headerSpan="2">
+                                                <table:Column width="8%" hAlign="End" sortProperty="std_total_cost" headerSpan="7">
                                                     <table:multiLabels>
-                                                        <Label text="{i18n>standardInfo}"/>
-                                                        <Label text="{i18n>standardPriceA}"/>
+                                                        <Text text="{i18n>costCompareInfo}" textAlign="Center" width="100%" class="zecColumnGroupLabel"/>
+                                                        <Label text="{i18n>standardCost}"/>
                                                     </table:multiLabels>
                                                     <table:template>
                                                         <Text text="{parts: [{path: 'main>std_total_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="std_processing_cost">
+                                                <table:Column width="9%" hAlign="End" sortProperty="display_expected_actual_cost">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>standardProcessingB}"/>
+                                                        <Label text="{i18n>expectedActualCost}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{parts: [{path: 'main>std_processing_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
+                                                        <Text text="{parts: [{path: 'main>display_expected_actual_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="actual_price_cost" headerSpan="2">
-                                                    <table:multiLabels>
-                                                        <Label text="{i18n>actualInfo}"/>
-                                                        <Label text="{i18n>actualPriceC}"/>
-                                                    </table:multiLabels>
-                                                    <table:template>
-                                                        <Text text="{parts: [{path: 'main>actual_price_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
-                                                    </table:template>
-                                                </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="actual_processing_cost">
+                                                <table:Column width="8.5%" hAlign="End" sortProperty="price_diff_amt">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>actualProcessingD}"/>
-                                                    </table:multiLabels>
-                                                    <table:template>
-                                                        <Text text="{parts: [{path: 'main>actual_processing_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
-                                                    </table:template>
-                                                </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="price_diff_amt" headerSpan="4">
-                                                    <table:multiLabels>
-                                                        <Label text="{i18n>differenceInfo}"/>
-                                                        <Label text="{i18n>unitPriceDiffCA}"/>
+                                                        <Label text="{i18n>unitPriceDiff}"/>
                                                     </table:multiLabels>
                                                     <table:template>
                                                         <ObjectStatus
@@ -342,10 +551,10 @@
                                                             state="{path: 'main>price_diff_amt', formatter: '.formatter.amountState'}"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="processing_diff_amt">
+                                                <table:Column width="8.5%" hAlign="End" sortProperty="processing_diff_amt">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>processingDiffDB}"/>
+                                                        <Label text="{i18n>unitProcessingDiff}"/>
                                                     </table:multiLabels>
                                                     <table:template>
                                                         <ObjectStatus
@@ -353,10 +562,10 @@
                                                             state="{path: 'main>processing_diff_amt', formatter: '.formatter.amountState'}"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="display_variance_amt">
+                                                <table:Column width="8.5%" hAlign="End" sortProperty="display_variance_amt">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>varianceAmountE}"/>
+                                                        <Label text="{i18n>unitSettlementDiff}"/>
                                                     </table:multiLabels>
                                                     <table:template>
                                                         <ObjectStatus
@@ -364,7 +573,7 @@
                                                             state="{path: 'main>display_variance_amt', formatter: '.formatter.amountState'}"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="8rem" hAlign="End" sortProperty="display_diff_rate_pct">
+                                                <table:Column width="6%" hAlign="End" sortProperty="display_diff_rate_pct">
                                                     <table:multiLabels>
                                                         <Label text=""/>
                                                         <Label text="{i18n>diffRate}"/>
@@ -375,479 +584,264 @@
                                                             state="{path: 'main>display_variance_amt', formatter: '.formatter.amountState'}"/>
                                                     </table:template>
                                                 </table:Column>
-                                                <table:Column width="11rem" hAlign="End" sortProperty="display_expected_actual_cost">
+                                                <table:Column width="8%" sortProperty="variance_reason_text">
                                                     <table:multiLabels>
                                                         <Label text=""/>
-                                                        <Label text="{i18n>expectedActualCost}"/>
+                                                        <Label text="{i18n>varianceReason}"/>
                                                     </table:multiLabels>
                                                     <table:template>
-                                                        <Text text="{parts: [{path: 'main>display_expected_actual_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End" wrapping="false"/>
+                                                        <ObjectStatus
+                                                            text="{main>variance_reason_text}"
+                                                            state="{main>variance_reason_state}"/>
                                                     </table:template>
                                                 </table:Column>
                                             </table:columns>
                                         </table:Table>
                                     </VBox>
 
-                                    <VBox class="zecPanel zecChartPanel">
-                                        <layoutData>
-                                            <layout:GridData span="XL3 L4 M12 S12"/>
-                                        </layoutData>
-                                        <OverflowToolbar>
-                                            <Title text="{i18n>varianceChartTitle}" level="H3"/>
-                                        </OverflowToolbar>
-                                        <ObjectNumber
-                                            class="zecChartTotal"
-                                            number="{parts: [{path: 'kpi>/data/display_total_variance_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                            state="{path: 'kpi>/data/display_total_variance_amt', formatter: '.formatter.amountState'}"/>
-                                        <VBox
-                                            class="zecChartBox"
-                                            visible="{chart>/hasVarianceParts}">
-                                            <viz:VizFrame
-                                                id="varianceChart"
-                                                uiConfig="{applicationSet:'fiori'}"
-                                                vizType="donut"
-                                                width="100%"
-                                                height="13rem">
-                                                <viz:dataset>
-                                                    <viz.data:FlattenedDataset data="{chart>/varianceParts}">
-                                                        <viz.data:dimensions>
-                                                            <viz.data:DimensionDefinition name="VarianceCategory" value="{chart>category}"/>
-                                                        </viz.data:dimensions>
-                                                        <viz.data:measures>
-                                                            <viz.data:MeasureDefinition name="VarianceAmount" value="{chart>amount}"/>
-                                                        </viz.data:measures>
-                                                    </viz.data:FlattenedDataset>
-                                                </viz:dataset>
-                                                <viz:feeds>
-                                                    <viz.feeds:FeedItem uid="size" type="Measure" values="VarianceAmount"/>
-                                                    <viz.feeds:FeedItem uid="color" type="Dimension" values="VarianceCategory"/>
-                                                </viz:feeds>
-                                            </viz:VizFrame>
-                                            <VBox class="zecChartCenter">
-                                                <Label text="{i18n>kpiSettlementVariance}"/>
+                    <VBox id="sidePreviewPanel" class="zecPanel zecSidePreviewPanel">
+                        <layoutData>
+                            <layout:GridData span="XL3 L3 M12 S12"/>
+                        </layoutData>
+                        <OverflowToolbar class="zecPanelToolbar">
+                            <VBox class="zecToolbarTitle">
+                                <Title text="{i18n>selectedPreviewTitle}" level="H3"/>
+                                <Text text="{i18n>selectedPreviewSubtitle}" class="zecToolbarSubText"/>
+                            </VBox>
+                            <ToolbarSpacer/>
+                            <Text text="{path: 'analysis>/selectedCount', formatter: '.formatter.count'}" class="zecCountText"/>
+                        </OverflowToolbar>
+                        <MessageStrip
+                            class="zecSidePreviewEmpty"
+                            text="{i18n>selectRowsForAnalysis}"
+                            type="Information"
+                            showIcon="true"
+                            visible="{= ${analysis>/selectedCount} === 0 }"/>
+                        <VBox
+                            class="zecSidePreviewBody"
+                            visible="{= ${analysis>/selectedCount} > 0 }">
+                            <VBox class="zecSidePreviewHero">
+                                <ObjectIdentifier
+                                    title="{analysis>/selectedProductName}"
+                                    text="{analysis>/selectedOptionText}"/>
+                                <HBox renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                    <ObjectStatus
+                                        text="{analysis>/actualStatusText}"
+                                        state="{analysis>/actualStatusState}"/>
+                                    <ObjectNumber
+                                        number="{parts: [{path: 'analysis>/unitSettlementVarianceTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"
+                                        state="{path: 'analysis>/unitSettlementVarianceTotal', formatter: '.formatter.amountState'}"/>
+                                </HBox>
+                            </VBox>
+                            <VBox class="zecSideContributionPanel">
+                                <HBox class="zecSideSubHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                    <Title text="{i18n>varianceCompositionTitle}" level="H4"/>
+                                </HBox>
+                                <MessageStrip
+                                    text="{i18n>costFlowUnavailable}"
+                                    type="Information"
+                                    showIcon="true"
+                                    visible="{= !${analysis>/hasCostFlow} }"/>
+                                <List
+                                    class="zecCostFlowList"
+                                    showSeparators="None"
+                                    visible="{analysis>/hasCostFlow}"
+                                    items="{analysis>/costFlow}">
+                                    <CustomListItem>
+                                        <HBox class="zecCostSummaryChip" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                            <Label text="{analysis>label}"/>
+                                            <ObjectStatus
+                                                text="{analysis>displayValue}"
+                                                state="{analysis>state}"/>
+                                        </HBox>
+                                    </CustomListItem>
+                                </List>
+                            </VBox>
+                            <VBox class="zecBomImpactPanel" busy="{bomImpact>/busy}">
+                                <HBox class="zecSideSubHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                    <VBox class="zecSideSubTitleBlock">
+                                        <Title text="{i18n>bomImpactTitle}" level="H4"/>
+                                        <Text text="{i18n>bomImpactSubtitle}" class="zecMutedText"/>
+                                    </VBox>
+                                    <ObjectNumber
+                                        number="{parts: [{path: 'bomImpact>/totalRolledPriceDiffAmt'}, {path: 'bomImpact>/currency'}], formatter: '.formatter.currency'}"
+                                        state="{path: 'bomImpact>/totalRolledPriceDiffAmt', formatter: '.formatter.amountState'}"/>
+                                </HBox>
+                                <MessageStrip
+                                    text="{bomImpact>/errorText}"
+                                    type="Warning"
+                                    showIcon="true"
+                                    visible="{bomImpact>/hasError}"/>
+                                <MessageStrip
+                                    text="{i18n>bomImpactNoData}"
+                                    type="Information"
+                                    showIcon="true"
+                                    visible="{= !${bomImpact>/busy} &amp;&amp; !${bomImpact>/hasError} &amp;&amp; !${bomImpact>/hasData} }"/>
+                                <MessageStrip
+                                    text="{i18n>bomImpactNoEffect}"
+                                    type="Information"
+                                    showIcon="true"
+                                    visible="{= !${bomImpact>/busy} &amp;&amp; ${bomImpact>/hasData} &amp;&amp; !${bomImpact>/hasNonZeroImpact} }"/>
+                                <VBox class="zecBomImpactDonutBlock" visible="{bomImpact>/hasDonutChart}">
+                                    <HBox class="zecBomImpactDonutHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                        <Title text="{i18n>bomImpactDonutTitle}" level="H5"/>
+                                        <Text text="{i18n>bomImpactDonutSubtitle}" class="zecMutedText"/>
+                                    </HBox>
+                                    <viz:VizFrame
+                                        id="bomImpactDonutChart"
+                                        class="zecVizFrame zecBomImpactDonutChart"
+                                        width="100%"
+                                        height="10rem"
+                                        vizType="donut">
+                                        <viz:dataset>
+                                            <viz.data:FlattenedDataset data="{bomImpact>/donutItems}">
+                                                <viz.data:dimensions>
+                                                    <viz.data:DimensionDefinition
+                                                        name="{i18n>bomImpactDonutDimension}"
+                                                        value="{bomImpact>dimensionText}"/>
+                                                </viz.data:dimensions>
+                                                <viz.data:measures>
+                                                    <viz.data:MeasureDefinition
+                                                        name="{i18n>bomImpactDonutMeasure}"
+                                                        value="{bomImpact>impactAbsAmount}"/>
+                                                </viz.data:measures>
+                                            </viz.data:FlattenedDataset>
+                                        </viz:dataset>
+                                    </viz:VizFrame>
+                                </VBox>
+                                <List
+                                    class="zecBomImpactList"
+                                    showSeparators="None"
+                                    visible="{bomImpact>/hasTopItems}"
+                                    items="{bomImpact>/topItems}">
+                                    <CustomListItem>
+                                        <VBox class="zecBomImpactItem">
+                                            <HBox renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
+                                                <VBox class="zecBomImpactText">
+                                                    <Label text="{bomImpact>title}"/>
+                                                    <Text text="{bomImpact>subtitle}" wrapping="false"/>
+                                                </VBox>
                                                 <ObjectStatus
-                                                    text="{parts: [{path: 'kpi>/data/display_total_variance_amt'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                                    state="{path: 'kpi>/data/display_total_variance_amt', formatter: '.formatter.amountState'}"/>
+                                                    text="{bomImpact>displayRolledPriceDiff}"
+                                                    state="{bomImpact>state}"/>
+                                            </HBox>
+                                            <HBox class="zecBomImpactMeta" renderType="Bare" wrap="Wrap">
+                                                <ObjectAttribute title="{i18n>bomInputQty}" text="{bomImpact>displayInputQty}"/>
+                                                <ObjectAttribute title="{i18n>bomUnitPriceDiff}" text="{bomImpact>displayComponentUnitPriceDiff}"/>
+                                                <ObjectAttribute title="{i18n>bomUsageRatio}" text="{bomImpact>displayUsageRatio}"/>
+                                                <ObjectAttribute title="{i18n>bomPriceDiffQty}" text="{bomImpact>displayPriceDiffQty}"/>
+                                            </HBox>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                                <Button
+                                    text="{i18n>bomImpactAll}"
+                                    type="Transparent"
+                                    icon="sap-icon://detail-view"
+                                    visible="{bomImpact>/hasMore}"
+                                    press=".onOpenBomImpactDialog"/>
+                            </VBox>
+                            <VBox class="zecProcessingBreakdownPanel">
+                                <HBox class="zecSideSubHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                    <VBox class="zecSideSubTitleBlock">
+                                        <Title text="{i18n>processingBreakdownPreviewTitle}" level="H4"/>
+                                        <Text text="{i18n>processingBreakdownPreviewSubtitle}" class="zecMutedText"/>
+                                    </VBox>
+                                    <ObjectNumber
+                                        number="{parts: [{path: 'analysis>/unitProcessingDiffTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"
+                                        state="{path: 'analysis>/unitProcessingDiffTotal', formatter: '.formatter.amountState'}"/>
+                                </HBox>
+                                <MessageStrip
+                                    text="{i18n>processingComparisonUnavailable}"
+                                    type="Information"
+                                    showIcon="true"
+                                    visible="{= !${analysis>/hasProcessingComparisonRows} }"/>
+                                <List
+                                    class="zecProcessingCompareList"
+                                    showSeparators="None"
+                                    visible="{analysis>/hasProcessingComparisonRows}"
+                                    items="{analysis>/processingComparisonRows}">
+                                    <CustomListItem>
+                                        <VBox class="zecProcessingCompareItem">
+                                            <HBox class="zecProcessingCompareHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                                                <HBox class="zecBreakdownName" renderType="Bare" alignItems="Center">
+                                                    <core:Icon src="sap-icon://circle-task-2" class="zecBreakdownDot"/>
+                                                    <Label text="{analysis>label}"/>
+                                                </HBox>
+                                                <ObjectNumber
+                                                    class="zecProcessingDiffNumber"
+                                                    number="{analysis>displayUnitDiff}"
+                                                    state="{analysis>diffState}"/>
+                                            </HBox>
+                                            <VBox class="zecProcessingMiniChart">
+                                                <HBox class="zecProcessingCompareLine" renderType="Bare" alignItems="Center">
+                                                    <Label text="{i18n>processingStandard}" class="zecProcessingCompareMetric"/>
+                                                    <HBox class="zecProcessingCompareTrack" renderType="Bare">
+                                                        <HBox
+                                                            class="zecProcessingCompareFill zecProcessingCompareStdFill"
+                                                            renderType="Bare"
+                                                            width="{analysis>standardBarWidth}"/>
+                                                    </HBox>
+                                                    <Text text="{analysis>displayUnitStd}" class="zecProcessingCompareValue"/>
+                                                </HBox>
+                                                <HBox class="zecProcessingCompareLine" renderType="Bare" alignItems="Center">
+                                                    <Label text="{i18n>processingActual}" class="zecProcessingCompareMetric"/>
+                                                    <HBox class="zecProcessingCompareTrack" renderType="Bare">
+                                                        <HBox
+                                                            class="zecProcessingCompareFill zecProcessingCompareActualFill"
+                                                            renderType="Bare"
+                                                            width="{analysis>actualBarWidth}"/>
+                                                    </HBox>
+                                                    <Text text="{analysis>displayUnitActual}" class="zecProcessingCompareValue"/>
+                                                </HBox>
                                             </VBox>
                                         </VBox>
-                                        <MessageStrip
-                                            text="{i18n>chartNoData}"
-                                            type="Information"
-                                            showIcon="true"
-                                            visible="{= !${chart>/hasVarianceParts} }"/>
-                                        <Title text="{i18n>varianceBreakdown}" level="H4" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
-                                        <List
-                                            class="zecBreakdownList"
-                                            showSeparators="Inner"
-                                            items="{chart>/varianceParts}"
-                                            visible="{chart>/hasVarianceParts}">
-                                            <CustomListItem>
-                                                <HBox class="zecBreakdownRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
-                                                    <Text text="{chart>category}"/>
-                                                    <ObjectStatus
-                                                        text="{parts: [{path: 'chart>amount'}, {path: 'kpi>/data/waers'}], formatter: '.formatter.currency'}"
-                                                        state="{path: 'chart>amount', formatter: '.formatter.amountState'}"/>
-                                                </HBox>
-                                            </CustomListItem>
-                                        </List>
-                                        <Title text="{i18n>topVarianceTitle}" level="H4" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
-                                        <List
-                                            class="zecTopVarianceList"
-                                            showSeparators="Inner"
-                                            noDataText="{i18n>topVarianceNoData}"
-                                            items="{topVariance>/items}">
-                                            <CustomListItem>
-                                                <VBox class="zecTopVarianceItem">
-                                                    <HBox renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
-                                                        <ObjectIdentifier
-                                                            title="{topVariance>matnr}"
-                                                            text="{topVariance>maktx}"/>
-                                                        <ObjectStatus
-                                                            text="{parts: [{path: 'topVariance>display_variance_amt'}, {path: 'topVariance>waers'}], formatter: '.formatter.currency'}"
-                                                            state="{path: 'topVariance>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                    </HBox>
-                                                    <Text
-                                                        class="zecMutedText"
-                                                        text="{parts: [{path: 'topVariance>mtart'}, {path: 'topVariance>mtbez'}], formatter: '.formatter.codeText'}"/>
+                                    </CustomListItem>
+                                </List>
+	                            </VBox>
+	                        </VBox>
+                        <Dialog
+                            id="bomImpactDialog"
+                            class="zecBomImpactDialog"
+                            title="{i18n>bomImpactDialogTitle}"
+                            contentWidth="84rem"
+                            contentHeight="78vh"
+                            draggable="true"
+                            resizable="true"
+                            stretchOnPhone="true">
+                            <content>
+                                <List
+                                    class="zecBomImpactDialogList"
+                                    showSeparators="None"
+                                    items="{bomImpact>/items}">
+                                    <CustomListItem>
+                                        <VBox class="zecBomImpactItem zecBomImpactDialogItem">
+                                            <HBox renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
+                                                <VBox class="zecBomImpactText">
+                                                    <Label text="{bomImpact>title}"/>
+                                                    <Text text="{bomImpact>subtitle}" wrapping="false"/>
                                                 </VBox>
-                                            </CustomListItem>
-                                        </List>
-                                    </VBox>
-
-                                    <VBox class="zecPanel zecPreviewPanel">
-                                        <layoutData>
-                                            <layout:GridData span="XL12 L12 M12 S12"/>
-                                        </layoutData>
-                                        <OverflowToolbar>
-                                            <Title text="{i18n>settlementPreviewSectionTitle}" level="H3"/>
-                                        </OverflowToolbar>
-                                        <layout:Grid
-                                            hSpacing="1"
-                                            vSpacing="1"
-                                            defaultSpan="XL12 L12 M12 S12">
-                                            <VBox class="zecSummaryBlock">
-                                                <layoutData>
-                                                    <layout:GridData span="XL3 L4 M12 S12"/>
-                                                </layoutData>
-                                                <Title text="{i18n>selectedSummaryTitle}" level="H4" class="sapUiTinyMarginBottom"/>
-                                                <ObjectAttribute
-                                                    title="{i18n>selectedCount}"
-                                                    text="{path: 'analysis>/selectedCount', formatter: '.formatter.integer'}"/>
-                                                <ObjectAttribute
-                                                    title="{i18n>selectedPriceDiffTotal}"
-                                                    text="{parts: [{path: 'analysis>/priceDiffTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                                <ObjectAttribute
-                                                    title="{i18n>selectedProcessingDiffTotal}"
-                                                    text="{parts: [{path: 'analysis>/processingDiffTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                                <ObjectAttribute
-                                                    title="{i18n>selectedSettlementVarianceTotal}"
-                                                    text="{parts: [{path: 'analysis>/settlementVarianceTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                                <MessageStrip
-                                                    class="sapUiSmallMarginTop"
-                                                    text="{i18n>selectRowsForAnalysis}"
-                                                    type="Information"
-                                                    showIcon="true"
-                                                    visible="{= ${analysis>/selectedCount} === 0 }"/>
-                                            </VBox>
-                                            <VBox class="zecPreviewTableBlock">
-                                                <layoutData>
-                                                    <layout:GridData span="XL9 L8 M12 S12"/>
-                                                </layoutData>
-                                                <Title text="{i18n>selectedPreviewTitle}" level="H4" class="sapUiTinyMarginBottom"/>
-                                                <ScrollContainer
-                                                    horizontal="true"
-                                                    vertical="false"
-                                                    width="100%">
-                                                    <Table
-                                                        class="zecAnalysisTable"
-                                                        items="{analysis>/items}"
-                                                        growing="true"
-                                                        noDataText="{i18n>noSelectedData}">
-                                                        <columns>
-                                                            <Column width="10rem">
-                                                                <Text text="{i18n>material}"/>
-                                                            </Column>
-                                                            <Column width="18rem">
-                                                                <Text text="{i18n>materialName}"/>
-                                                            </Column>
-                                                            <Column width="10rem">
-                                                                <Text text="{i18n>classification}"/>
-                                                            </Column>
-                                                            <Column width="10rem" hAlign="End">
-                                                                <Text text="{i18n>standardCost}"/>
-                                                            </Column>
-                                                            <Column width="11rem" hAlign="End">
-                                                                <Text text="{i18n>settlementVariance}"/>
-                                                            </Column>
-                                                            <Column width="11rem" hAlign="End">
-                                                                <Text text="{i18n>expectedActualCost}"/>
-                                                            </Column>
-                                                            <Column width="8rem" hAlign="End">
-                                                                <Text text="{i18n>diffRate}"/>
-                                                            </Column>
-                                                        </columns>
-                                                        <items>
-                                                            <ColumnListItem>
-                                                                <cells>
-                                                                    <ObjectIdentifier title="{analysis>matnr}" text="{parts: [{path: 'analysis>mtopt'}, {path: 'analysis>mtopt_t'}], formatter: '.formatter.optionText'}"/>
-                                                                    <Text text="{analysis>maktx}"/>
-                                                                    <Text text="{parts: [{path: 'analysis>mtart'}, {path: 'analysis>mtbez'}], formatter: '.formatter.codeText'}"/>
-                                                                    <Text text="{parts: [{path: 'analysis>std_total_cost'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                                    <ObjectStatus
-                                                                        text="{parts: [{path: 'analysis>display_variance_amt'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}"
-                                                                        state="{path: 'analysis>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                                    <Text text="{parts: [{path: 'analysis>display_expected_actual_cost'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                                    <ObjectStatus
-                                                                        text="{path: 'analysis>display_diff_rate_pct', formatter: '.formatter.percent'}"
-                                                                        state="{path: 'analysis>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                                </cells>
-                                                            </ColumnListItem>
-                                                        </items>
-                                                    </Table>
-                                                </ScrollContainer>
-                                            </VBox>
-                                        </layout:Grid>
-                                    </VBox>
-                                </layout:Grid>
-                            </VBox>
-                        </IconTabFilter>
-
-                        <IconTabFilter
-                            key="processing"
-                            text="{i18n>tabProcessingVariance}">
-                            <VBox class="zecPanel">
-                                <OverflowToolbar>
-                                    <Title text="{i18n>processingTableTitle}" level="H3"/>
-                                    <ToolbarSpacer/>
-                                    <Text text="{parts: [{path: 'main>/items'}], formatter: '.formatter.listCount'}"/>
-                                </OverflowToolbar>
-                                <VBox class="zecInlineSection sapUiSmallMarginBottom">
-                                    <Title text="{i18n>processingBreakdownTitle}" level="H4" class="sapUiTinyMarginBottom"/>
-                                    <List
-                                        class="zecBreakdownList"
-                                        showSeparators="Inner"
-                                        items="{processingBreakdown>/items}"
-                                        visible="{processingBreakdown>/hasItems}">
-                                        <CustomListItem>
-                                            <HBox class="zecBreakdownRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
-                                                <Text text="{processingBreakdown>category}"/>
                                                 <ObjectStatus
-                                                    text="{parts: [{path: 'processingBreakdown>amount'}, {path: 'processingBreakdown>waers'}], formatter: '.formatter.currency'}"
-                                                    state="{path: 'processingBreakdown>amount', formatter: '.formatter.amountState'}"/>
+                                                    text="{bomImpact>displayRolledPriceDiff}"
+                                                    state="{bomImpact>state}"/>
                                             </HBox>
-                                        </CustomListItem>
-                                    </List>
-                                    <MessageStrip
-                                        text="{i18n>processingBreakdownUnavailable}"
-                                        type="Information"
-                                        showIcon="true"
-                                        visible="{= !${processingBreakdown>/hasItems} }"/>
-                                </VBox>
-                                <ScrollContainer
-                                    horizontal="true"
-                                    vertical="false"
-                                    width="100%">
-                                    <Table
-                                        class="zecProcessingTable"
-                                        items="{main>/items}"
-                                        growing="true"
-                                        growingThreshold="10"
-                                        growingScrollToLoad="false"
-                                        noDataText="{i18n>noData}">
-                                        <columns>
-                                            <Column width="10rem">
-                                                <Text text="{i18n>material}"/>
-                                            </Column>
-                                            <Column width="18rem">
-                                                <Text text="{i18n>materialName}"/>
-                                            </Column>
-                                            <Column width="14rem">
-                                                <Text text="{i18n>specification}"/>
-                                            </Column>
-                                            <Column width="8rem">
-                                                <Text text="{i18n>materialGroup}"/>
-                                            </Column>
-                                            <Column width="6rem">
-                                                <Text text="{i18n>unit}"/>
-                                            </Column>
-                                            <Column width="11rem" hAlign="End">
-                                                <Text text="{i18n>standardProcessingCost}"/>
-                                            </Column>
-                                            <Column width="11rem" hAlign="End">
-                                                <Text text="{i18n>processingDiff}"/>
-                                            </Column>
-                                            <Column width="11rem" hAlign="End">
-                                                <Text text="{i18n>settlementVariance}"/>
-                                            </Column>
-                                            <Column width="11rem" hAlign="End">
-                                                <Text text="{i18n>expectedActualCost}"/>
-                                            </Column>
-                                            <Column width="9rem">
-                                                <Text text="{i18n>actualStatus}"/>
-                                            </Column>
-                                        </columns>
-                                        <items>
-                                            <ColumnListItem>
-                                                <cells>
-                                                    <ObjectIdentifier title="{main>matnr}"/>
-                                                    <Text text="{main>maktx}"/>
-                                                    <Text text="{parts: [{path: 'main>mtopt'}, {path: 'main>mtopt_t'}], formatter: '.formatter.optionText'}"/>
-                                                    <Text text="{main>matkl}"/>
-                                                    <Text text="{main>meins}"/>
-                                                    <Text text="{parts: [{path: 'main>std_processing_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                    <ObjectStatus
-                                                        text="{parts: [{path: 'main>processing_diff_amt'}, {path: 'main>waers'}], formatter: '.formatter.currency'}"
-                                                        state="{path: 'main>processing_diff_amt', formatter: '.formatter.amountState'}"/>
-                                                    <ObjectStatus
-                                                        text="{parts: [{path: 'main>display_variance_amt'}, {path: 'main>waers'}], formatter: '.formatter.currency'}"
-                                                        state="{path: 'main>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                    <Text text="{parts: [{path: 'main>display_expected_actual_cost'}, {path: 'main>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                    <ObjectStatus
-                                                        text="{parts: [{path: 'main>actual_exists'}, {path: 'main>actual_calc_target'}, {path: 'main>actual_status'}], formatter: '.formatter.actualStatusText'}"
-                                                        state="{parts: [{path: 'main>actual_exists'}, {path: 'main>actual_calc_target'}, {path: 'main>actual_status'}], formatter: '.formatter.actualStatusState'}"/>
-                                                </cells>
-                                            </ColumnListItem>
-                                        </items>
-                                    </Table>
-                                </ScrollContainer>
-                            </VBox>
-                        </IconTabFilter>
-
-                        <IconTabFilter
-                            key="result"
-                            text="{i18n>tabSettlementResult}">
-                            <VBox class="zecPanel zecPreviewPanel">
-                                <OverflowToolbar>
-                                    <Title text="{i18n>settlementPreviewSectionTitle}" level="H3"/>
-                                </OverflowToolbar>
-                                <MessageStrip
-                                    class="sapUiTinyMarginBottom"
-                                    text="{i18n>settlementResultInfo}"
-                                    type="Information"
-                                    showIcon="true"/>
-                                <layout:Grid
-                                    hSpacing="1"
-                                    vSpacing="1"
-                                    defaultSpan="XL12 L12 M12 S12">
-                                    <VBox class="zecSummaryBlock">
-                                        <layoutData>
-                                            <layout:GridData span="XL3 L4 M12 S12"/>
-                                        </layoutData>
-                                        <Title text="{i18n>selectedSummaryTitle}" level="H4" class="sapUiTinyMarginBottom"/>
-                                        <ObjectAttribute
-                                            title="{i18n>selectedCount}"
-                                            text="{path: 'analysis>/selectedCount', formatter: '.formatter.integer'}"/>
-                                        <ObjectAttribute
-                                            title="{i18n>selectedPriceDiffTotal}"
-                                            text="{parts: [{path: 'analysis>/priceDiffTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                        <ObjectAttribute
-                                            title="{i18n>selectedProcessingDiffTotal}"
-                                            text="{parts: [{path: 'analysis>/processingDiffTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                        <ObjectAttribute
-                                            title="{i18n>selectedSettlementVarianceTotal}"
-                                            text="{parts: [{path: 'analysis>/settlementVarianceTotal'}, {path: 'analysis>/currency'}], formatter: '.formatter.currency'}"/>
-                                        <MessageStrip
-                                            class="sapUiSmallMarginTop"
-                                            text="{i18n>selectRowsForAnalysis}"
-                                            type="Information"
-                                            showIcon="true"
-                                            visible="{= ${analysis>/selectedCount} === 0 }"/>
-                                    </VBox>
-                                    <VBox class="zecPreviewTableBlock">
-                                        <layoutData>
-                                            <layout:GridData span="XL9 L8 M12 S12"/>
-                                        </layoutData>
-                                        <Title text="{i18n>selectedPreviewTitle}" level="H4" class="sapUiTinyMarginBottom"/>
-                                        <ScrollContainer
-                                            horizontal="true"
-                                            vertical="false"
-                                            width="100%">
-                                            <Table
-                                                class="zecAnalysisTable"
-                                                items="{analysis>/items}"
-                                                growing="true"
-                                                noDataText="{i18n>noSelectedData}">
-                                                <columns>
-                                                    <Column width="10rem">
-                                                        <Text text="{i18n>material}"/>
-                                                    </Column>
-                                                    <Column width="18rem">
-                                                        <Text text="{i18n>materialName}"/>
-                                                    </Column>
-                                                    <Column width="10rem">
-                                                        <Text text="{i18n>classification}"/>
-                                                    </Column>
-                                                    <Column width="10rem" hAlign="End">
-                                                        <Text text="{i18n>standardCost}"/>
-                                                    </Column>
-                                                    <Column width="11rem" hAlign="End">
-                                                        <Text text="{i18n>settlementVariance}"/>
-                                                    </Column>
-                                                    <Column width="11rem" hAlign="End">
-                                                        <Text text="{i18n>expectedActualCost}"/>
-                                                    </Column>
-                                                    <Column width="8rem" hAlign="End">
-                                                        <Text text="{i18n>diffRate}"/>
-                                                    </Column>
-                                                </columns>
-                                                <items>
-                                                    <ColumnListItem>
-                                                        <cells>
-                                                            <ObjectIdentifier title="{analysis>matnr}" text="{parts: [{path: 'analysis>mtopt'}, {path: 'analysis>mtopt_t'}], formatter: '.formatter.optionText'}"/>
-                                                            <Text text="{analysis>maktx}"/>
-                                                            <Text text="{parts: [{path: 'analysis>mtart'}, {path: 'analysis>mtbez'}], formatter: '.formatter.codeText'}"/>
-                                                            <Text text="{parts: [{path: 'analysis>std_total_cost'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                            <ObjectStatus
-                                                                text="{parts: [{path: 'analysis>display_variance_amt'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}"
-                                                                state="{path: 'analysis>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                            <Text text="{parts: [{path: 'analysis>display_expected_actual_cost'}, {path: 'analysis>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                            <ObjectStatus
-                                                                text="{path: 'analysis>display_diff_rate_pct', formatter: '.formatter.percent'}"
-                                                                state="{path: 'analysis>display_variance_amt', formatter: '.formatter.amountState'}"/>
-                                                        </cells>
-                                                    </ColumnListItem>
-                                                </items>
-                                            </Table>
-                                        </ScrollContainer>
-                                    </VBox>
-                                </layout:Grid>
-                            </VBox>
-                        </IconTabFilter>
-
-                        <IconTabFilter
-                            key="history"
-                            text="{i18n>tabHistory}">
-                            <VBox class="zecPanel">
-                                <OverflowToolbar>
-                                    <Title text="{i18n>historyTableTitle}" level="H3"/>
-                                    <ToolbarSpacer/>
-                                    <Text text="{parts: [{path: 'history>/items'}], formatter: '.formatter.listCount'}"/>
-                                </OverflowToolbar>
-                                <ScrollContainer
-                                    horizontal="true"
-                                    vertical="false"
-                                    width="100%">
-                                    <Table
-                                        class="zecHistoryTable"
-                                        items="{history>/items}"
-                                        growing="true"
-                                        growingThreshold="10"
-                                        growingScrollToLoad="false"
-                                        noDataText="{i18n>noData}">
-                                        <columns>
-                                            <Column width="10rem">
-                                                <Text text="{i18n>material}"/>
-                                            </Column>
-                                            <Column width="18rem">
-                                                <Text text="{i18n>materialName}"/>
-                                            </Column>
-                                            <Column width="12rem">
-                                                <Text text="{i18n>specification}"/>
-                                            </Column>
-                                            <Column width="10rem" hAlign="End">
-                                                <Text text="{i18n>standardCost}"/>
-                                            </Column>
-                                            <Column width="10rem" hAlign="End">
-                                                <Text text="{i18n>actualTotalCost}"/>
-                                            </Column>
-                                            <Column width="11rem" hAlign="End">
-                                                <Text text="{i18n>actualVariance}"/>
-                                            </Column>
-                                            <Column width="9rem">
-                                                <Text text="{i18n>actualStatus}"/>
-                                            </Column>
-                                            <Column width="10rem">
-                                                <Text text="{i18n>calculatedDate}"/>
-                                            </Column>
-                                            <Column width="9rem">
-                                                <Text text="{i18n>calculatedBy}"/>
-                                            </Column>
-                                        </columns>
-                                        <items>
-                                            <ColumnListItem>
-                                                <cells>
-                                                    <ObjectIdentifier title="{history>matnr}" text="{history>mtopt}"/>
-                                                    <Text text="{history>maktx}"/>
-                                                    <Text text="{history>mtopt_t}"/>
-                                                    <Text text="{parts: [{path: 'history>std_total_cost'}, {path: 'history>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                    <Text text="{parts: [{path: 'history>actual_total_cost'}, {path: 'history>waers'}], formatter: '.formatter.currency'}" textAlign="End"/>
-                                                    <ObjectStatus
-                                                        text="{parts: [{path: 'history>actual_total_variance'}, {path: 'history>waers'}], formatter: '.formatter.currency'}"
-                                                        state="{path: 'history>actual_total_variance', formatter: '.formatter.amountState'}"/>
-                                                    <ObjectStatus
-                                                        text="{path: 'history>status', formatter: '.formatter.historyStatusText'}"
-                                                        state="{path: 'history>status', formatter: '.formatter.historyStatusState'}"/>
-                                                    <Text text="{path: 'history>hr_erdat', formatter: '.formatter.date'}"/>
-                                                    <Text text="{history>hr_ernam}"/>
-                                                </cells>
-                                            </ColumnListItem>
-                                        </items>
-                                    </Table>
-                                </ScrollContainer>
-                            </VBox>
-                        </IconTabFilter>
-                    </items>
-                </IconTabBar>
+                                            <HBox class="zecBomImpactMeta" renderType="Bare" wrap="Wrap">
+                                                <ObjectAttribute title="{i18n>bomInputQty}" text="{bomImpact>displayInputQty}"/>
+                                                <ObjectAttribute title="{i18n>bomUnitPriceDiff}" text="{bomImpact>displayComponentUnitPriceDiff}"/>
+                                                <ObjectAttribute title="{i18n>bomUsageRatio}" text="{bomImpact>displayUsageRatio}"/>
+                                                <ObjectAttribute title="{i18n>bomPriceDiffQty}" text="{bomImpact>displayPriceDiffQty}"/>
+                                            </HBox>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                            </content>
+                            <endButton>
+                                <Button text="{i18n>close}" press=".onCloseBomImpactDialog"/>
+                            </endButton>
+                        </Dialog>
+	                    </VBox>
+	                </layout:Grid>
+            </VBox>
             </VBox>
         </f:content>
     </f:DynamicPage>

@@ -68,13 +68,31 @@
                 <Property Name="std_overhead_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="std_processing_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="raw_price_diff_amt" Type="Edm.Decimal" Precision="17" Scale="2" sap:unit="waers"/>
+                <Property Name="price_diff_qty" Type="Edm.Decimal" Precision="15" Scale="3" sap:unit="meins"/>
+                <Property Name="bom_price_diff_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="bom_component_cnt" Type="Edm.Int32"/>
                 <Property Name="raw_processing_diff_amt" Type="Edm.Decimal" Precision="31" Scale="5" sap:unit="waers"/>
+                <Property Name="processing_diff_qty" Type="Edm.Decimal" Precision="15" Scale="3" sap:unit="meins"/>
+                <Property Name="labor_clear_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="mach_clear_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="overhead_clear_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="labor_std_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="labor_actual_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="labor_processing_diff_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="mach_std_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="mach_actual_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="mach_processing_diff_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="overhead_std_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="overhead_actual_processing_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="overhead_processing_diff_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
+                <Property Name="alloc_diff_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
                 <Property Name="price_diff_amt" Type="Edm.Decimal" Precision="14" Scale="3" sap:unit="waers"/>
                 <Property Name="processing_diff_amt" Type="Edm.Decimal" Precision="14" Scale="3" sap:unit="waers"/>
                 <Property Name="settlement_variance_amt" Type="Edm.Decimal" Precision="14" Scale="3" sap:unit="waers"/>
                 <Property Name="target_variance_amt" Type="Edm.Decimal" Precision="14" Scale="3" sap:unit="waers"/>
                 <Property Name="expected_actual_cost" Type="Edm.Decimal" Precision="17" Scale="3" sap:unit="waers"/>
                 <Property Name="diff_rate_pct" Type="Edm.Decimal" Precision="9" Scale="2"/>
+                <Property Name="raw_settlement_variance_amt" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="waers"/>
                 <Property Name="actual_total_cost" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label=""/>
                 <Property Name="actual_status" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label=""/>
                 <Property Name="actual_hr_erdat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label=""/>

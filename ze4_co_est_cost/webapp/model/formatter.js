@@ -1,8 +1,7 @@
 sap.ui.define([
     "sap/ui/core/library",
-    "sap/ui/core/format/NumberFormat",
-    "sap/ui/core/format/DateFormat"
-], function (coreLibrary, NumberFormat, DateFormat) {
+    "sap/ui/core/format/NumberFormat"
+], function (coreLibrary, NumberFormat) {
     "use strict";
 
     var ValueState = coreLibrary.ValueState;
@@ -48,10 +47,6 @@ sap.ui.define([
         groupingEnabled: true
     });
 
-    var oDateFormat = DateFormat.getDateInstance({
-        style: "medium"
-    });
-
     return {
         setResourceBundle: function (oBundle) {
             oResourceBundle = oBundle;
@@ -64,6 +59,16 @@ sap.ui.define([
             }
 
             return [oAmountFormat.format(fAmount), sCurrency].filter(Boolean).join(" ");
+        },
+
+        currencyInteger: function (vAmount, sCurrency) {
+            var fAmount = toNumber(vAmount);
+            if (fAmount === null) {
+                return "";
+            }
+
+            var fRoundedAmount = (fAmount < 0 ? -1 : 1) * Math.round(Math.abs(fAmount));
+            return [oIntegerFormat.format(fRoundedAmount), sCurrency].filter(Boolean).join(" ");
         },
 
         integer: function (vValue) {
@@ -87,6 +92,11 @@ sap.ui.define([
             }
 
             return oAmountFormat.format(fValue) + "%";
+        },
+
+        quantity: function (vValue) {
+            var fValue = toNumber(vValue);
+            return fValue === null ? "" : oAmountFormat.format(fValue);
         },
 
         variancePercent: function (vVariance, vBase) {
@@ -130,39 +140,6 @@ sap.ui.define([
             }
 
             return ValueState.None;
-        },
-
-        historyStatusText: function (sStatus) {
-            if (sStatus === "X" || sStatus === "S") {
-                return getText(this, "statusDone");
-            }
-
-            if (!sStatus) {
-                return "";
-            }
-
-            return sStatus;
-        },
-
-        historyStatusState: function (sStatus) {
-            if (sStatus === "X" || sStatus === "S") {
-                return ValueState.Success;
-            }
-
-            if (!sStatus) {
-                return ValueState.None;
-            }
-
-            return ValueState.Warning;
-        },
-
-        date: function (vDate) {
-            if (isEmpty(vDate)) {
-                return "";
-            }
-
-            var oDate = vDate instanceof Date ? vDate : new Date(vDate);
-            return Number.isNaN(oDate.getTime()) ? "" : oDateFormat.format(oDate);
         },
 
         optionText: function (sCode, sText) {
