@@ -95,7 +95,7 @@
                                     emphasized="true"
                                     state="{variance>/analysis/totalDiffState}"/>
                             </VBox>
-                            <VBox class="varianceKpiCard">
+                            <VBox class="varianceKpiCard varianceMaterialKpi">
                                 <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
                                     <core:Icon src="sap-icon://cart" class="summaryKpiIcon"/>
                                     <Label text="{i18n>varianceMaterialPriceDiff}"/>
@@ -107,7 +107,7 @@
                                     emphasized="true"
                                     state="{variance>/analysis/priceNetState}"/>
                             </VBox>
-                            <VBox class="varianceKpiCard">
+                            <VBox class="varianceKpiCard varianceProcessingKpi">
                                 <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
                                     <core:Icon src="sap-icon://factory" class="summaryKpiIcon"/>
                                     <Label text="{i18n>varianceProcessingDiff}"/>
@@ -197,7 +197,7 @@
                         <content>
                             <VBox visible="{variance>/isDetailMode}" class="varianceBridgeChart">
                                 <FlexBox class="varianceBridgeEquation" alignItems="Stretch" justifyContent="Center" wrap="Wrap" renderType="Bare">
-                                    <VBox class="varianceBridgeNode">
+                                    <VBox class="varianceBridgeNode varianceBridgeMaterialNode">
                                         <HBox class="varianceBridgeNodeHeader" alignItems="Center">
                                             <core:Icon src="sap-icon://cart" class="varianceBridgeIcon"/>
                                             <Label text="{i18n>varianceMaterialPriceDiff}"/>
@@ -210,7 +210,7 @@
                                         <Text text="{i18n>varianceBridgeMaterialHint}" class="varianceBridgeHint"/>
                                     </VBox>
                                     <Text text="+" class="varianceBridgeOperator"/>
-                                    <VBox class="varianceBridgeNode">
+                                    <VBox class="varianceBridgeNode varianceBridgeProcessingNode">
                                         <HBox class="varianceBridgeNodeHeader" alignItems="Center">
                                             <core:Icon src="sap-icon://factory" class="varianceBridgeIcon"/>
                                             <Label text="{i18n>varianceProcessingDiff}"/>
@@ -265,7 +265,7 @@
                                         </FlexBox>
                                     </VBox>
                                     <FlexBox class="varianceLeftInsightGrid" wrap="Wrap" renderType="Bare">
-                                        <VBox class="varianceLeftInsightCard">
+                                        <VBox class="varianceLeftInsightCard varianceLeftDirectionCard">
                                             <HBox alignItems="Center" class="varianceLeftInsightCardHeader">
                                                 <core:Icon src="{variance>/analysis/detailMeaningRows/0/icon}" class="varianceMeaningIcon"/>
                                                 <ObjectStatus
@@ -329,7 +329,7 @@
                                         <Title text="{i18n>varianceActivityMeaningTitle}" level="H3"/>
                                     </HBox>
                                     <FlexBox class="varianceActivityChartGrid" wrap="Wrap" renderType="Bare">
-                                        <VBox class="varianceActivityChartPanel">
+                                        <VBox class="varianceActivityChartPanel varianceActivityAmountChart">
                                             <VBox class="varianceActivityChartHeader">
                                                 <Title text="{i18n>varianceActivityAmountChartTitle}" level="H4"/>
                                                 <Text text="{i18n>varianceActivityAmountChartText}" class="varianceActivityChartSubText"/>
@@ -353,7 +353,7 @@
                                                 </items>
                                             </VBox>
                                         </VBox>
-                                        <VBox class="varianceActivityChartPanel" visible="{variance>/analysis/hasActivityRateDiffPercent}">
+                                        <VBox class="varianceActivityChartPanel varianceActivityRateChart" visible="{variance>/analysis/hasActivityRateDiffPercent}">
                                             <VBox class="varianceActivityChartHeader">
                                                 <Title text="{i18n>varianceActivityRateChartTitle}" level="H4"/>
                                                 <Text text="{i18n>varianceActivityRateChartText}" class="varianceActivityChartSubText"/>
@@ -384,7 +384,7 @@
                                         items="{variance>/analysis/detailActivityRows}">
                                         <items>
                                             <VBox class="varianceActivityMeaningCard">
-                                                <HBox alignItems="Center" justifyContent="SpaceBetween" wrap="Wrap" class="varianceActivityMeaningTop">
+                                                <HBox alignItems="Center" justifyContent="Start" wrap="Wrap" class="varianceActivityMeaningTop">
                                                     <ObjectStatus text="{variance>priorityText}" state="{variance>priorityState}" class="varianceActivityPriorityBadge"/>
                                                     <Text text="{variance>label}" class="varianceActivityMeaningName"/>
                                                 </HBox>
