@@ -5,11 +5,11 @@ sap.ui.define([
     "use strict";
 
     var STEP_COLORS = {
-        "1": "#0A6ED1",
-        "2": "#2EB67D",
-        "3": "#F5A623",
-        "4": "#8B5CF6",
-        "5": "#E91E63",
+        "1": "#7C3AED",
+        "2": "#0891B2",
+        "3": "#F97316",
+        "4": "#16A34A",
+        "5": "#DB2777",
         "UNSPECIFIED": "#64748B"
     };
     var CYCLE_PALETTE = ["#0A6ED1", "#14B8A6", "#22C55E", "#F5A623", "#E9730C", "#8B5CF6", "#EC4899", "#64748B"];
@@ -23,6 +23,70 @@ sap.ui.define([
     return BaseController.extend("ZE4_CC_COST.controller.AllocationMap", {
         getModelName: function () {
             return "allocationMap";
+        },
+
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("allocationMap");
+            var oSelectedDetail = oModel.getProperty("/selectedDetail") || {};
+
+            return {
+                title: "[EverNiture-CO] 다단계 배부 흐름 맵",
+                fileName: "AllocationMap",
+                variant: "allocation",
+                description: "다단계 배부 흐름 Sankey, 선택 항목 요약 및 현재/전체 흐름 rows 리포트",
+                filters: this.exportFilterRows("allocationMap", [
+                    { label: "배부사이클", property: "cycle" },
+                    { label: "단계", property: "stepKey" },
+                    { label: "배부기준", property: "skfId" },
+                    { label: "Top 제한", property: "topLimit" }
+                ]),
+                summary: (oModel.getProperty("/summaryItems") || []).map(function (oItem) {
+                    return { label: oItem.label, value: oItem.value };
+                }).concat([
+                    { label: "선택된 사이클", value: oModel.getProperty("/selectedCycleText") },
+                    { label: "표시 흐름 수", value: oModel.getProperty("/visibleFlowCountText") },
+                    { label: "숨김/기타 처리 수", value: oModel.getProperty("/hiddenFlowCountText") },
+                    { label: "선택 항목", value: oSelectedDetail.title || oSelectedDetail.text || "-" }
+                ]),
+                charts: [
+                    {
+                        title: "다단계 배부 흐름 맵",
+                        controlId: "allocationSankeyHost",
+                        sourceSectionTitle: "현재 표시 흐름",
+                        html: oModel.getProperty("/sankeyHtml"),
+                        width: 1200,
+                        height: 520,
+                        wide: true
+                    }
+                ],
+                sections: [
+                    this.exportSection("단계 범례", oModel.getProperty("/stepLegend"), [
+                        { label: "단계", property: "stepText" },
+                        { label: "설명", property: "description" }
+                    ]),
+                    this.exportSection("사이클 범례", oModel.getProperty("/cycleLegend"), [
+                        { label: "사이클", property: "cycleText" },
+                        { label: "금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) },
+                        { label: "색상", property: "color" }
+                    ]),
+                    this.exportSection("현재 표시 흐름", oModel.getProperty("/tableRows"), this._mapDetailExportColumns()),
+                    this.exportSection("전체 흐름", oModel.getProperty("/allDetailRows"), this._mapDetailExportColumns())
+                ]
+            };
+        },
+
+        _mapDetailExportColumns: function () {
+            return [
+                { label: "사이클", property: "cycleText" },
+                { label: "단계", property: "stepText" },
+                { label: "송신 코스트센터", property: "senderText" },
+                { label: "수신 코스트센터", property: "receiverText" },
+                { label: "배부기준", property: "skfText" },
+                { label: "배부금액", value: function (oRow) { return this.exportAmount(oRow.allocAmount); }.bind(this) },
+                { label: "기준값", property: "basisValueText" },
+                { label: "비율", property: "basisRatioText", type: "text", summary: false },
+                { label: "전표번호", property: "belnr" }
+            ];
         },
 
         onInit: function () {

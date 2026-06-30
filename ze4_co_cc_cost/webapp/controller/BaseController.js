@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageBox",
     "ZE4_CC_COST/model/formatter",
-    "ZE4_CC_COST/model/CostDataService"
-], function (Controller, JSONModel, MessageBox, formatter, CostDataService) {
+    "ZE4_CC_COST/model/CostDataService",
+    "ZE4_CC_COST/util/ReportExport"
+], function (Controller, JSONModel, MessageBox, formatter, CostDataService, ReportExport) {
     "use strict";
 
     return Controller.extend("ZE4_CC_COST.controller.BaseController", {
@@ -58,6 +59,7 @@ sap.ui.define([
                 period: this.service.normalizeMonth(String(oToday.getMonth() + 1)),
                 orgNodeId: "",
                 orgNodeText: "",
+                saknr: "",
                 waers: this.service.CURRENCY,
                 budgetVersion: this.service.BUDGET_VERSION
             };
@@ -72,7 +74,8 @@ sap.ui.define([
                 var oCurrentFilters = oAppModel.getProperty("/filters") || {};
                 var oMergedFilters = Object.assign({}, oFilters, {
                     orgNodeId: oCurrentFilters.orgNodeId || "",
-                    orgNodeText: oCurrentFilters.orgNodeText || ""
+                    orgNodeText: oCurrentFilters.orgNodeText || "",
+                    saknr: oCurrentFilters.saknr || ""
                 });
 
                 oAppModel.setProperty("/filters", oMergedFilters);
@@ -105,6 +108,7 @@ sap.ui.define([
                 period: this.service.normalizeMonth(oFilters && oFilters.period),
                 orgNodeId: this.service.normalizeNodeId(oFilters && oFilters.orgNodeId),
                 orgNodeText: this.service.clean(oFilters && oFilters.orgNodeText),
+                saknr: this.service.normalizeNodeId(oFilters && oFilters.saknr),
                 waers: this.service.CURRENCY,
                 budgetVersion: this.service.BUDGET_VERSION
             };
@@ -147,6 +151,86 @@ sap.ui.define([
             return oFilters;
         },
 
+        onExportExcel: function () {
+            if (!this.buildExportReport) {
+                MessageBox.warning("이 화면의 다운로드 정의가 없습니다.");
+                return;
+            }
+
+            ReportExport.exportExcel(this.buildExportReport(), this.getView());
+        },
+
+        onExportPdf: function () {
+            if (!this.buildExportReport) {
+                MessageBox.warning("이 화면의 다운로드 정의가 없습니다.");
+                return;
+            }
+
+            ReportExport.printPdf(this.buildExportReport(), this.getView());
+        },
+
+        exportFilterRows: function (sModelName, aExtraDefinitions) {
+            var oModel = this.getView().getModel(sModelName);
+            var oFilters = oModel && oModel.getProperty("/filters") || {};
+            var aDefinitions = [
+                { label: "회사코드", property: "bukrs" },
+                { label: "회계연도", property: "gjahr" },
+                { label: "기간", property: "period" },
+                { label: "조직/코스트센터", property: "orgNodeText" },
+                { label: "G/L 계정", property: "saknr" }
+            ].concat(aExtraDefinitions || []);
+
+            return ReportExport.labelRows(oFilters, aDefinitions);
+        },
+
+        exportKpiRows: function (sModelName) {
+            var oModel = this.getView().getModel(sModelName);
+            return ReportExport.kpiRows(oModel && oModel.getProperty("/kpis") || []);
+        },
+
+        exportHeaderRows: function (oHeader) {
+            return Object.keys(oHeader || {}).filter(function (sKey) {
+                return /Text$|code|manager|period|scope/i.test(sKey);
+            }).map(function (sKey) {
+                return {
+                    label: sKey,
+                    value: oHeader[sKey]
+                };
+            });
+        },
+
+        exportSection: function (sTitle, aRows, aColumns, sSheetName) {
+            return ReportExport.section(sTitle, aRows || [], aColumns || [], sSheetName);
+        },
+
+        exportAmount: function (vValue, sCurrency) {
+            return this.formatter.amountWithCurrency(vValue, sCurrency || this.service.CURRENCY);
+        },
+
+        exportRate: function (vValue) {
+            return this.formatter.rate(vValue);
+        },
+
+        flattenExportTreeRows: function (aRows) {
+            var aFlatRows = [];
+
+            function visit(aChildren, iDepth) {
+                (aChildren || []).forEach(function (oRow) {
+                    var oFlatRow = Object.assign({}, oRow, {
+                        exportDepth: iDepth,
+                        exportIndentText: new Array(iDepth + 1).join("  ") + (oRow.nodeText || oRow.name || "")
+                    });
+
+                    delete oFlatRow.children;
+                    aFlatRows.push(oFlatRow);
+                    visit(oRow.children, iDepth + 1);
+                });
+            }
+
+            visit(aRows, 0);
+            return aFlatRows;
+        },
+
         setHierarchyOptions: function (sModelName, aHierarchyRows, sSelectedOrgId) {
             var oModel = this.getView().getModel(sModelName);
             var aOptions = this.service.buildHierarchyOptions(aHierarchyRows);
@@ -162,6 +246,18 @@ sap.ui.define([
             this.getAppStateModel().setProperty("/selectedOrg", oSelectedOrg);
 
             return oSelectedOrg;
+        },
+
+        applyResolvedOrgSelection: function (sModelName, oSelectedOrg, oTextMaps) {
+            var oModel = this.getView().getModel(sModelName);
+            var oResolvedOrg = this.service.resolveOrgSelectionText(oSelectedOrg, oTextMaps);
+
+            oModel.setProperty("/selectedOrg", oResolvedOrg);
+            oModel.setProperty("/filters/orgNodeText", oResolvedOrg.nodeText || "");
+            this.getAppStateModel().setProperty("/selectedOrg", oResolvedOrg);
+            this.getAppStateModel().setProperty("/filters/orgNodeText", oResolvedOrg.nodeText || "");
+
+            return oResolvedOrg;
         },
 
         onToggleFilter: function (oEvent) {
@@ -269,6 +365,7 @@ sap.ui.define([
             var oFilters = Object.assign({}, oDefaults, {
                 orgNodeId: "",
                 orgNodeText: "",
+                saknr: "",
                 waers: this.service.CURRENCY,
                 budgetVersion: this.service.BUDGET_VERSION
             });
@@ -388,17 +485,17 @@ sap.ui.define([
         },
 
         _queueViewportTableResize: function () {
-            if (this._viewportTableResizeTimer) {
-                clearTimeout(this._viewportTableResizeTimer);
+            if (this._viewportTableResizeTimers) {
+                this._viewportTableResizeTimers.forEach(function (iTimer) {
+                    clearTimeout(iTimer);
+                });
             }
 
-            this._viewportTableResizeTimer = setTimeout(function () {
-                this._resizeViewportTables();
-            }.bind(this), 0);
-
-            setTimeout(function () {
-                this._resizeViewportTables();
-            }.bind(this), 180);
+            this._viewportTableResizeTimers = [0, 180, 500].map(function (iDelay) {
+                return setTimeout(function () {
+                    this._resizeViewportTables();
+                }.bind(this), iDelay);
+            }.bind(this));
         },
 
         _resizeViewportTables: function () {
@@ -410,10 +507,16 @@ sap.ui.define([
                 var oBinding = oTable && oTable.getBinding && oTable.getBinding("rows");
                 var iDataRows = oBinding && oBinding.getLength ? oBinding.getLength() : 0;
                 var iMinRows = oConfig && oConfig.minRows || 5;
-                var iMaxRows = oConfig && oConfig.maxRows || 30;
+                var vMaxRows = oConfig && Object.prototype.hasOwnProperty.call(oConfig, "maxRows") ? oConfig.maxRows : 30;
+                var iMaxRows = Number(vMaxRows) > 0 ? Number(vMaxRows) : Number.POSITIVE_INFINITY;
                 var iRowHeight = oConfig && oConfig.rowHeight || 34;
                 var iHeaderHeight = oConfig && oConfig.headerHeight || 58;
                 var iBottomOffset = oConfig && oConfig.bottomOffset || 24;
+                var bFillAvailable = !!(oConfig && oConfig.fillAvailable);
+                var oContainer = oConfig && oConfig.containerId && this.byId(oConfig.containerId);
+                var oContainerDomRef = oContainer && oContainer.getDomRef && oContainer.getDomRef();
+                var oTableRect;
+                var iBottomBoundary;
                 var iAvailableHeight;
                 var iViewportRows;
                 var iTargetRows;
@@ -423,13 +526,19 @@ sap.ui.define([
                     return;
                 }
 
-                iAvailableHeight = window.innerHeight - oDomRef.getBoundingClientRect().top - iBottomOffset;
+                if (!oContainerDomRef && oConfig && oConfig.containerSelector && oDomRef.closest) {
+                    oContainerDomRef = oDomRef.closest(oConfig.containerSelector);
+                }
+
+                oTableRect = oDomRef.getBoundingClientRect();
+                iBottomBoundary = oContainerDomRef ? oContainerDomRef.getBoundingClientRect().bottom : window.innerHeight;
+                iAvailableHeight = iBottomBoundary - oTableRect.top - iBottomOffset;
                 iViewportRows = Math.floor((iAvailableHeight - iHeaderHeight) / iRowHeight);
                 iViewportRows = Math.max(1, iViewportRows);
 
                 if (iDataRows > 0) {
-                    iMinimumRows = Math.min(iMinRows, iDataRows);
-                    iTargetRows = Math.max(iMinimumRows, Math.min(iDataRows, iViewportRows, iMaxRows));
+                    iMinimumRows = bFillAvailable ? iMinRows : Math.min(iMinRows, iDataRows);
+                    iTargetRows = Math.max(iMinimumRows, Math.min(bFillAvailable ? iViewportRows : iDataRows, iViewportRows, iMaxRows));
                 } else {
                     iTargetRows = Math.min(iMinRows, iViewportRows, iMaxRows);
                 }
@@ -477,7 +586,7 @@ sap.ui.define([
         },
 
         decorateAccountCompositionRows: function (aCompositionRows, aDocumentRows) {
-            var mDocumentCounts = this.service.documentCountsByField(aDocumentRows, "Saknr");
+            var mDocumentCounts = this.service.costDocumentCountsByField(aDocumentRows, "Saknr");
 
             return (aCompositionRows || []).map(function (oRow) {
                 var aSaknrs = oRow.includedSaknrs || [oRow.saknr];
@@ -513,7 +622,9 @@ sap.ui.define([
 
         buildSelectedAccountSummary: function (sAccountText, aCompositionRows) {
             var oRow = (aCompositionRows || []).find(function (oCandidate) {
-                return oCandidate.accountLabel === sAccountText || oCandidate.accountName === sAccountText;
+                return oCandidate.accountLabel === sAccountText ||
+                    oCandidate.accountName === sAccountText ||
+                    oCandidate.compositionLabel === sAccountText;
             });
 
             if (!oRow) {
@@ -524,6 +635,11 @@ sap.ui.define([
                 saknr: oRow.saknr,
                 saknrTxt: oRow.accountName,
                 accountLabel: oRow.accountLabel || oRow.accountName,
+                compositionType: oRow.compositionType || "ACCOUNT",
+                compositionKey: oRow.compositionKey || oRow.saknr,
+                compositionLabel: oRow.compositionLabel || oRow.accountLabel || oRow.accountName,
+                accountRoleText: oRow.accountRoleText || "-",
+                accountRoleDetail: oRow.accountRoleDetail || "",
                 amount: oRow.amount,
                 ratio: oRow.ratio,
                 ratioText: oRow.ratioText,
@@ -642,10 +758,6 @@ sap.ui.define([
             this.getRouter().navTo("allocationFlowOverview");
         },
 
-        navToOrgExplorer: function () {
-            this.getRouter().navTo("orgExplorer");
-        },
-
         onGoDashboard: function () {
             this.navToDashboard();
         },
@@ -654,17 +766,15 @@ sap.ui.define([
             this.navToAllocationAnalysis();
         },
 
-        onGoOrgExplorer: function () {
-            this.navToOrgExplorer();
-        },
-
         navToDepartment: function (sOrgId) {
             this.getRouter().navTo("departmentDetail", {
                 orgId: encodeURIComponent(sOrgId || "ALL")
             });
         },
 
-        navToDocuments: function (sOrgId, sSaknr) {
+        navToDocuments: function (sOrgId, sSaknr, sPeriodScope) {
+            this.getAppStateModel().setProperty("/documentPeriodScope", sPeriodScope || "current");
+
             if (sSaknr) {
                 this.getRouter().navTo("documentDetailWithAccount", {
                     kostl: encodeURIComponent(sOrgId || "ALL"),

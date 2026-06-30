@@ -42,7 +42,7 @@
                             <t:template>
                                 <HBox class="ze4TreeNodeCell" alignItems="Center">
                                     <core:Icon src="{department>icon}" class="{department>iconClass}" />
-                                    <Text text="{department>nodeText}" wrapping="false" tooltip="{department>nodeText}" class="ze4NoWrapText" />
+                                    <Text text="{department>nodeText}" wrapping="false" tooltip="{department>costCenterTooltip}" class="ze4NoWrapText" />
                                 </HBox>
                             </t:template>
                         </t:Column>
@@ -75,7 +75,8 @@
                             <HBox class="ze4PageActions" alignItems="Center">
                                 <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
                                 <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
-                                <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                                <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel" />
+                                <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf" />
                             </HBox>
                         </HBox>
                         <VBox class="ze4DepartmentHeaderStack">
@@ -85,10 +86,15 @@
                                     <VBox class="ze4ObjectHeaderText">
                                         <HBox alignItems="Center" wrap="Wrap">
                                             <Title text="{department>/header/title}" level="H2" class="ze4ObjectHeaderTitle" />
-                                            <ObjectStatus text="정상" state="Success" class="ze4HeaderStatus" />
+                                            <ObjectStatus text="{department>/header/statusText}" state="{department>/header/statusState}" class="ze4HeaderStatus" />
                                         </HBox>
                                         <HBox class="ze4ObjectFacts" wrap="Wrap">
+                                            <ObjectAttribute title="조회 기준" text="{department>/header/basisText}" />
                                             <ObjectAttribute title="코드" text="{department>/header/code}" />
+                                            <ObjectAttribute title="역할" text="{department>/header/roleText}" visible="{department>/header/roleVisible}" />
+                                            <ObjectAttribute title="손익센터" text="{department>/header/profitCenterText}" visible="{department>/header/profitCenterVisible}" />
+                                            <ObjectAttribute title="Segment" text="{department>/header/segmentText}" visible="{department>/header/segmentVisible}" />
+                                            <ObjectAttribute title="기능영역" text="{department>/header/functionalAreaText}" visible="{department>/header/functionalAreaVisible}" />
                                             <ObjectAttribute title="책임자" text="{department>/header/manager}" />
                                             <ObjectAttribute title="조회기간" text="{department>/header/period}" />
                                             <ObjectAttribute title="범위" text="{department>/header/scopeText}" />
@@ -108,11 +114,6 @@
                                         <Label text="회사코드" />
                                         <Input value="{department>/filters/bukrs}" editable="false" enabled="false" class="ze4FixedInput" width="9rem" />
                                     </VBox>
-                                    <VBox class="ze4FilterField ze4FilterFieldWide">
-                                        <Label text="손익센터/부서 또는 코스트센터" />
-                                        <Input value="{department>/filters/orgNodeText}" showValueHelp="true" valueHelpOnly="true" valueHelpRequest=".onOpenOrgValueHelp" placeholder="전체" width="17rem" />
-                                    </VBox>
-                                    <Button icon="sap-icon://decline" type="Transparent" tooltip="조직 선택 해제" press=".onClearOrgSelection" />
                                     <VBox class="ze4FilterField">
                                         <Label text="회계연도" required="true" />
                                         <Input value="{department>/filters/gjahr}" valueState="{department>/filterStates/gjahrState}" valueStateText="{department>/filterStates/gjahrStateText}" maxLength="4" width="8rem" />
@@ -122,6 +123,21 @@
                                         <Select selectedKey="{department>/filters/period}" valueState="{department>/filterStates/periodState}" valueStateText="{department>/filterStates/periodStateText}" items="{department>/periodOptions}" width="8rem">
                                             <core:Item key="{department>key}" text="{department>text}" />
                                         </Select>
+                                    </VBox>
+                                    <VBox class="ze4FilterField ze4FilterFieldWide">
+                                        <Label text="조직/코스트센터" />
+                                        <Input
+                                            value="{department>/filters/orgNodeText}"
+                                            showValueHelp="true"
+                                            valueHelpOnly="true"
+                                            valueHelpRequest=".onOpenOrgValueHelp"
+                                            placeholder="전체"
+                                            width="17rem" />
+                                    </VBox>
+                                    <Button icon="sap-icon://decline" type="Transparent" tooltip="선택 해제" press=".onClearOrgSelection" />
+                                    <VBox class="ze4FilterField">
+                                        <Label text="G/L 계정" />
+                                        <Input value="{department>/filters/saknr}" maxLength="10" placeholder="전체" width="9rem" />
                                     </VBox>
                                     <Button class="ze4SearchButton" text="검색" icon="sap-icon://search" type="Emphasized" press=".onSearch" />
                                     <Button text="초기화" type="Transparent" press=".onResetFilters" />
@@ -187,7 +203,7 @@
 
                             <VBox class="ze4Card ze4ChartCard ze4DepartmentCompositionPanel">
                                 <HBox class="ze4CardHeader" alignItems="Center">
-                                    <Title text="비용계정별 구성" level="H3" />
+                                    <Title text="{department>/compositionTitle}" level="H3" />
                                     <ToolbarSpacer />
                                     <Text class="ze4CardUnit" text="단위: KRW" />
                                 </HBox>
@@ -195,16 +211,16 @@
                                     <viz:dataset>
                                         <vizData:FlattenedDataset data="{department>/accountComposition}">
                                             <vizData:dimensions>
-                                                <vizData:DimensionDefinition name="계정명" value="{department>accountLabel}" />
+                                                <vizData:DimensionDefinition name="구성항목" value="{department>compositionLabel}" />
                                             </vizData:dimensions>
                                             <vizData:measures>
-                                                <vizData:MeasureDefinition name="금액" value="{department>amount}" />
+                                                <vizData:MeasureDefinition name="금액" value="{department>chartAmount}" />
                                             </vizData:measures>
                                         </vizData:FlattenedDataset>
                                     </viz:dataset>
                                     <viz:feeds>
                                         <vizFeeds:FeedItem uid="size" type="Measure" values="금액" />
-                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="계정명" />
+                                        <vizFeeds:FeedItem uid="color" type="Dimension" values="구성항목" />
                                     </viz:feeds>
                                     <viz:dependents>
                                         <viz:Popover id="departmentCompositionChartPopover" />
@@ -215,12 +231,13 @@
                                 </VBox>
                                 <VBox class="ze4ChartSelectionInfo" visible="{department>/hasSelectedAccountSummary}">
                                     <HBox alignItems="Center">
-                                        <Title text="선택 계정 요약" level="H4" />
+                                        <Title text="{department>/selectedCompositionTitle}" level="H4" />
                                         <ToolbarSpacer />
-                                        <Button text="전표 상세" type="Transparent" icon="sap-icon://navigation-right-arrow" press=".onGoSelectedAccountDocuments" enabled="{= ${department>/selectedAccountSummary/saknr} !== 'ETC' }" />
+                                        <Button text="전표 상세" type="Transparent" icon="sap-icon://navigation-right-arrow" press=".onGoSelectedAccountDocuments" visible="{department>/selectedCompositionCanOpenDocuments}" enabled="{= ${department>/selectedAccountSummary/saknr} !== 'ETC' }" />
                                     </HBox>
                                     <FlexBox class="ze4SelectionFacts" wrap="Wrap">
-                                        <ObjectAttribute title="선택 계정" text="{department>/selectedAccountSummary/accountLabel}" />
+                                        <ObjectAttribute title="{department>/selectedCompositionKeyTitle}" text="{department>/selectedAccountSummary/compositionLabel}" />
+                                        <ObjectAttribute title="계정 성격" text="{department>/selectedAccountSummary/accountRoleText}" visible="{department>/selectedCompositionRoleVisible}" />
                                         <ObjectAttribute title="금액" text="{path: 'department>/selectedAccountSummary/amount', formatter: '.formatter.amountWithCurrency'}" />
                                         <ObjectAttribute title="비율" text="{path: 'department>/selectedAccountSummary/ratio', formatter: '.formatter.rate'}" />
                                         <ObjectAttribute title="전표 건수" text="{= ${department>/selectedAccountSummary/documentCount} + '건' }" />
@@ -231,7 +248,10 @@
 
                         <VBox>
                             <HBox class="ze4CardHeader" alignItems="Center">
-                                <Title text="하위 코스트센터 현황" level="H3" />
+                                <VBox>
+                                    <Title text="{department>/detailTableTitle}" level="H3" />
+                                    <Text text="{department>/detailTableSubTitle}" class="ze4MutedText" />
+                                </VBox>
                                 <ToolbarSpacer />
                                 <Text class="ze4CardUnit" text="단위: KRW" />
                             </HBox>
@@ -239,10 +259,16 @@
                                 <t:columns>
                                     <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="8rem"><Label text="코스트센터" /><t:template><Text text="{department>kostl}" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="14rem"><Label text="코스트센터명" /><t:template><Text text="{department>kostlTxt}" wrapping="false" tooltip="{department>kostlTxt}" /></t:template></t:Column>
+                                    <t:Column width="14rem"><Label text="코스트센터명" /><t:template><Text text="{department>kostlTxt}" wrapping="false" tooltip="{department>costCenterTooltip}" /></t:template></t:Column>
                                     <t:Column width="10rem"><Label text="책임자" /><t:template><Text text="{department>manager}" wrapping="false" tooltip="{department>manager}" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="8rem" visible="{department>/showFunctionalAreaColumns}"><Label text="기능영역" /><t:template><Text text="{path: 'department>fkber', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="13rem" visible="{department>/showFunctionalAreaColumns}"><Label text="기능영역명" /><t:template><Text text="{path: 'department>fkberTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{department>fkberTxt}" /></t:template></t:Column>
+                                    <t:Column width="8.5rem" visible="{department>/showPrctrColumns}"><Label text="손익센터" /><t:template><Text text="{path: 'department>prctr', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="13rem" visible="{department>/showPrctrColumns}"><Label text="손익센터명" /><t:template><Text text="{path: 'department>prctrTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{department>prctrTxt}" /></t:template></t:Column>
+                                    <t:Column width="7rem" visible="{department>/showSegmentColumns}"><Label text="Segment" /><t:template><Text text="{path: 'department>segment', formatter: '.formatter.empty'}" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="13rem" visible="{department>/showSegmentColumns}"><Label text="Segment명" /><t:template><Text text="{path: 'department>segmentTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{department>segmentTxt}" /></t:template></t:Column>
+                                    <t:Column width="11rem" hAlign="End"><Label text="장부 순잔액" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                    <t:Column width="12rem" hAlign="End"><Label text="이번달 장부 순잔액" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
                                     <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
                                     <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
@@ -254,33 +280,199 @@
                             </t:Table>
                         </VBox>
 
-                        <VBox>
+                        <VBox class="ze4Card ze4AccountTabsCard">
                             <HBox class="ze4CardHeader" alignItems="Center">
-                                <Title text="비용계정별 상세 현황" level="H3" />
-                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
-                                    <Text class="ze4TableHeaderMetricLabel" text="이번달 합계" />
-                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/accountSummary/currentAmount', formatter: '.formatter.amountWithCurrency'}" />
-                                </HBox>
+                                <Title text="계정별 상세 분석" level="H3" />
                                 <ToolbarSpacer />
                                 <Text class="ze4CardUnit" text="단위: KRW" />
                             </HBox>
-                            <t:Table rows="{department>/accountRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="6" width="100%" fixedColumnCount="2">
-                                <t:columns>
-                                    <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
-                                    <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{department>ktoksTxt}" wrapping="false" tooltip="{department>ktoksTxt}" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'department>varianceAmount', formatter: '.formatter.amount'}" state="{department>varianceState}" /></t:template></t:Column>
-                                    <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'department>varianceRate', formatter: '.formatter.rate'}" state="{department>varianceState}" /></t:template></t:Column>
-                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
-                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                    <t:Column width="7rem" hAlign="End"><Label text="비율" /><t:template><Text text="{path: 'department>ratio', formatter: '.formatter.rate'}" textAlign="End" wrapping="false" /></t:template></t:Column>
-                                </t:columns>
-                            </t:Table>
+                            <IconTabBar selectedKey="{department>/accountTabKey}" expandable="false" class="ze4AccountTabs">
+                                <items>
+                                    <IconTabFilter key="costAccounts" text="비용계정" icon="sap-icon://wallet" visible="{= !${department>/isProductionScope} }">
+                                        <VBox>
+                                            <FlexBox class="ze4TableMetricStrip" wrap="Wrap">
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="누적 비용" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/costSummary/actualAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="이번달 비용" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/costSummary/currentAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="전표건수" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{= ${department>/costSummary/documentCount} + '건' }" />
+                                                </HBox>
+                                            </FlexBox>
+                                            <t:Table rows="{department>/costRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="10" width="100%" fixedColumnCount="2">
+                                                <t:columns>
+                                                    <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
+                                                    <t:Column width="12rem"><Label text="계정 성격" /><t:template><ObjectStatus text="{department>accountRoleText}" tooltip="{department>accountRoleDetail}" state="Information" /></t:template></t:Column>
+                                                    <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{department>ktoksTxt}" wrapping="false" tooltip="{department>ktoksTxt}" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="누적비용" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="이번달비용" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'department>varianceAmount', formatter: '.formatter.amount'}" state="{department>varianceState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'department>varianceRate', formatter: '.formatter.rate'}" state="{department>varianceState}" /></t:template></t:Column>
+                                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="7rem" hAlign="End"><Label text="구성비" /><t:template><Text text="{path: 'department>ratio', formatter: '.formatter.rate'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </IconTabFilter>
+                                    <IconTabFilter key="manufacturingFlow" text="제조원가 흐름" icon="sap-icon://workflow-tasks" visible="{department>/isProductionScope}">
+                                        <VBox>
+                                            <FlexBox class="ze4TableMetricStrip" wrap="Wrap">
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="제조원가 투입액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/manufacturingFlowSummary/inputAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="제조입고 차감액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/manufacturingFlowSummary/receiptAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="제조원가 순액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/manufacturingFlowSummary/netAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="배부차이" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/manufacturingFlowSummary/allocationVarianceAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                            </FlexBox>
+                                            <t:Table rows="{department>/manufacturingFlowRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="7" width="100%" fixedColumnCount="2">
+                                                <t:columns>
+                                                    <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
+                                                    <t:Column width="15rem"><Label text="계정 성격" /><t:template><ObjectStatus text="{department>accountNature}" tooltip="{department>accountRoleDetail}" state="Information" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="누적금액" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="이번달금액" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="전월비용" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="24rem"><Label text="설명" /><t:template><Text text="{department>description}" wrapping="false" tooltip="{department>description}" /></t:template></t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </IconTabFilter>
+                                    <IconTabFilter key="clearingValidation" text="생산실적 상쇄" icon="sap-icon://compare" visible="{department>/isProductionScope}">
+                                        <VBox>
+                                            <MessageStrip
+                                                class="ze4MessageStrip"
+                                                text="800017~800019는 생산실적 표준가공비 차감/상쇄 기록 계정입니다. 실제 비용 발생액이 아니라 800020~800022와 쌍으로 검증해야 합니다."
+                                                type="Information"
+                                                showIcon="true" />
+                                            <FlexBox class="ze4TableMetricStrip" wrap="Wrap">
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="차감/상쇄액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/clearingValidationSummary/clearingAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="배부/귀속액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/clearingValidationSummary/appliedAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="상쇄잔액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/clearingValidationSummary/netAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                            </FlexBox>
+                                            <t:Table rows="{department>/clearingValidationRows}" selectionMode="None" visibleRowCount="4" width="100%">
+                                                <t:columns>
+                                                    <t:Column width="9rem"><Label text="구분" /><t:template><Text text="{department>groupText}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="8rem"><Label text="차감 계정" /><t:template><Text text="{department>clearingAccount}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="13rem"><Label text="차감 계정명" /><t:template><Text text="{department>clearingAccountName}" wrapping="false" tooltip="{department>clearingAccountName}" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="차감액" /><t:template><Text text="{path: 'department>clearingAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="8rem"><Label text="배부 계정" /><t:template><Text text="{department>appliedAccount}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="13rem"><Label text="배부 계정명" /><t:template><Text text="{department>appliedAccountName}" wrapping="false" tooltip="{department>appliedAccountName}" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="배부액" /><t:template><Text text="{path: 'department>appliedAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="상쇄잔액" /><t:template><ObjectStatus text="{path: 'department>netAmount', formatter: '.formatter.amount'}" state="{department>statusState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem"><Label text="상태" /><t:template><ObjectStatus text="{department>statusText}" state="{department>statusState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </IconTabFilter>
+                                    <IconTabFilter key="sourcePool" text="배부대상 제조비" icon="sap-icon://database" visible="{department>/isProductionScope}">
+                                        <VBox>
+                                            <MessageStrip
+                                                class="ze4MessageStrip"
+                                                text="800001~800014는 활동단가 산출과 제조비 배부의 기준 금액입니다. 제조원가 흐름 합계에는 직접 포함하지 않고 배부 기준으로 사용합니다."
+                                                type="Information"
+                                                showIcon="true" />
+                                            <FlexBox class="ze4TableMetricStrip" wrap="Wrap">
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="배부대상 누적액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/sourcePoolSummary/actualAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="이번달 배부대상액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/sourcePoolSummary/currentAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="전표건수" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{= ${department>/sourcePoolSummary/documentCount} + '건' }" />
+                                                </HBox>
+                                            </FlexBox>
+                                            <t:Table rows="{department>/sourcePoolRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="7" width="100%" fixedColumnCount="2">
+                                                <t:columns>
+                                                    <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
+                                                    <t:Column width="15rem"><Label text="비용 성격" /><t:template><ObjectStatus text="{department>accountNature}" tooltip="{department>accountRoleDetail}" state="Information" /></t:template></t:Column>
+                                                    <t:Column width="9rem"><Label text="활동유형 분류" /><t:template><Text text="{department>activityType}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="누적금액" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="이번달금액" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </IconTabFilter>
+                                    <IconTabFilter key="ledger" text="전체 계정 원장" icon="sap-icon://documents">
+                                        <VBox>
+                                            <FlexBox class="ze4TableMetricStrip" wrap="Wrap">
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="장부 순잔액" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/ledgerSummary/actualAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="전표건수" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{= ${department>/ledgerSummary/documentCount} + '건' }" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="양수 계정 합계" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/ledgerSummary/positiveAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                                <HBox class="ze4TableHeaderMetric" alignItems="Center">
+                                                    <Text class="ze4TableHeaderMetricLabel" text="음수 계정 합계" />
+                                                    <Text class="ze4TableHeaderMetricValue" text="{path: 'department>/ledgerSummary/negativeAmount', formatter: '.formatter.amountWithCurrency'}" />
+                                                </HBox>
+                                            </FlexBox>
+                                            <t:Table rows="{department>/ledgerRows}" selectionMode="Single" selectionBehavior="Row" rowSelectionChange=".onAccountRowSelection" visibleRowCount="10" width="100%" fixedColumnCount="2">
+                                                <t:columns>
+                                                    <t:Column width="4.5rem"><Label text="순위" /><t:template><Text text="{department>rank}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="8rem"><Label text="G/L 계정" /><t:template><Text text="{department>saknr}" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="14rem"><Label text="계정명" /><t:template><Text text="{department>saknrTxt}" wrapping="false" tooltip="{department>saknrTxt}" /></t:template></t:Column>
+                                                    <t:Column width="15rem"><Label text="계정 성격" /><t:template><ObjectStatus text="{department>accountNature}" tooltip="{department>accountRoleDetail}" state="Information" /></t:template></t:Column>
+                                                    <t:Column width="13rem"><Label text="계정그룹" /><t:template><Text text="{department>ktoksTxt}" wrapping="false" tooltip="{department>ktoksTxt}" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="장부 순잔액" /><t:template><Text text="{path: 'department>actualAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="12rem" hAlign="End"><Label text="이번달 장부 순잔액" /><t:template><Text text="{path: 'department>currentAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="12rem" hAlign="End"><Label text="전월 장부 순잔액" /><t:template><Text text="{path: 'department>previousAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="예산" /><t:template><Text text="{path: 'department>budgetAmount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="11rem" hAlign="End"><Label text="차이" /><t:template><ObjectStatus text="{path: 'department>varianceAmount', formatter: '.formatter.amount'}" state="{department>varianceState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="예산대비" /><t:template><ObjectStatus text="{path: 'department>varianceRate', formatter: '.formatter.rate'}" state="{department>varianceState}" /></t:template></t:Column>
+                                                    <t:Column width="10rem" hAlign="End"><Label text="전월대비" /><t:template><ObjectStatus text="{path: 'department>momAmount', formatter: '.formatter.amount'}" state="{department>momState}" /></t:template></t:Column>
+                                                    <t:Column width="8rem" hAlign="End"><Label text="전표건수" /><t:template><Text text="{path: 'department>documentCount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                    <t:Column width="7rem" hAlign="End"><Label text="구성비" /><t:template><Text text="{path: 'department>ratio', formatter: '.formatter.rate'}" textAlign="End" wrapping="false" /></t:template></t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </IconTabFilter>
+                                </items>
+                            </IconTabBar>
                         </VBox>
                     </VBox>
                 </content>

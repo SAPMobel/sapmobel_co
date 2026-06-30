@@ -94,11 +94,9 @@
       "libs": {
         "sap.m": {},
         "sap.f": {},
-        "sap.uxap": {},
         "sap.ui.core": {},
         "sap.ui.comp": {},
         "sap.ui.table": {},
-        "sap.suite.ui.commons": {},
         "sap.viz": {}
       }
     },
@@ -207,13 +205,6 @@
           "target": [
             "AllocationFlowDetail"
           ]
-        },
-        {
-          "name": "orgExplorer",
-          "pattern": "org",
-          "target": [
-            "OrgExplorer"
-          ]
         }
       ],
       "targets": {
@@ -248,10 +239,6 @@
         "AllocationFlowDetail": {
           "id": "AllocationFlowDetail",
           "name": "AllocationFlowDetail"
-        },
-        "OrgExplorer": {
-          "id": "OrgExplorer",
-          "name": "OrgExplorer"
         }
       }
     },

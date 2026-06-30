@@ -19,7 +19,8 @@
                     <HBox class="ze4PageActions" alignItems="Center">
                         <Button text="전체 흐름" icon="sap-icon://process" type="Transparent" press=".onGoAllocationFlowOverview" />
                         <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
-                        <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                        <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel" />
+                        <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf" />
                     </HBox>
                 </HBox>
 
@@ -147,11 +148,12 @@
                                 <t:Column width="9rem" hAlign="End"><Label text="배부기준값" /><t:template><Text text="{flow2>basisValueText}" textAlign="End" wrapping="false" tooltip="{flow2>basisValueText}" class="ze4AmountText" /></t:template></t:Column>
                                 <t:Column width="5rem" hAlign="End"><Label text="비율" /><t:template><Text text="{flow2>basisRatioText}" textAlign="End" wrapping="false" tooltip="{flow2>basisRatioText}" class="ze4RateText" /></t:template></t:Column>
                                 <t:Column width="9rem" hAlign="End"><Label text="배부금액" /><t:template><Text text="{path: 'flow2>amount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                <t:Column width="4rem"><Label text="통화" /><t:template><Text text="{flow2>waers}" wrapping="false" tooltip="{flow2>waers}" /></t:template></t:Column>
                                 <t:Column width="8.5rem"><Label text="전표번호" /><t:template><Text text="{flow2>belnr}" wrapping="false" tooltip="{flow2>belnr}" /></t:template></t:Column>
                                 <t:Column width="5.5rem"><Label text="라인" /><t:template><Text text="{flow2>docln}" wrapping="false" tooltip="{flow2>docln}" /></t:template></t:Column>
                                 <t:Column width="7.5rem"><Label text="전기일자" /><t:template><Text text="{flow2>budatText}" wrapping="false" tooltip="{flow2>budatText}" /></t:template></t:Column>
                                 <t:Column width="8.5rem"><Label text="계정명" /><t:template><Text text="{flow2>saknrText}" wrapping="false" tooltip="{flow2>saknrText}" class="ze4NoWrapText" /></t:template></t:Column>
-                                <t:Column width="4rem"><Label text="통화" /><t:template><Text text="{flow2>waers}" wrapping="false" tooltip="{flow2>waers}" /></t:template></t:Column>
+                                <t:Column width="12rem"><Label text="계정 성격" /><t:template><ObjectStatus text="{flow2>accountRoleText}" tooltip="{flow2>accountRoleDetail}" state="Information" /></t:template></t:Column>
                             </t:columns>
                         </t:Table>
                     </VBox>
@@ -204,8 +206,8 @@
                                             <ObjectAttribute title="전기일자" text="{flow2>/selectedDetail/budatText}" />
                                             <ObjectAttribute title="라인" text="{flow2>/selectedDetail/docln}" />
                                             <ObjectAttribute title="계정명" text="{flow2>/selectedDetail/saknrText}" />
+                                            <ObjectAttribute title="계정 성격" text="{flow2>/selectedDetail/accountRoleText}" />
                                             <ObjectAttribute title="통화" text="{flow2>/selectedDetail/waers}" />
-                                            <ObjectAttribute title="전표 상태" text="{flow2>/selectedDetail/documentStatusText}" />
                                         </VBox>
                                     </IconTabFilter>
                                     <IconTabFilter key="rule" text="배부규칙">

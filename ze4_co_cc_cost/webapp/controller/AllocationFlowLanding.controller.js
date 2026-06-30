@@ -10,6 +10,52 @@ sap.ui.define([
             return "flow1";
         },
 
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("flow1");
+            var oSelected = oModel.getProperty("/selectedReceiver") || {};
+
+            return {
+                title: "[EverNiture-CO] CCG 수신처 분해",
+                fileName: "AllocationFlowLanding",
+                variant: "allocation",
+                description: "선택 CCG로 유입되는 외부/내부 배부 흐름 Sankey와 수령처 요약 리포트",
+                filters: this.exportFilterRows("flow1", [
+                    { label: "선택 CCG", property: "selectedCcgId" },
+                    { label: "송신 CCG", property: "senderCcgId" },
+                    { label: "배부사이클", property: "cycle" },
+                    { label: "배부기준", property: "skfId" }
+                ]),
+                summary: this.exportKpiRows("flow1").concat([
+                    { label: "화면 설명", value: oModel.getProperty("/explanationText") },
+                    { label: "선택 코스트센터", value: oSelected.receiverText },
+                    { label: "외부 유입금액", value: this.exportAmount(oSelected.externalAmount) },
+                    { label: "내부 재배부금액", value: this.exportAmount(oSelected.internalAmount) },
+                    { label: "비중", value: oSelected.ratioText },
+                    { label: "전표 건수", value: oSelected.documentCountText }
+                ]),
+                charts: [
+                    {
+                        title: "CCG 수신처 분해 Sankey",
+                        sourceSectionTitle: "선택 CCG 내부 수령처 요약",
+                        html: oModel.getProperty("/sankeyHtml"),
+                        width: 1200,
+                        height: 460,
+                        wide: true
+                    }
+                ],
+                sections: [
+                    this.exportSection("선택 CCG 내부 수령처 요약", oModel.getProperty("/receiverRows"), [
+                        { label: "최종 수령 코스트센터", property: "receiverText" },
+                        { label: "외부 유입금액", value: function (oRow) { return this.exportAmount(oRow.externalAmount); }.bind(this) },
+                        { label: "내부 재배부금액", value: function (oRow) { return this.exportAmount(oRow.internalAmount); }.bind(this) },
+                        { label: "비중", property: "ratioText", type: "text", summary: false },
+                        { label: "주요 세그먼트", property: "segmentText" },
+                        { label: "전표 건수", property: "documentCountText" }
+                    ])
+                ]
+            };
+        },
+
         onInit: function () {
             var oModel = this.createViewModel({
                 pageTitle: "[EverNiture-CO] CCG 수신처 분해",
@@ -314,11 +360,6 @@ sap.ui.define([
             var mRightLinks = {};
             var sCenterId = "C:" + oFilters.selectedCcgId;
             var sSelectedText = this._selectedCcgText(aRows, oFilters.selectedCcgId, oFilters);
-            var mTopExternalIds = this._topIds(aExternalRows, "_senderCcgId", 8);
-            var mTopInternalSenderIds = this._topIds(aRows.filter(function (oRow) {
-                return oRow._senderCcgId === oRow._receiverCcgId;
-            }), "_senderKostl", 10);
-            var mTopRightIds = this._topIds(aRows, "_receiverKostl", 10);
             var aExternalNodes;
             var aCenterNodes;
             var aInternalSenderNodes;
@@ -339,15 +380,12 @@ sap.ui.define([
 
             (aRows || []).forEach(function (oRow) {
                 var bInternal = oRow._senderCcgId === oRow._receiverCcgId;
-                var bTopExternal = !!mTopExternalIds[oRow._senderCcgId];
-                var bTopInternalSender = !!mTopInternalSenderIds[oRow._senderKostl];
-                var bTopRight = !!mTopRightIds[oRow._receiverKostl];
-                var sExternalCcgId = bTopExternal ? oRow._senderCcgId : Flow.GROUP_ETC;
-                var sInternalSenderId = bTopInternalSender ? oRow._senderKostl : Flow.GROUP_ETC;
-                var sReceiverKostl = bTopRight ? oRow._receiverKostl : Flow.GROUP_ETC;
-                var sExternalText = bTopExternal ? oRow._senderCcgText : "기타 CCG";
-                var sInternalSenderText = bTopInternalSender ? oRow._senderKostlText : "기타 송신 코스트센터";
-                var sRightText = bTopRight ? oRow._receiverKostlText : "기타 코스트센터";
+                var sExternalCcgId = oRow._senderCcgId || Flow.GROUP_UNASSIGNED;
+                var sInternalSenderId = oRow._senderKostl || Flow.GROUP_UNASSIGNED;
+                var sReceiverKostl = oRow._receiverKostl || Flow.GROUP_UNASSIGNED;
+                var sExternalText = oRow._senderCcgText || "그룹 미지정";
+                var sInternalSenderText = oRow._senderKostlText || "코스트센터 미지정";
+                var sRightText = oRow._receiverKostlText || "코스트센터 미지정";
                 var sExternalId = "E:" + sExternalCcgId;
                 var sInternalSenderNodeId = "K:" + sInternalSenderId;
                 var sRightId = "R:" + sReceiverKostl;
@@ -356,27 +394,27 @@ sap.ui.define([
                 var sInternalSenderKey = sCenterId + "|" + sInternalSenderNodeId + "|" + oRow._cycle;
                 var sRightKey = sInternalSenderNodeId + "|" + sRightId + "|" + oRow._cycle;
                 var sExternalHash = "";
-                var sReceiverHash = bTopRight ? this._detailHash(oFilters, {
+                var sReceiverHash = this._detailHash(oFilters, {
                     cycle: oRow._cycle,
                     cycleText: oRow._cycleText,
                     receiverCcgId: oRow._receiverCcgId,
                     receiverCcgText: oRow._receiverCcgText,
                     receiverKostl: oRow._receiverKostl,
                     receiverKostlText: oRow._receiverKostlText
-                }) : "";
-                var sSenderHash = bTopInternalSender ? this._detailHash(oFilters, {
+                });
+                var sSenderHash = this._detailHash(oFilters, {
                     cycle: oRow._cycle,
                     cycleText: oRow._cycleText,
                     receiverCcgId: oRow._receiverCcgId,
                     receiverCcgText: oRow._receiverCcgText,
                     senderKostl: oRow._senderKostl,
                     senderKostlText: oRow._senderKostlText
-                }) : "";
+                });
 
-                this._addNode(mRight, sRightId, sRightText, oRow._cycle, oRow._amount, sReceiverHash);
+                this._addNode(mRight, sRightId, sRightText, oRow._cycle, oRow._amount, sReceiverHash, oRow._cycleText);
 
                 if (bInternal) {
-                    this._addNode(mInternalSenders, sInternalSenderNodeId, sInternalSenderText, oRow._cycle, oRow._amount, sSenderHash);
+                    this._addNode(mInternalSenders, sInternalSenderNodeId, sInternalSenderText, oRow._cycle, oRow._amount, sSenderHash, oRow._cycleText);
                     this._addLink(mInternalSenderLinks, sInternalSenderKey, sCenterId, sInternalSenderNodeId, oRow, sSenderHash);
                     this._addLink(mRightLinks, sRightKey, sInternalSenderNodeId, sRightId, oRow, sReceiverHash);
                     return;
@@ -390,7 +428,7 @@ sap.ui.define([
                     receiverCcgId: oRow._receiverCcgId,
                     receiverCcgText: oRow._receiverCcgText
                 });
-                this._addNode(mExternal, sExternalId, sExternalText, oRow._cycle, oRow._amount, sExternalHash);
+                this._addNode(mExternal, sExternalId, sExternalText, oRow._cycle, oRow._amount, sExternalHash, oRow._cycleText);
                 this._addLink(mExternalLinks, sExternalKey, sExternalId, sCenterId, oRow, sExternalHash);
                 this._addLink(mExternalReceiverLinks, sExternalReceiverKey, sCenterId, sRightId, oRow, sReceiverHash);
             }.bind(this));
@@ -501,12 +539,12 @@ sap.ui.define([
             });
         },
 
-        _addNode: function (mNodes, sId, sText, sColorKey, fAmount, sHref) {
+        _addNode: function (mNodes, sId, sText, sColorKey, fAmount, sHref, sColorText) {
             if (!mNodes[sId]) {
                 mNodes[sId] = {
                     id: sId,
                     text: sText,
-                    color: Flow.colorForKey(sColorKey || sId),
+                    color: Flow.colorForStepText(sColorText, sColorKey || sId),
                     amount: 0,
                     href: sHref
                 };
@@ -520,7 +558,7 @@ sap.ui.define([
                     key: sKey,
                     from: sFrom,
                     to: sTo,
-                    color: Flow.colorForKey(oRow._cycle),
+                    color: Flow.colorForStepText(oRow._cycleText, oRow._cycle),
                     colorKey: oRow._cycle,
                     amount: 0,
                     currency: oRow._waers,
@@ -538,7 +576,7 @@ sap.ui.define([
                 });
             }).sort(function (oFirst, oSecond) {
                 return Math.abs(oSecond.amount || 0) - Math.abs(oFirst.amount || 0);
-            }).slice(0, 10);
+            });
         },
 
         _links: function (mLinks) {

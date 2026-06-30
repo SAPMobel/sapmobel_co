@@ -10,6 +10,62 @@ sap.ui.define([
             return "flow0";
         },
 
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("flow0");
+            var oSelectedFlow = oModel.getProperty("/selectedFlow") || {};
+
+            return {
+                title: "[EverNiture-CO] 부서간 배부/정산 분석",
+                fileName: "AllocationFlowOverview",
+                variant: "allocation",
+                description: "부서간 배부 Sankey, KPI, 현재 선택 흐름 및 CCG 그룹 요약 리포트",
+                filters: this.exportFilterRows("flow0", [
+                    { label: "배부사이클", property: "cycle" },
+                    { label: "송신 CCG", property: "senderCcgId" },
+                    { label: "수신 CCG", property: "receiverCcgId" },
+                    { label: "배부기준", property: "skfId" },
+                    { label: "그룹 기준", property: "groupBasis" }
+                ]),
+                summary: this.exportKpiRows("flow0").concat([
+                    { label: "선택 송신 CCG", value: oSelectedFlow.senderText },
+                    { label: "선택 배부사이클", value: oSelectedFlow.cycleText },
+                    { label: "선택 수신 CCG", value: oSelectedFlow.receiverText },
+                    { label: "선택 금액", value: oSelectedFlow.amountText },
+                    { label: "선택 전표 건수", value: oSelectedFlow.documentCountText },
+                    { label: "그룹 기준", value: oSelectedFlow.groupBasisText }
+                ]),
+                charts: [
+                    {
+                        title: "부서간 배부/정산 Sankey",
+                        sourceSectionTitle: "CCG 그룹 요약",
+                        html: oModel.getProperty("/sankeyHtml"),
+                        width: 1200,
+                        height: 520,
+                        wide: true
+                    }
+                ],
+                sections: [
+                    this.exportSection("배부사이클 범례", oModel.getProperty("/cycleLegend"), [
+                        { label: "사이클", property: "cycle" },
+                        { label: "명칭", property: "text" },
+                        { label: "색상", property: "color" }
+                    ]),
+                    this.exportSection("CCG 그룹 요약", oModel.getProperty("/groupSummaryRows"), this._groupSummaryExportColumns())
+                ]
+            };
+        },
+
+        _groupSummaryExportColumns: function () {
+            return [
+                { label: "CCG", property: "ccgId" },
+                { label: "CCG명", property: "ccgText" },
+                { label: "송신금액", value: function (oRow) { return Flow.amountText(oRow.sentAmount, "KRW"); } },
+                { label: "수신금액", value: function (oRow) { return Flow.amountText(oRow.receivedAmount, "KRW"); } },
+                { label: "순액", value: function (oRow) { return Flow.amountText(oRow.netAmount, "KRW"); } },
+                { label: "전표 건수", property: "documentCountText" }
+            ];
+        },
+
         onInit: function () {
             var oModel = this.createViewModel({
                 pageTitle: "[EverNiture-CO] 부서간 배부/정산 분석",
@@ -272,15 +328,23 @@ sap.ui.define([
             var fTotal = this._sum(aRows);
             var mSender = {};
             var mReceiver = {};
-            var oMaxIn = oSummary.rows[0] || {};
+            var oMaxIn;
+            var oMaxOut;
 
             (aRows || []).forEach(function (oRow) {
                 mSender[oRow._senderCcgId] = true;
                 mReceiver[oRow._receiverCcgId] = true;
             });
 
-            oMaxIn = (oSummary.rows || []).slice().sort(function (oFirst, oSecond) {
-                return Math.abs(oSecond.receivedAmount || 0) - Math.abs(oFirst.receivedAmount || 0);
+            oMaxIn = (oSummary.rows || []).filter(function (oRow) {
+                return Flow.toNumber(oRow.netAmount) > 0;
+            }).sort(function (oFirst, oSecond) {
+                return Flow.toNumber(oSecond.netAmount) - Flow.toNumber(oFirst.netAmount);
+            })[0] || {};
+            oMaxOut = (oSummary.rows || []).filter(function (oRow) {
+                return Flow.toNumber(oRow.netAmount) < 0;
+            }).sort(function (oFirst, oSecond) {
+                return Flow.toNumber(oFirst.netAmount) - Flow.toNumber(oSecond.netAmount);
             })[0] || {};
 
             return [
@@ -288,7 +352,8 @@ sap.ui.define([
                 this.createKpi("배부 전표 건수", Flow.amountText(Flow.distinctDocumentCount(aRows)).replace(" KRW", "") + " 건", "", "None", "sap-icon://documents"),
                 this.createKpi("송신 CCG 수", Object.keys(mSender).length + " 개", "", "None", "sap-icon://paper-plane"),
                 this.createKpi("수신 CCG 수", Object.keys(mReceiver).length + " 개", "", "None", "sap-icon://download-from-cloud"),
-                this.createKpi("최대 순유입 CCG", oMaxIn.ccgText || "-", "순 유입 금액 " + Flow.amountText(oMaxIn.netAmount, "KRW"), "None", "sap-icon://competitor")
+                this.createKpi("최대 순유입 CCG", oMaxIn.ccgText || "-", oMaxIn.ccgText ? "순유입 " + Flow.amountText(oMaxIn.netAmount, "KRW") : "-", "Success", "sap-icon://trend-up"),
+                this.createKpi("최대 순유출 CCG", oMaxOut.ccgText || "-", oMaxOut.ccgText ? "순유출 " + Flow.amountText(Math.abs(oMaxOut.netAmount), "KRW") : "-", "Warning", "sap-icon://trend-down")
             ];
         },
 
@@ -299,28 +364,26 @@ sap.ui.define([
             var mSenderCycleLinks = {};
             var mCycleReceiverLinks = {};
             var mPairGroups = {};
-            var mTopSenderIds = this._topIds(aRows, "_senderCcgId", 8);
-            var mTopReceiverIds = this._topIds(aRows, "_receiverCcgId", 8);
             var aPairGroups;
             var oSelectedPair;
+            var aCycleNodes;
+            var mCycleOrder;
             var aColumns;
             var aLinks;
             var mSelections;
 
             (aRows || []).forEach(function (oRow) {
-                var bTopSender = !!mTopSenderIds[oRow._senderCcgId];
-                var bTopReceiver = !!mTopReceiverIds[oRow._receiverCcgId];
-                var sSenderCcgId = bTopSender ? oRow._senderCcgId : Flow.GROUP_ETC;
-                var sReceiverCcgId = bTopReceiver ? oRow._receiverCcgId : Flow.GROUP_ETC;
-                var sSenderText = bTopSender ? oRow._senderCcgText : "기타 CCG";
-                var sReceiverText = bTopReceiver ? oRow._receiverCcgText : "기타 CCG";
+                var sSenderCcgId = oRow._senderCcgId || Flow.GROUP_UNASSIGNED;
+                var sReceiverCcgId = oRow._receiverCcgId || Flow.GROUP_UNASSIGNED;
+                var sSenderText = oRow._senderCcgText || "그룹 미지정";
+                var sReceiverText = oRow._receiverCcgText || "그룹 미지정";
                 var sSenderId = "S:" + sSenderCcgId;
                 var sReceiverId = "R:" + sReceiverCcgId;
                 var sCycleId = "C:" + (oRow._cycle || "NO_CYCLE");
                 var sSenderCycleKey = sSenderId + "|" + sCycleId;
                 var sCycleReceiverKey = sCycleId + "|" + sReceiverId;
                 var sPairKey = oRow._senderCcgId + "|" + oRow._receiverCcgId + "|" + oRow._cycle;
-                var sSenderHash = bTopSender ? this._hash("allocation-flow/detail", {
+                var sSenderHash = this._hash("allocation-flow/detail", {
                     gjahr: oFilters.gjahr,
                     period: oFilters.period,
                     cycle: oFilters.cycle || "",
@@ -329,7 +392,7 @@ sap.ui.define([
                     receiverCcgId: oFilters.receiverCcgId || "",
                     skfId: oFilters.skfId,
                     groupBasis: oFilters.groupBasis
-                }) : "";
+                });
                 var sCycleHash = this._hash("allocation-flow/detail", {
                     gjahr: oFilters.gjahr,
                     period: oFilters.period,
@@ -340,7 +403,7 @@ sap.ui.define([
                     skfId: oFilters.skfId,
                     groupBasis: oFilters.groupBasis
                 });
-                var sSenderCycleHash = bTopSender ? this._hash("allocation-flow/detail", {
+                var sSenderCycleHash = this._hash("allocation-flow/detail", {
                     gjahr: oFilters.gjahr,
                     period: oFilters.period,
                     cycle: oRow._cycle,
@@ -350,12 +413,12 @@ sap.ui.define([
                     receiverCcgId: oFilters.receiverCcgId || "",
                     skfId: oFilters.skfId,
                     groupBasis: oFilters.groupBasis
-                }) : "";
+                });
 
                 this._addAmountGroup(mSenders, sSenderId, {
                     id: sSenderId,
                     text: sSenderText,
-                    color: Flow.colorForKey(oRow._cycle || sSenderCcgId),
+                    color: this._cycleColor(oRow, sSenderCcgId),
                     href: sSenderHash,
                     selectKey: sSenderId,
                     memberCcgId: oRow._senderCcgId
@@ -363,8 +426,8 @@ sap.ui.define([
                 this._addAmountGroup(mReceivers, sReceiverId, {
                     id: sReceiverId,
                     text: sReceiverText,
-                    color: Flow.colorForKey(oRow._cycle || sReceiverCcgId),
-                    href: bTopReceiver ? this._hash("allocation-flow/landing", {
+                    color: this._cycleColor(oRow, sReceiverCcgId),
+                    href: this._hash("allocation-flow/landing", {
                         gjahr: oFilters.gjahr,
                         period: oFilters.period,
                         cycle: oFilters.cycle ? oRow._cycle : "",
@@ -375,14 +438,14 @@ sap.ui.define([
                         receiverCcgText: oRow._receiverCcgText,
                         skfId: oFilters.skfId,
                         groupBasis: oFilters.groupBasis
-                    }) : "",
+                    }),
                     selectKey: sReceiverId,
                     memberCcgId: oRow._receiverCcgId
                 }, oRow);
                 this._addAmountGroup(mCycles, sCycleId, {
                     id: sCycleId,
                     text: oRow._cycleText,
-                    color: Flow.colorForKey(oRow._cycle),
+                    color: this._cycleColor(oRow),
                     href: sCycleHash,
                     selectKey: sCycleId
                 }, oRow);
@@ -398,6 +461,8 @@ sap.ui.define([
             });
             oSelectedPair = aPairGroups[0] || null;
             this._applyEtcGroupHrefs(mSenders, mReceivers, oFilters);
+            aCycleNodes = this._mapCycleNodeGroups(mCycles);
+            mCycleOrder = this._cycleOrderMap(aCycleNodes);
 
             aColumns = [
                 {
@@ -406,13 +471,13 @@ sap.ui.define([
                 },
                 {
                     title: "배부단계",
-                    nodes: this._mapCycleNodeGroups(mCycles),
+                    nodes: aCycleNodes,
                     centerCompact: true,
                     nodeGap: 24
                 },
                 {
                     title: "수신 CCG 그룹",
-                    nodes: this._mapNodeGroups(mReceivers)
+                    nodes: this._mapReceiverNodeGroups(mReceivers, mCycleOrder)
                 }
             ];
             aLinks = this._mapLinkGroups(mSenderCycleLinks).concat(this._mapLinkGroups(mCycleReceiverLinks).map(function (oLink) {
@@ -534,7 +599,7 @@ sap.ui.define([
                     from: sFrom,
                     to: sTo,
                     colorKey: oRow._cycle,
-                    color: Flow.colorForKey(oRow._cycle),
+                    color: this._cycleColor(oRow),
                     currency: oRow._waers,
                     amount: 0,
                     docs: {},
@@ -591,7 +656,31 @@ sap.ui.define([
             }).sort(function (oFirst, oSecond) {
                 return Math.abs(oSecond.amount || 0) - Math.abs(oFirst.amount || 0) ||
                     Flow.clean(oFirst.text).localeCompare(Flow.clean(oSecond.text), "ko");
-            }).slice(0, 12);
+            });
+        },
+
+        _mapReceiverNodeGroups: function (mGroups, mCycleOrder) {
+            return Object.keys(mGroups).map(function (sKey) {
+                var oGroup = mGroups[sKey];
+                var oMeta = this._receiverLayoutMeta(oGroup, mCycleOrder);
+
+                return {
+                    id: oGroup.id,
+                    text: oGroup.text,
+                    subText: Flow.compactAmountText(oGroup.amount) + " KRW",
+                    amount: oGroup.amount,
+                    color: oMeta.color || oGroup.color,
+                    href: oGroup.href,
+                    selectKey: oGroup.selectKey,
+                    sortBucket: oMeta.sortBucket,
+                    sortWeight: oMeta.sortWeight
+                };
+            }.bind(this)).sort(function (oFirst, oSecond) {
+                return oFirst.sortBucket - oSecond.sortBucket ||
+                    oFirst.sortWeight - oSecond.sortWeight ||
+                    Math.abs(oSecond.amount || 0) - Math.abs(oFirst.amount || 0) ||
+                    Flow.clean(oFirst.text).localeCompare(Flow.clean(oSecond.text), "ko");
+            });
         },
 
         _mapCycleNodeGroups: function (mGroups) {
@@ -613,10 +702,62 @@ sap.ui.define([
             });
         },
 
+        _cycleOrderMap: function (aCycleNodes) {
+            var mOrder = {};
+
+            (aCycleNodes || []).forEach(function (oNode, iIndex) {
+                mOrder[oNode.id] = iIndex;
+            });
+
+            return mOrder;
+        },
+
+        _receiverLayoutMeta: function (oGroup, mCycleOrder) {
+            var mAmountsByCycle = {};
+            var mColorsByCycle = {};
+            var fWeighted = 0;
+            var fTotal = 0;
+            var sDominantCycleId = "";
+            var fDominantAmount = 0;
+
+            (oGroup.rows || []).forEach(function (oRow) {
+                var sCycleId = "C:" + (oRow._cycle || "NO_CYCLE");
+                var fAmount = Math.abs(Flow.toNumber(oRow._amount));
+                var iOrder = Object.prototype.hasOwnProperty.call(mCycleOrder || {}, sCycleId) ? mCycleOrder[sCycleId] : 999;
+
+                mAmountsByCycle[sCycleId] = (mAmountsByCycle[sCycleId] || 0) + fAmount;
+                if (!mColorsByCycle[sCycleId]) {
+                    mColorsByCycle[sCycleId] = this._cycleColor(oRow);
+                }
+                fWeighted += iOrder * fAmount;
+                fTotal += fAmount;
+            }.bind(this));
+
+            Object.keys(mAmountsByCycle).forEach(function (sCycleId) {
+                if (mAmountsByCycle[sCycleId] > fDominantAmount) {
+                    fDominantAmount = mAmountsByCycle[sCycleId];
+                    sDominantCycleId = sCycleId;
+                }
+            });
+
+            return {
+                sortBucket: sDominantCycleId && Object.prototype.hasOwnProperty.call(mCycleOrder || {}, sDominantCycleId) ? mCycleOrder[sDominantCycleId] : 999,
+                sortWeight: fTotal ? fWeighted / fTotal : 999,
+                color: mColorsByCycle[sDominantCycleId] || ""
+            };
+        },
+
         _parseStepNo: function (sText) {
             var aMatch = /(\d+)\s*단계/.exec(Flow.clean(sText));
 
             return aMatch ? Number(aMatch[1]) : 999;
+        },
+
+        _cycleColor: function (oRow, sFallbackKey) {
+            return Flow.colorForStepText(
+                oRow && (oRow._cycleText || oRow._cycle),
+                sFallbackKey || (oRow && oRow._cycle)
+            );
         },
 
         _mapLinkGroups: function (mLinks) {
@@ -636,10 +777,10 @@ sap.ui.define([
                     mCycles[oRow._cycle] = {
                         cycle: oRow._cycle,
                         text: oRow._cycleText,
-                        color: Flow.colorForKey(oRow._cycle)
+                        color: this._cycleColor(oRow)
                     };
                 }
-            });
+            }.bind(this));
 
             return Object.keys(mCycles).map(function (sKey) {
                 return mCycles[sKey];

@@ -9,6 +9,39 @@ sap.ui.define([
             return "document";
         },
 
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("document");
+
+            return {
+                title: "[EverNiture-CO] 전표 상세 조회",
+                fileName: "DocumentDetail",
+                variant: "costcenter",
+                description: "전표 헤더, 조회조건, KPI 및 전표 라인 상세 리포트",
+                filters: this.exportFilterRows("document", [
+                    { label: "계정 필터", property: "accountFilterText" },
+                    { label: "기간 범위", property: "periodScope" }
+                ]),
+                summary: this.exportHeaderRows(oModel.getProperty("/header")).concat(this.exportKpiRows("document")),
+                sections: [
+                    this.exportSection("전표 라인", oModel.getProperty("/documentRows"), [
+                        { label: "전표번호", property: "Belnr" },
+                        { label: "전기일자", value: function (oRow) { return this.formatter.date(oRow.Budat); }.bind(this) },
+                        { label: "라인", property: "Docln" },
+                        { label: "코스트센터", property: "Kostl" },
+                        { label: "코스트센터명", property: "KostlTxt" },
+                        { label: "G/L 계정", property: "Saknr" },
+                        { label: "계정명", property: "SaknrTxt" },
+                        { label: "차/대", value: function (oRow) { return this.formatter.drcrkText(oRow.Drcrk, oRow.DrcrkText); }.bind(this) },
+                        { label: "금액", value: function (oRow) { return this.exportAmount(oRow.Amount, oRow.Waers); }.bind(this) },
+                        { label: "통화", property: "Waers" },
+                        { label: "문서유형", property: "DocumentTypeText" },
+                        { label: "흐름", value: function (oRow) { return this.formatter.documentFlowText(oRow.FlowType, oRow.FlowText, oRow.Drcrk, oRow.DocumentTypeText); }.bind(this) },
+                        { label: "텍스트", property: "Sgtxt" }
+                    ])
+                ]
+            };
+        },
+
         onInit: function () {
             this._routeOrgId = "";
             this._routeSaknr = "";
@@ -17,6 +50,7 @@ sap.ui.define([
                 pageTitle: "전표 상세 조회",
                 accountFilter: "",
                 accountFilterText: "",
+                periodScope: "current",
                 accountValueHelpRows: [],
                 accountValueHelpFilteredRows: [],
                 header: {},
@@ -33,6 +67,7 @@ sap.ui.define([
         _onRouteMatched: function (oEvent) {
             var oArgs = oEvent.getParameter("arguments") || {};
             var oModel = this.getView().getModel("document");
+            var sPeriodScope = this.getAppStateModel().getProperty("/documentPeriodScope") || "current";
 
             this._routeOrgId = decodeURIComponent(oArgs.kostl || "");
             this._routeOrgId = this._routeOrgId === "ALL" ? "" : this._routeOrgId;
@@ -48,10 +83,12 @@ sap.ui.define([
                     var oRouteFilters = Object.assign({}, oFilters, {
                         orgNodeId: this._routeOrgId,
                         orgNodeText: "",
-                        saknr: this._routeSaknr
+                        saknr: this._routeSaknr,
+                        periodScope: sPeriodScope
                     });
 
                     oModel.setProperty("/filters", oRouteFilters);
+                    oModel.setProperty("/periodScope", sPeriodScope);
                     oModel.setProperty("/accountFilter", this._routeSaknr);
                     oModel.setProperty("/accountFilterText", this._routeSaknr);
                     return this._loadDocuments(oRouteFilters);
@@ -72,6 +109,7 @@ sap.ui.define([
             }
 
             oFilters.saknr = this.service.normalizeNodeId(this.getView().getModel("document").getProperty("/accountFilter"));
+            oFilters.periodScope = this.getView().getModel("document").getProperty("/periodScope") || "current";
             this._routeOrgId = oFilters.orgNodeId;
             this._routeSaknr = oFilters.saknr;
             this._loadDocuments(oFilters);
@@ -90,8 +128,8 @@ sap.ui.define([
             var oAccountHelpFilters = Object.assign({}, oFilters, {
                 saknr: ""
             });
-            var pDocumentRows = this.service.readDocumentRows(oFilters, true);
-            var pAccountHelpRows = oFilters.saknr ? this.service.readDocumentRows(oAccountHelpFilters, true) : pDocumentRows;
+            var pDocumentRows = this.service.readDocumentRows(oFilters, true, oFilters.periodScope);
+            var pAccountHelpRows = oFilters.saknr ? this.service.readDocumentRows(oAccountHelpFilters, true, oFilters.periodScope) : pDocumentRows;
 
             oModel.setProperty("/busy", true);
             this.setWarning("document", "");
@@ -118,10 +156,11 @@ sap.ui.define([
         _applyDocumentData: function (oFilters, aHierarchyRows, aActualRows, aDocumentRows, aAccountHelpDocumentRows) {
             var oModel = this.getView().getModel("document");
             var oSelectedOrg = this.setHierarchyOptions("document", aHierarchyRows, oFilters.orgNodeId || this._routeOrgId);
-            var aFilteredRows = this.service.filterByOrg(aDocumentRows, "Kostl", oSelectedOrg);
             var aAccountHelpRows = aAccountHelpDocumentRows || aDocumentRows;
-            var aFilteredAccountHelpRows = this.service.filterByOrg(aAccountHelpRows, "Kostl", oSelectedOrg);
             var oTextMaps = this.service.buildCostCenterTextMaps(aHierarchyRows, aActualRows, (aDocumentRows || []).concat(aAccountHelpRows || []));
+            oSelectedOrg = this.applyResolvedOrgSelection("document", oSelectedOrg, oTextMaps);
+            var aFilteredRows = this.service.filterByOrg(aDocumentRows, "Kostl", oSelectedOrg);
+            var aFilteredAccountHelpRows = this.service.filterByOrg(aAccountHelpRows, "Kostl", oSelectedOrg);
             var aOrgMappedRows = this.service.mapDocumentRows(aFilteredRows, oTextMaps);
             var aOrgAccountHelpMappedRows = this.service.mapDocumentRows(aFilteredAccountHelpRows, oTextMaps);
             var aAccountValueHelpRows = this.service.buildAccountValueHelpRows(aOrgAccountHelpMappedRows);
@@ -141,24 +180,25 @@ sap.ui.define([
             }).reduce(function (fTotal, oRow) {
                 return fTotal + Math.abs(oRow.RawAmount || oRow.Amount || 0);
             }, 0);
-            var iDocumentCount = this.service.distinctDocumentCount(aMappedRows);
+            var iDocumentCount = this.service.distinctCostDocumentCount(aMappedRows);
             var oFirst = aMappedRows[0] || {};
+            var sOrgTitle = this.service.buildDepartmentHeaderTitle(oSelectedOrg);
 
             if (!aMappedRows.length) {
                 this.setWarning("document", "전표 상세 데이터가 없습니다.");
             }
 
-            oModel.setProperty("/pageTitle", (oSelectedOrg.nodeText || "전체") + " 전표 상세 조회");
+            oModel.setProperty("/pageTitle", (sOrgTitle || "전체") + " 전표 상세 조회");
             oModel.setProperty("/accountValueHelpRows", aAccountValueHelpRows);
             oModel.setProperty("/accountValueHelpFilteredRows", aAccountValueHelpRows);
             oModel.setProperty("/accountFilter", sSelectedSaknr);
             oModel.setProperty("/accountFilterText", oSelectedAccount ? oSelectedAccount.displayText : (sSelectedSaknr || ""));
             oModel.setProperty("/header", {
-                orgText: oSelectedOrg.nodeText || "전체 조직",
+                orgText: sOrgTitle || "전체 조직",
                 orgCode: oSelectedOrg.childId || "ALL",
                 account: sSelectedSaknr || "전체",
                 accountText: sSelectedSaknr ? (oSelectedAccount && oSelectedAccount.saknrTxt || oFirst.SaknrTxt || "-") : "전체",
-                period: oFilters.gjahr + "년 " + oFilters.period + "월",
+                period: oFilters.gjahr + "년 " + oFilters.period + "월" + (oFilters.periodScope === "cumulative" ? " 누적" : ""),
                 documentCount: iDocumentCount,
                 lineCount: aMappedRows.length,
                 lineCountText: this.formatter.amount(aMappedRows.length) + "건",

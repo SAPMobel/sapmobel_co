@@ -55,6 +55,8 @@
                 <Property Name="prctr_txt" Type="Edm.String" MaxLength="20" sap:label=""/>
                 <Property Name="segment" Type="Edm.String" MaxLength="4" sap:display-format="NonNegative" sap:label=""/>
                 <Property Name="segment_txt" Type="Edm.String" MaxLength="50" sap:label=""/>
+                <Property Name="fkber" Type="Edm.String" MaxLength="16" sap:display-format="UpperCase" sap:label=""/>
+                <Property Name="fkbtx" Type="Edm.String" MaxLength="30" sap:label=""/>
                 <Property Name="amount" Type="Edm.Decimal" Precision="24" Scale="3"/>
                 <Property Name="waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="통화" sap:quickinfo="통화 키" sap:semantics="currency-code"/>
             </EntityType>

@@ -22,8 +22,9 @@
                     <HBox class="ze4PageActions" alignItems="Center">
                         <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
                         <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
-                        <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
                         <Button text="흐름 맵 보기" icon="sap-icon://process" type="Emphasized" press=".onOpenAllocationMap" />
+                        <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel" />
+                        <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf" />
                     </HBox>
                 </HBox>
 

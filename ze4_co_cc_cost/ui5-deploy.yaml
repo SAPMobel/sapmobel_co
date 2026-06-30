@@ -23,3 +23,5 @@ builder:
           transport: EFXK901670
         exclude:
           - /test/
+          - /localService/
+          - "[.]DS_Store$"

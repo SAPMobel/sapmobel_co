@@ -8,6 +8,180 @@ sap.ui.define([
     var BUDGET_VERSION = "BUD";
     var CURRENCY = "KRW";
     var MONTHS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+    var COST_DOCUMENT_KEY_FIELDS = ["Bukrs", "Gjahr", "Monat", "Kostl", "Belnr"];
+    var MANUFACTURING_FLOW_ACCOUNT_MAP = {
+        "800015": true,
+        "800020": true,
+        "800021": true,
+        "800022": true,
+        "800024": true,
+        "800016": true
+    };
+    var PRODUCTION_CLEARING_ACCOUNT_MAP = {
+        "800017": true,
+        "800018": true,
+        "800019": true
+    };
+    var APPLIED_PROCESSING_ACCOUNT_MAP = {
+        "800020": true,
+        "800021": true,
+        "800022": true
+    };
+    var SOURCE_POOL_ACTIVITY_TYPE_MAP = {
+        "800001": "LABOR",
+        "800002": "OVRH",
+        "800003": "LABOR",
+        "800004": "OVRH",
+        "800005": "OVRH",
+        "800006": "OVRH",
+        "800007": "MACH",
+        "800009": "OVRH",
+        "800010": "OVRH",
+        "800011": "OVRH",
+        "800012": "OVRH",
+        "800013": "OVRH",
+        "800014": "OVRH"
+    };
+    var MANUFACTURING_ACCOUNT_META = {
+        "800015": {
+            category: "MANUFACTURING_FLOW",
+            nature: "원재료 투입",
+            detail: "제조원가 흐름에 포함되는 원재료비 계정입니다.",
+            finalManufacturing: true
+        },
+        "800016": {
+            category: "MFG_RECEIPT",
+            nature: "제조입고 차감",
+            detail: "제조부서에서 제품/재고로 원가가 이동된 차감 계정입니다.",
+            finalManufacturing: true
+        },
+        "800017": {
+            category: "PRODUCTION_CLEARING_RECORD",
+            nature: "생산실적 상쇄 기록",
+            detail: "생산실적 표준가공비 차감/상쇄 기록 계정입니다.",
+            finalManufacturing: false
+        },
+        "800018": {
+            category: "PRODUCTION_CLEARING_RECORD",
+            nature: "생산실적 상쇄 기록",
+            detail: "생산실적 표준가공비 차감/상쇄 기록 계정입니다.",
+            finalManufacturing: false
+        },
+        "800019": {
+            category: "PRODUCTION_CLEARING_RECORD",
+            nature: "생산실적 상쇄 기록",
+            detail: "생산실적 표준가공비 차감/상쇄 기록 계정입니다.",
+            finalManufacturing: false
+        },
+        "800020": {
+            category: "APPLIED_PROCESSING",
+            nature: "표준가공비 귀속 - 노무",
+            detail: "생산실적 기준 표준가공비가 귀속된 계정입니다.",
+            finalManufacturing: true
+        },
+        "800021": {
+            category: "APPLIED_PROCESSING",
+            nature: "표준가공비 귀속 - 기계",
+            detail: "생산실적 기준 표준가공비가 귀속된 계정입니다.",
+            finalManufacturing: true
+        },
+        "800022": {
+            category: "APPLIED_PROCESSING",
+            nature: "표준가공비 귀속 - 간접",
+            detail: "생산실적 기준 표준가공비가 귀속된 계정입니다.",
+            finalManufacturing: true
+        },
+        "800023": {
+            category: "PRICE_DIFF",
+            nature: "가격차이",
+            detail: "제조원가 기본 합계에서 제외하고 원장/검증 영역에서 확인합니다.",
+            finalManufacturing: false
+        },
+        "800024": {
+            category: "MANUFACTURING_FLOW",
+            nature: "배부차이",
+            detail: "제조원가 흐름에 포함되는 배부차이 계정입니다.",
+            finalManufacturing: true
+        }
+    };
+    var CLEARING_VALIDATION_PAIRS = [{
+        key: "LABOR",
+        label: "노무비",
+        clearingAccount: "800017",
+        appliedAccount: "800020"
+    }, {
+        key: "MACH",
+        label: "기계경비",
+        clearingAccount: "800018",
+        appliedAccount: "800021"
+    }, {
+        key: "OVRH",
+        label: "간접비",
+        clearingAccount: "800019",
+        appliedAccount: "800022"
+    }];
+    var ACCOUNT_ROLE_MAP = {
+        "800015": {
+            key: "MATERIAL",
+            text: "원재료 투입",
+            detail: "제조원가 흐름 포함",
+            finalManufacturing: true
+        },
+        "800016": {
+            key: "MANUFACTURING_RECEIPT",
+            text: "제조입고 차감",
+            detail: "제조부서에서 제품/재고로 원가 이동",
+            finalManufacturing: true
+        },
+        "800017": {
+            key: "PRODUCTION_CLEARING_RECORD",
+            text: "생산실적 상쇄 기록",
+            detail: "800020 노무비배부와 상쇄 검증",
+            finalManufacturing: false
+        },
+        "800018": {
+            key: "PRODUCTION_CLEARING_RECORD",
+            text: "생산실적 상쇄 기록",
+            detail: "800021 기계경비배부와 상쇄 검증",
+            finalManufacturing: false
+        },
+        "800019": {
+            key: "PRODUCTION_CLEARING_RECORD",
+            text: "생산실적 상쇄 기록",
+            detail: "800022 간접비배부와 상쇄 검증",
+            finalManufacturing: false
+        },
+        "800020": {
+            key: "APPLIED_PROCESSING",
+            text: "표준가공비 귀속 - 노무",
+            detail: "생산실적 기준 표준가공비 귀속",
+            finalManufacturing: true
+        },
+        "800021": {
+            key: "APPLIED_PROCESSING",
+            text: "표준가공비 귀속 - 기계",
+            detail: "생산실적 기준 표준가공비 귀속",
+            finalManufacturing: true
+        },
+        "800022": {
+            key: "APPLIED_PROCESSING",
+            text: "표준가공비 귀속 - 간접",
+            detail: "생산실적 기준 표준가공비 귀속",
+            finalManufacturing: true
+        },
+        "800023": {
+            key: "PRICE_VARIANCE",
+            text: "가격차이",
+            detail: "제조원가 기본 합계 제외",
+            finalManufacturing: false
+        },
+        "800024": {
+            key: "ALLOCATION_VARIANCE",
+            text: "배부차이",
+            detail: "실제 분할원가와 표준/귀속 가공비 차이",
+            finalManufacturing: true
+        }
+    };
     var SERVICE_URLS = {
         actual: "/sap/opu/odata/sap/ZCDS_E4_CO_0023_CDS/",
         hierarchy: "/sap/opu/odata/sap/ZCDS_E4_CO_0024_CDS/",
@@ -19,7 +193,7 @@ sap.ui.define([
     var FALLBACK_ENTITY_SETS = {
         actual: "zcds_e4_co_0023",
         hierarchy: "zcds_e4_co_0024",
-        budget: "zcds_e4_co_0025",
+        budget: "ZCDS_E4_CO_0025",
         document: "zcds_e4_co_0026",
         allocationRule: "",
         allocationResult: ""
@@ -50,6 +224,480 @@ sap.ui.define([
         var fValue = Number(vValue);
 
         return isNaN(fValue) ? 0 : fValue;
+    }
+
+    function accountRoleInfo(vAccount) {
+        var sAccount = normalizeNodeId(vAccount);
+        var iAccount = Number(sAccount);
+        var oMapped = ACCOUNT_ROLE_MAP[sAccount];
+
+        if (oMapped) {
+            return Object.assign({
+                accountRoleKey: oMapped.key,
+                accountRoleText: oMapped.text,
+                accountRoleDetail: oMapped.detail,
+                isFinalManufacturingAccount: !!oMapped.finalManufacturing,
+                isSourceActualAccount: false,
+                isSplitSourceAccount: false
+            }, oMapped);
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800001 && iAccount <= 800014) {
+            return {
+                accountRoleKey: sAccount === "800008" ? "SOURCE_ACTUAL_EXCLUDED" : "SOURCE_ACTUAL",
+                accountRoleText: sAccount === "800008" ? "배부대상 제외 제조비" : "배부대상 제조비",
+                accountRoleDetail: sAccount === "800008" ? "현재 기준 배부대상에서 제외" : "활동단가 산출과 배부의 기준 금액",
+                isFinalManufacturingAccount: false,
+                isSourceActualAccount: true,
+                isSplitSourceAccount: sAccount !== "800008"
+            };
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800017 && iAccount <= 800019) {
+            return {
+                accountRoleKey: "PRODUCTION_ABSORPTION",
+                accountRoleText: "생산실적 차감/흡수",
+                accountRoleDetail: "일반 배부 원천/수신 제외",
+                isFinalManufacturingAccount: false,
+                isSourceActualAccount: false,
+                isSplitSourceAccount: false
+            };
+        }
+
+        if (/^7\d+$/.test(sAccount)) {
+            return {
+                accountRoleKey: "COST_EXPENSE",
+                accountRoleText: "비용 계정",
+                accountRoleDetail: "부서 비용 기본 합계 포함",
+                isFinalManufacturingAccount: false,
+                isSourceActualAccount: false,
+                isSplitSourceAccount: false
+            };
+        }
+
+        if (/^9\d+$/.test(sAccount)) {
+            return {
+                accountRoleKey: "NON_OPERATING_LOSS",
+                accountRoleText: "비용 제외 손실",
+                accountRoleDetail: "부서 비용 기본 합계에서 제외하고 전체 원장에서 확인",
+                isFinalManufacturingAccount: false,
+                isSourceActualAccount: false,
+                isSplitSourceAccount: false
+            };
+        }
+
+        return {
+            accountRoleKey: "OTHER",
+            accountRoleText: "기타",
+            accountRoleDetail: "",
+            isFinalManufacturingAccount: false,
+            isSourceActualAccount: false,
+            isSplitSourceAccount: false
+        };
+    }
+
+    function getManufacturingAccountCategory(vAccount) {
+        var sAccount = normalizeNodeId(vAccount);
+        var iAccount = Number(sAccount);
+        var oMeta = MANUFACTURING_ACCOUNT_META[sAccount];
+
+        if (oMeta) {
+            return Object.assign({
+                account: sAccount,
+                category: oMeta.category,
+                accountNature: oMeta.nature,
+                accountRoleText: oMeta.nature,
+                accountRoleDetail: oMeta.detail,
+                description: oMeta.detail,
+                activityType: SOURCE_POOL_ACTIVITY_TYPE_MAP[sAccount] || "",
+                isFinalManufacturingAccount: !!oMeta.finalManufacturing
+            }, oMeta);
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800001 && iAccount <= 800014) {
+            return {
+                account: sAccount,
+                category: sAccount === "800008" ? "EXCLUDED_SOURCE_POOL" : "SOURCE_POOL",
+                accountNature: sAccount === "800008" ? "배부대상 제외 제조비" : "배부대상 제조비",
+                accountRoleText: sAccount === "800008" ? "배부대상 제외 제조비" : "배부대상 제조비",
+                accountRoleDetail: sAccount === "800008" ? "현재 기준 배부대상 합계에서 제외합니다." : "활동단가 산출과 제조비 배부의 기준 금액입니다.",
+                description: sAccount === "800008" ? "배부대상 합계에서 제외합니다." : "제조원가 흐름 합계에는 직접 포함하지 않고 배부 기준으로 사용합니다.",
+                activityType: SOURCE_POOL_ACTIVITY_TYPE_MAP[sAccount] || "",
+                isFinalManufacturingAccount: false
+            };
+        }
+
+        if (/^7\d+$/.test(sAccount)) {
+            return {
+                account: sAccount,
+                category: "COST_EXPENSE",
+                accountNature: "비용 계정",
+                accountRoleText: "비용 계정",
+                accountRoleDetail: "부서 비용 기본 합계에 포함합니다.",
+                description: "비용 분석 기본 화면에 포함되는 비용 계정입니다.",
+                activityType: "",
+                isFinalManufacturingAccount: false
+            };
+        }
+
+        if (/^9\d+$/.test(sAccount)) {
+            return {
+                account: sAccount,
+                category: "NON_OPERATING_LOSS",
+                accountNature: "비용 제외 손실",
+                accountRoleText: "비용 제외 손실",
+                accountRoleDetail: "자산 처분 등 손실 계정으로 부서 비용 기본 합계에서 제외합니다.",
+                description: "비용 분석 기본 화면에서는 제외하고 전체 계정 원장에서 확인합니다.",
+                activityType: "",
+                isFinalManufacturingAccount: false
+            };
+        }
+
+        return {
+            account: sAccount,
+            category: "OTHER_LEDGER",
+            accountNature: "기타 장부 계정",
+            accountRoleText: "기타 장부 계정",
+            accountRoleDetail: "전체 계정 원장에서 확인합니다.",
+            description: "제조원가 흐름 기본 화면에서는 제외합니다.",
+            activityType: "",
+            isFinalManufacturingAccount: false
+        };
+    }
+
+    function isManufacturingFlowAccount(vAccount) {
+        return !!MANUFACTURING_FLOW_ACCOUNT_MAP[normalizeNodeId(vAccount)];
+    }
+
+    function isProductionClearingRecordAccount(vAccount) {
+        return !!PRODUCTION_CLEARING_ACCOUNT_MAP[normalizeNodeId(vAccount)];
+    }
+
+    function isSourceManufacturingPoolAccount(vAccount) {
+        return !!SOURCE_POOL_ACTIVITY_TYPE_MAP[normalizeNodeId(vAccount)];
+    }
+
+    function isManufacturingReceiptAccount(vAccount) {
+        return normalizeNodeId(vAccount) === "800016";
+    }
+
+    function isCostPerspectiveAccount(vAccount) {
+        var sAccount = normalizeNodeId(vAccount);
+
+        return !/^9\d+$/.test(sAccount);
+    }
+
+    function filterCostPerspectiveRows(aRows, sFieldName) {
+        return (aRows || []).filter(function (oRow) {
+            return isCostPerspectiveAccount(getField(oRow, sFieldName || "saknr"));
+        });
+    }
+
+    function isAppliedProcessingAccount(vAccount) {
+        return !!APPLIED_PROCESSING_ACCOUNT_MAP[normalizeNodeId(vAccount)];
+    }
+
+    function decorateManufacturingAccountRow(oRow) {
+        var sAccount = normalizeNodeId(getField(oRow, "saknr"));
+        var oMeta = getManufacturingAccountCategory(sAccount);
+
+        return Object.assign({}, oRow, {
+            manufacturingCategory: oMeta.category,
+            accountNature: oMeta.accountNature,
+            accountRoleText: oMeta.accountRoleText,
+            accountRoleDetail: oMeta.accountRoleDetail,
+            description: oMeta.description,
+            activityType: oMeta.activityType || "-",
+            isFinalManufacturingAccount: !!oMeta.isFinalManufacturingAccount,
+            isManufacturingFlowAccount: isManufacturingFlowAccount(sAccount),
+            isProductionClearingRecordAccount: isProductionClearingRecordAccount(sAccount),
+            isSourceManufacturingPoolAccount: isSourceManufacturingPoolAccount(sAccount),
+            isManufacturingReceiptAccount: isManufacturingReceiptAccount(sAccount),
+            isAppliedProcessingAccount: isAppliedProcessingAccount(sAccount)
+        });
+    }
+
+    function rankAndRatioRows(aRows, sAmountFieldName) {
+        var fTotalAbs = (aRows || []).reduce(function (fTotal, oRow) {
+            return fTotal + Math.abs(toNumber(getField(oRow, sAmountFieldName || "actualAmount")));
+        }, 0);
+
+        return (aRows || []).map(function (oRow, iIndex) {
+            var fAmount = toNumber(getField(oRow, sAmountFieldName || "actualAmount"));
+            var fRatio = fTotalAbs ? Math.abs(fAmount) / fTotalAbs * 100 : null;
+
+            return Object.assign({}, oRow, {
+                rank: iIndex + 1,
+                chartAmount: Math.abs(fAmount),
+                ratio: fRatio,
+                ratioText: fRatio === null ? "-" : Math.round(fRatio * 10) / 10 + "%"
+            });
+        });
+    }
+
+    function buildManufacturingFlowRows(aRows) {
+        var aFlowRows = (aRows || []).filter(function (oRow) {
+            return isManufacturingFlowAccount(getField(oRow, "saknr"));
+        }).map(decorateManufacturingAccountRow).sort(function (oFirst, oSecond) {
+            return Math.abs(toNumber(getField(oSecond, "actualAmount"))) - Math.abs(toNumber(getField(oFirst, "actualAmount"))) ||
+                clean(getField(oFirst, "saknr")).localeCompare(clean(getField(oSecond, "saknr")));
+        });
+
+        return rankAndRatioRows(aFlowRows, "actualAmount");
+    }
+
+    function buildSourcePoolRows(aRows) {
+        var aPoolRows = (aRows || []).filter(function (oRow) {
+            return isSourceManufacturingPoolAccount(getField(oRow, "saknr"));
+        }).map(decorateManufacturingAccountRow).sort(function (oFirst, oSecond) {
+            return clean(getField(oFirst, "saknr")).localeCompare(clean(getField(oSecond, "saknr")));
+        });
+
+        return rankAndRatioRows(aPoolRows, "actualAmount");
+    }
+
+    function buildLedgerRows(aRows) {
+        var aLedgerRows = (aRows || []).map(decorateManufacturingAccountRow).sort(function (oFirst, oSecond) {
+            return Math.abs(toNumber(getField(oSecond, "actualAmount"))) - Math.abs(toNumber(getField(oFirst, "actualAmount"))) ||
+                clean(getField(oFirst, "saknr")).localeCompare(clean(getField(oSecond, "saknr")));
+        });
+
+        return rankAndRatioRows(aLedgerRows, "actualAmount");
+    }
+
+    function buildClearingValidationRows(aRows) {
+        var mRowsByAccount = {};
+
+        (aRows || []).forEach(function (oRow) {
+            var sAccount = normalizeNodeId(getField(oRow, "saknr"));
+
+            if (sAccount) {
+                mRowsByAccount[sAccount] = decorateManufacturingAccountRow(oRow);
+            }
+        });
+
+        return CLEARING_VALIDATION_PAIRS.map(function (oPair, iIndex) {
+            var oClearingRow = mRowsByAccount[oPair.clearingAccount];
+            var oAppliedRow = mRowsByAccount[oPair.appliedAccount];
+            var fClearingAmount = toNumber(oClearingRow && getField(oClearingRow, "actualAmount"));
+            var fAppliedAmount = toNumber(oAppliedRow && getField(oAppliedRow, "actualAmount"));
+            var fClearingCurrentAmount = toNumber(oClearingRow && getField(oClearingRow, "currentAmount"));
+            var fAppliedCurrentAmount = toNumber(oAppliedRow && getField(oAppliedRow, "currentAmount"));
+            var fNetAmount = fClearingAmount + fAppliedAmount;
+            var sStatusText = fNetAmount === 0 ? "상쇄 완료" : (Math.abs(fNetAmount) <= 1 ? "반올림 차이" : "차이 있음");
+
+            if (!oClearingRow && !oAppliedRow) {
+                return null;
+            }
+
+            return {
+                rank: iIndex + 1,
+                groupKey: oPair.key,
+                groupText: oPair.label,
+                clearingAccount: oPair.clearingAccount,
+                clearingAccountName: oClearingRow ? oClearingRow.saknrTxt : "-",
+                clearingAmount: fClearingAmount,
+                clearingCurrentAmount: fClearingCurrentAmount,
+                appliedAccount: oPair.appliedAccount,
+                appliedAccountName: oAppliedRow ? oAppliedRow.saknrTxt : "-",
+                appliedAmount: fAppliedAmount,
+                appliedCurrentAmount: fAppliedCurrentAmount,
+                netAmount: fNetAmount,
+                currentNetAmount: fClearingCurrentAmount + fAppliedCurrentAmount,
+                statusText: sStatusText,
+                statusState: sStatusText === "상쇄 완료" ? "Success" : (sStatusText === "반올림 차이" ? "Information" : "Warning"),
+                documentCount: toNumber(oClearingRow && getField(oClearingRow, "documentCount")) + toNumber(oAppliedRow && getField(oAppliedRow, "documentCount"))
+            };
+        }).filter(Boolean);
+    }
+
+    function summarizeRows(aRows) {
+        var fActual = sum(aRows, "actualAmount");
+        var fCurrent = sum(aRows, "currentAmount");
+        var fPrevious = sum(aRows, "previousAmount");
+        var fPositive = 0;
+        var fNegative = 0;
+
+        (aRows || []).forEach(function (oRow) {
+            var fAmount = toNumber(getField(oRow, "actualAmount"));
+
+            if (fAmount > 0) {
+                fPositive += fAmount;
+            } else if (fAmount < 0) {
+                fNegative += fAmount;
+            }
+        });
+
+        return {
+            actualAmount: fActual,
+            currentAmount: fCurrent,
+            previousAmount: fPrevious,
+            momAmount: fCurrent - fPrevious,
+            documentCount: sum(aRows, "documentCount"),
+            positiveAmount: fPositive,
+            negativeAmount: fNegative
+        };
+    }
+
+    function buildManufacturingFlowSummary(aRows) {
+        var aDecoratedRows = (aRows || []).map(decorateManufacturingAccountRow);
+        var aInputRows = aDecoratedRows.filter(function (oRow) {
+            var sAccount = normalizeNodeId(getField(oRow, "saknr"));
+
+            return isManufacturingFlowAccount(sAccount) && !isManufacturingReceiptAccount(sAccount);
+        });
+        var aReceiptRows = aDecoratedRows.filter(function (oRow) {
+            return isManufacturingReceiptAccount(getField(oRow, "saknr"));
+        });
+        var aVarianceRows = aDecoratedRows.filter(function (oRow) {
+            return normalizeNodeId(getField(oRow, "saknr")) === "800024";
+        });
+        var fInputAmount = sum(aInputRows, "actualAmount");
+        var fReceiptAmount = sum(aReceiptRows, "actualAmount");
+
+        return Object.assign(summarizeRows(aDecoratedRows.filter(function (oRow) {
+            return isManufacturingFlowAccount(getField(oRow, "saknr"));
+        })), {
+            inputAmount: fInputAmount,
+            receiptAmount: fReceiptAmount,
+            netAmount: fInputAmount + fReceiptAmount,
+            allocationVarianceAmount: sum(aVarianceRows, "actualAmount")
+        });
+    }
+
+    function buildClearingValidationSummary(aRows) {
+        return {
+            clearingAmount: sum(aRows, "clearingAmount"),
+            appliedAmount: sum(aRows, "appliedAmount"),
+            netAmount: sum(aRows, "netAmount"),
+            currentNetAmount: sum(aRows, "currentNetAmount"),
+            documentCount: sum(aRows, "documentCount")
+        };
+    }
+
+    function isProductionOrgSelection(oSelectedOrg) {
+        var sSelectedId = normalizeNodeId(oSelectedOrg && oSelectedOrg.childId);
+        var aIds = oSelectedOrg && oSelectedOrg.descendantIds || [];
+
+        if (!sSelectedId) {
+            return false;
+        }
+
+        return [sSelectedId].concat(aIds).some(function (sId) {
+            return normalizeNodeId(sId).indexOf("CC_PP") === 0;
+        });
+    }
+
+    function isAllocationFlow(oRow) {
+        var sType = clean(getField(oRow, "CostFlowType")).toUpperCase();
+        var sText = [
+            getField(oRow, "CostFlowTypeTxt"),
+            getField(oRow, "BlartTxt"),
+            getField(oRow, "Bktxt"),
+            getField(oRow, "Sgtxt")
+        ].map(clean).join(" ");
+
+        return sType === "ALLOC" || sText.indexOf("배부") > -1;
+    }
+
+    function isSplitFlow(oRow) {
+        var sType = clean(getField(oRow, "CostFlowType")).toUpperCase();
+        var sBlart = clean(getField(oRow, "Blart")).toUpperCase();
+        var sText = [
+            getField(oRow, "CostFlowTypeTxt"),
+            getField(oRow, "BlartTxt"),
+            getField(oRow, "Bktxt"),
+            getField(oRow, "Sgtxt")
+        ].map(clean).join(" ");
+
+        return sType === "SPLIT" || sText.indexOf("분할") > -1 || sBlart === "ZA";
+    }
+
+    function processStepInfo(vAccount, oRow, oRole) {
+        var sAccount = normalizeNodeId(vAccount);
+        var iAccount = Number(sAccount);
+        var bAllocation = isAllocationFlow(oRow);
+        var bSplit = isSplitFlow(oRow);
+        var bFinalRelevant = !!(oRole && oRole.isFinalManufacturingAccount);
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800001 && iAccount <= 800014) {
+            if (bSplit && sAccount !== "800008") {
+                return {
+                    key: "ACTIVITY_SPLIT",
+                    text: "활동유형 분할",
+                    detail: "800001~800014 중 800008 제외 배부대상 금액 분할",
+                    finalManufacturingRelevant: false
+                };
+            }
+
+            if (bAllocation) {
+                return {
+                    key: "INTER_DEPT_ALLOCATION",
+                    text: "부서 간 배부",
+                    detail: "원천 비용 성격을 유지한 책임부서 이동",
+                    finalManufacturingRelevant: false
+                };
+            }
+
+            return {
+                key: sAccount === "800008" ? "SOURCE_COST_EXCLUDED" : "SOURCE_COST",
+                text: "원천 비용 발생",
+                detail: sAccount === "800008" ? "배부대상에서 제외된 제조비" : "실제 발생한 배부대상 제조비",
+                finalManufacturingRelevant: false
+            };
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800017 && iAccount <= 800022) {
+            return {
+                key: "PRODUCTION_ATTRIBUTION",
+                text: "생산실적 귀속",
+                detail: iAccount >= 800020 ? "표준/생산실적 가공비 귀속" : "생산실적 차감/흡수",
+                finalManufacturingRelevant: bFinalRelevant
+            };
+        }
+
+        if (sAccount === "800023") {
+            return {
+                key: "PRICE_VARIANCE",
+                text: "가격차이",
+                detail: "제조원가 메인 합계와 분리 표시",
+                finalManufacturingRelevant: false
+            };
+        }
+
+        if (sAccount === "800024") {
+            return {
+                key: "ALLOCATION_VARIANCE",
+                text: "배부차이",
+                detail: "실제 분할원가와 표준/귀속 가공비 차이",
+                finalManufacturingRelevant: true
+            };
+        }
+
+        if (sAccount === "800015" || sAccount === "800016") {
+            return {
+                key: "FINAL_MFG_COST",
+                text: "최종 제조원가 반영",
+                detail: sAccount === "800016" ? "제조입고 차감" : "원재료비 반영",
+                finalManufacturingRelevant: true
+            };
+        }
+
+        if (bAllocation) {
+            return {
+                key: "INTER_DEPT_ALLOCATION",
+                text: "부서 간 배부",
+                detail: "비용 책임부서 이동",
+                finalManufacturingRelevant: false
+            };
+        }
+
+        return {
+            key: "OTHER",
+            text: "기타",
+            detail: "",
+            finalManufacturingRelevant: bFinalRelevant
+        };
     }
 
     function isUsableTextForCode(sText, sCode) {
@@ -84,11 +732,84 @@ sap.ui.define([
         }, 0);
     }
 
+    function normalizeRoleText(sText) {
+        var sCleanText = clean(sText).replace(/\s+/g, " ");
+
+        if (sCleanText === "매장 창고") {
+            return "매장창고";
+        }
+
+        return sCleanText;
+    }
+
+    function normalizeTextKey(sText) {
+        return normalizeRoleText(sText).replace(/\s+/g, "").toLowerCase();
+    }
+
+    function hasTextPart(sText, sPart) {
+        var sNormalizedText = normalizeTextKey(sText);
+        var sNormalizedPart = normalizeTextKey(sPart);
+
+        return !!sNormalizedText && !!sNormalizedPart && sNormalizedText.indexOf(sNormalizedPart) > -1;
+    }
+
+    function buildHierarchyContextMaps(aHierarchyRows) {
+        var mNodeById = {};
+        var mChildrenByParentId = buildChildrenMap(aHierarchyRows);
+        var mLeafByCostCenterId = {};
+        var mStoreTexts = {};
+        var mRawRoleCounts = {};
+
+        (aHierarchyRows || []).forEach(function (oRow) {
+            var sChildId = normalizeNodeId(getField(oRow, "child_id"));
+            var sNodeType = clean(getField(oRow, "node_type"));
+            var sRawText = clean(getField(oRow, "node_text"));
+            var sRawTextKey = normalizeTextKey(sRawText);
+
+            if (!sChildId) {
+                return;
+            }
+
+            mNodeById[sChildId] = oRow;
+
+            if (sNodeType === "L") {
+                mLeafByCostCenterId[sChildId] = oRow;
+
+                if (sRawTextKey) {
+                    mRawRoleCounts[sRawTextKey] = (mRawRoleCounts[sRawTextKey] || 0) + 1;
+                }
+            }
+        });
+
+        Object.keys(mLeafByCostCenterId).forEach(function (sCostCenterId) {
+            var oLeafRow = mLeafByCostCenterId[sCostCenterId];
+            var sParentId = normalizeNodeId(getField(oLeafRow, "parent_id"));
+            var oParentRow = mNodeById[sParentId];
+            var sParentText = clean(getField(oParentRow, "node_text"));
+
+            if (sParentText && isUsableTextForCode(sParentText, sCostCenterId)) {
+                mStoreTexts[sCostCenterId] = sParentText;
+            }
+        });
+
+        return {
+            nodeById: mNodeById,
+            childrenByParentId: mChildrenByParentId,
+            leafByCostCenterId: mLeafByCostCenterId,
+            storeTexts: mStoreTexts,
+            rawRoleCounts: mRawRoleCounts
+        };
+    }
+
     function buildCostCenterTextMaps(aHierarchyRows, aActualRows, aDocumentRows) {
+        var oHierarchyContext = buildHierarchyContextMaps(aHierarchyRows);
         var mHierarchyTexts = {};
         var mHierarchyManagers = {};
+        var mHierarchyStoreTexts = oHierarchyContext.storeTexts || {};
         var mActualTexts = {};
+        var mActualStoreTexts = {};
         var mDocumentTexts = {};
+        var mDocumentStoreTexts = {};
 
         (aHierarchyRows || []).forEach(function (oRow) {
             var sChildId = normalizeNodeId(getField(oRow, "child_id"));
@@ -107,9 +828,14 @@ sap.ui.define([
         (aActualRows || []).forEach(function (oRow) {
             var sKostl = normalizeNodeId(getField(oRow, "kostl"));
             var sText = clean(getField(oRow, "kostl_txt"));
+            var sStoreText = clean(getField(oRow, "prctr_txt")) || clean(getField(oRow, "PrctrTxt"));
 
             if (sKostl && isUsableTextForCode(sText, sKostl)) {
                 mActualTexts[sKostl] = sText;
+            }
+
+            if (sKostl && isUsableTextForCode(sStoreText, sKostl)) {
+                mActualStoreTexts[sKostl] = sStoreText;
             }
         });
 
@@ -119,6 +845,8 @@ sap.ui.define([
                 [getField(oRow, "SenderKostl"), getField(oRow, "SenderKostlTxt")],
                 [getField(oRow, "ReceiverKostl"), getField(oRow, "ReceiverKostlTxt")]
             ];
+            var sReceiverKostl = normalizeNodeId(getField(oRow, "ReceiverKostl"));
+            var sReceiverStoreText = clean(getField(oRow, "ReceiverPrctrTxt"));
 
             aPairs.forEach(function (aPair) {
                 var sKostl = normalizeNodeId(aPair[0]);
@@ -128,28 +856,155 @@ sap.ui.define([
                     mDocumentTexts[sKostl] = sText;
                 }
             });
+
+            if (sReceiverKostl && isUsableTextForCode(sReceiverStoreText, sReceiverKostl)) {
+                mDocumentStoreTexts[sReceiverKostl] = sReceiverStoreText;
+            }
         });
 
         return {
+            hierarchyContext: oHierarchyContext,
             hierarchyTexts: mHierarchyTexts,
             hierarchyManagers: mHierarchyManagers,
+            hierarchyStoreTexts: mHierarchyStoreTexts,
             actualTexts: mActualTexts,
-            documentTexts: mDocumentTexts
+            actualStoreTexts: mActualStoreTexts,
+            documentTexts: mDocumentTexts,
+            documentStoreTexts: mDocumentStoreTexts,
+            rawRoleCounts: oHierarchyContext.rawRoleCounts || {}
         };
     }
 
-    function resolveCostCenterText(sKostl, sDirectText, oTextMaps) {
+    function resolveRawCostCenterText(sKostl, sDirectText, oTextMaps) {
         var sCode = normalizeNodeId(sKostl);
         var oMaps = oTextMaps || {};
+        var sCleanDirectText = clean(sDirectText);
 
-        if (isUsableTextForCode(sDirectText, sCode)) {
-            return clean(sDirectText);
+        if (isUsableTextForCode(sCleanDirectText, sCode)) {
+            return sCleanDirectText;
         }
 
         return (oMaps.hierarchyTexts && oMaps.hierarchyTexts[sCode]) ||
             (oMaps.documentTexts && oMaps.documentTexts[sCode]) ||
             (oMaps.actualTexts && oMaps.actualTexts[sCode]) ||
-            "-";
+            "";
+    }
+
+    function resolveExplicitStoreText(sKostl, oTextMaps, oRow) {
+        var sCode = normalizeNodeId(sKostl);
+        var oMaps = oTextMaps || {};
+        var sStoreText = (oMaps.hierarchyStoreTexts && oMaps.hierarchyStoreTexts[sCode]) ||
+            (oMaps.documentStoreTexts && oMaps.documentStoreTexts[sCode]) ||
+            (oMaps.actualStoreTexts && oMaps.actualStoreTexts[sCode]) ||
+            "";
+        var sReceiverKostl = normalizeNodeId(getField(oRow, "ReceiverKostl"));
+        var sDirectStoreText = clean(getField(oRow, "storeText")) ||
+            clean(getField(oRow, "prctr_txt")) ||
+            clean(getField(oRow, "PrctrTxt")) ||
+            (sReceiverKostl === sCode ? clean(getField(oRow, "ReceiverPrctrTxt")) : "");
+
+        if (!sCode) {
+            return "";
+        }
+
+        if (sStoreText) {
+            return sStoreText;
+        }
+
+        return isUsableTextForCode(sDirectStoreText, sCode) ? sDirectStoreText : "";
+    }
+
+    function resolveStoreText(sKostl, oTextMaps, sRawText, oRow) {
+        var sCode = normalizeNodeId(sKostl);
+        var sExplicitStoreText = resolveExplicitStoreText(sCode, oTextMaps, oRow);
+
+        return sExplicitStoreText || clean(sRawText) || sCode || "-";
+    }
+
+    function shouldComposeCostCenterDisplay(sKostl, sRawText, sStoreText, oTextMaps, bHasExplicitStoreText) {
+        var oMaps = oTextMaps || {};
+        var sRawKey = normalizeTextKey(sRawText);
+        var mRawRoleCounts = oMaps.rawRoleCounts || {};
+        var bHasRoleCountData = Object.keys(mRawRoleCounts).length > 0;
+
+        if (!bHasExplicitStoreText || !sRawText || !sStoreText) {
+            return false;
+        }
+
+        if (normalizeTextKey(sRawText) === normalizeTextKey(sStoreText) ||
+                hasTextPart(sRawText, sStoreText) ||
+                hasTextPart(sStoreText, sRawText)) {
+            return false;
+        }
+
+        return !bHasRoleCountData || (mRawRoleCounts[sRawKey] || 0) > 1;
+    }
+
+    function resolveCostCenterContext(sKostl, sDirectText, oTextMaps, oRow) {
+        var sCode = normalizeNodeId(sKostl);
+        var oMaps = oTextMaps || {};
+        var sRawText = resolveRawCostCenterText(sCode, sDirectText, oMaps);
+        var sExplicitStoreText = resolveExplicitStoreText(sCode, oMaps, oRow);
+        var sStoreText = resolveStoreText(sCode, oMaps, sRawText, oRow);
+        var sDisplayText = sRawText || sStoreText || sCode || "-";
+
+        if (shouldComposeCostCenterDisplay(sCode, sRawText, sStoreText, oMaps, !!sExplicitStoreText)) {
+            sDisplayText = sStoreText + " " + normalizeRoleText(sRawText);
+        } else if (!sRawText && sStoreText) {
+            sDisplayText = sStoreText;
+        }
+
+        return {
+            code: sCode,
+            rawCostCenterText: sRawText,
+            storeText: sStoreText,
+            displayCostCenterText: sDisplayText,
+            usesStoreDisplay: !!(sRawText && sStoreText && sDisplayText !== sRawText),
+            costCenterTooltip: buildCostCenterTooltip(sRawText, sStoreText, sDisplayText)
+        };
+    }
+
+    function resolveCostCenterText(sKostl, sDirectText, oTextMaps) {
+        return resolveCostCenterContext(sKostl, sDirectText, oTextMaps).displayCostCenterText;
+    }
+
+    function resolveOrgSelectionText(oSelectedOrg, oTextMaps) {
+        var sCode = normalizeNodeId(oSelectedOrg && oSelectedOrg.childId);
+        var oContext;
+
+        if (!oSelectedOrg || !sCode || oSelectedOrg.nodeType !== "L") {
+            return oSelectedOrg;
+        }
+
+        oContext = resolveCostCenterContext(sCode, oSelectedOrg.rawCostCenterText || oSelectedOrg.nodeText, oTextMaps, oSelectedOrg);
+
+        return Object.assign({}, oSelectedOrg, oContext, {
+            nodeText: oContext.displayCostCenterText
+        });
+    }
+
+    function buildCostCenterTooltip(sRawText, sStoreText, sDisplayText) {
+        if (sRawText && sStoreText && normalizeTextKey(sRawText) !== normalizeTextKey(sStoreText) && sDisplayText !== sRawText) {
+            return "원 코스트센터명: " + sRawText + "\n상위 점포: " + sStoreText;
+        }
+
+        return sDisplayText || sRawText || sStoreText || "-";
+    }
+
+    function buildDepartmentHeaderTitle(oSelection) {
+        if (!oSelection || !oSelection.childId) {
+            return "전체";
+        }
+
+        if (oSelection.nodeType === "L" && oSelection.storeText && oSelection.usesStoreDisplay) {
+            return oSelection.storeText;
+        }
+
+        return oSelection.displayCostCenterText || oSelection.nodeText || oSelection.childId || "-";
+    }
+
+    function buildDepartmentPageTitle(oSelection) {
+        return buildDepartmentHeaderTitle(oSelection) + " 비용 상세 분석";
     }
 
     function escapeODataString(sValue) {
@@ -221,6 +1076,33 @@ sap.ui.define([
 
             return [];
         });
+    }
+
+    function readODataJsonPaged(sUrl, oData, iPageSize) {
+        var iSize = iPageSize || 10000;
+        var aRows = [];
+
+        function readPage(iSkip) {
+            var oPageData = Object.assign({}, oData, {
+                $top: iSize
+            });
+
+            if (iSkip > 0) {
+                oPageData.$skip = iSkip;
+            }
+
+            return readODataJson(sUrl, oPageData).then(function (aPageRows) {
+                aRows = aRows.concat(aPageRows);
+
+                if (aPageRows.length === iSize) {
+                    return readPage(iSkip + iSize);
+                }
+
+                return aRows;
+            });
+        }
+
+        return readPage(0);
     }
 
     function resolveEntitySet(sServiceUrl, sToken, sFallback) {
@@ -308,6 +1190,7 @@ sap.ui.define([
                 period: normalizeMonth(String(oToday.getMonth() + 1)),
                 orgNodeId: "",
                 orgNodeText: "",
+                saknr: "",
                 waers: CURRENCY,
                 budgetVersion: BUDGET_VERSION
             };
@@ -320,6 +1203,7 @@ sap.ui.define([
 
         addEqFilterPart(aFilterParts, "bukrs", "0001");
         addEqFilterPart(aFilterParts, "gjahr", oFilters.gjahr);
+        addEqFilterPart(aFilterParts, "saknr", oFilters.saknr);
 
         oRequestData = createRequestDataWithFilter(aFilterParts);
         oRequestData.$top = 10000;
@@ -338,6 +1222,7 @@ sap.ui.define([
         addEqFilterPart(aFilterParts, "bukrs", "0001");
         addEqFilterPart(aFilterParts, "gjahr", String(Number(oFilters.gjahr) - 1));
         addEqFilterPart(aFilterParts, "monat", "12");
+        addEqFilterPart(aFilterParts, "saknr", oFilters.saknr);
 
         oRequestData = createRequestDataWithFilter(aFilterParts);
         oRequestData.$top = 10000;
@@ -352,6 +1237,7 @@ sap.ui.define([
         addEqFilterPart(aFilterParts, "Bukrs", "0001");
         addEqFilterPart(aFilterParts, "Gjahr", oFilters.gjahr);
         addEqFilterPart(aFilterParts, "Versn", BUDGET_VERSION);
+        addEqFilterPart(aFilterParts, "Saknr", oFilters.saknr);
 
         oRequestData = createRequestDataWithFilter(aFilterParts);
         oRequestData.$top = 10000;
@@ -359,24 +1245,26 @@ sap.ui.define([
         return readODataJson(SERVICE_URLS.budget + mEntitySets.budget, oRequestData);
     }
 
-    function readHierarchyRows() {
+    function readHierarchyRows(sSetName) {
         var aFilterParts = [];
         var oRequestData;
 
-        addEqFilterPart(aFilterParts, "setnam", "CCSH1000");
+        addEqFilterPart(aFilterParts, "setnam", sSetName || "CCSH1000");
         oRequestData = createRequestDataWithFilter(aFilterParts);
         oRequestData.$top = 10000;
 
         return readODataJson(SERVICE_URLS.hierarchy + mEntitySets.hierarchy, oRequestData);
     }
 
-    function readDocumentRows(oFilters, bDetailMode) {
+    function readDocumentRows(oFilters, bDetailMode, sPeriodScope) {
         var aFilterParts = [];
         var oRequestData;
+        var bCumulativeScope = sPeriodScope === "cumulative";
 
         addEqFilterPart(aFilterParts, "Bukrs", "0001");
         addEqFilterPart(aFilterParts, "Gjahr", oFilters.gjahr);
-        if (bDetailMode) {
+
+        if (bDetailMode && !bCumulativeScope) {
             addEqFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
         } else {
             addLeFilterPart(aFilterParts, "Monat", normalizeMonth(oFilters.period));
@@ -387,13 +1275,13 @@ sap.ui.define([
         }
 
         oRequestData = createRequestDataWithFilter(aFilterParts);
-        oRequestData.$top = bDetailMode ? 20000 : 10000;
+        oRequestData.$orderby = "Bukrs,Gjahr,Monat,Kostl,Belnr,Docln";
 
         if (!bDetailMode) {
-            oRequestData.$select = "Bukrs,Gjahr,Belnr,Monat,Kostl,Saknr,Amount";
+            oRequestData.$select = "Bukrs,Gjahr,Belnr,Docln,Monat,Kostl,KostlTxt,SenderKostl,SenderKostlTxt,ReceiverKostl,ReceiverKostlTxt,ReceiverPrctr,ReceiverPrctrTxt,Saknr,Amount";
         }
 
-        return readODataJson(SERVICE_URLS.document + mEntitySets.document, oRequestData);
+        return readODataJsonPaged(SERVICE_URLS.document + mEntitySets.document, oRequestData, 10000);
     }
 
     function readAllocationRuleRows() {
@@ -522,16 +1410,23 @@ sap.ui.define([
         return aOrderedRows;
     }
 
-    function mapHierarchyRowToOption(oRow, mChildrenByParent) {
+    function mapHierarchyRowToOption(oRow, mChildrenByParent, oTextMaps) {
         var sChildId = normalizeNodeId(getField(oRow, "child_id"));
         var iLevel = Math.max(0, Number(getField(oRow, "hlevel") || 1) - 1);
-        var sNodeText = clean(getField(oRow, "node_text")) || sChildId;
+        var sRawNodeText = clean(getField(oRow, "node_text")) || sChildId;
         var sNodeType = clean(getField(oRow, "node_type"));
         var aChildren = mChildrenByParent && mChildrenByParent[sChildId] || [];
+        var oContext = sNodeType === "L" ? resolveCostCenterContext(sChildId, sRawNodeText, oTextMaps) : {};
+        var sNodeText = sNodeType === "L" ? oContext.displayCostCenterText : sRawNodeText;
 
         return {
             childId: sChildId,
             nodeText: sNodeText,
+            rawCostCenterText: oContext.rawCostCenterText || (sNodeType === "L" ? sRawNodeText : ""),
+            storeText: oContext.storeText || "",
+            displayCostCenterText: oContext.displayCostCenterText || sNodeText,
+            usesStoreDisplay: !!oContext.usesStoreDisplay,
+            costCenterTooltip: oContext.costCenterTooltip || sNodeText,
             hlevel: iLevel,
             levelText: "L" + (iLevel + 1),
             nodeType: sNodeType,
@@ -547,15 +1442,17 @@ sap.ui.define([
     function buildHierarchyOptions(aHierarchyRows) {
         var mChildrenByParent = buildChildrenMap(aHierarchyRows);
         var aOrderedRows = orderHierarchyRows(aHierarchyRows, mChildrenByParent);
+        var oTextMaps = buildCostCenterTextMaps(aHierarchyRows, [], []);
 
         return aOrderedRows.map(function (oRow) {
-            return mapHierarchyRowToOption(oRow, mChildrenByParent);
+            return mapHierarchyRowToOption(oRow, mChildrenByParent, oTextMaps);
         });
     }
 
     function buildHierarchyOptionTree(aHierarchyRows) {
         var mChildrenByParent = buildChildrenMap(aHierarchyRows);
         var aOrderedRows = orderHierarchyRows(aHierarchyRows, mChildrenByParent);
+        var oTextMaps = buildCostCenterTextMaps(aHierarchyRows, [], []);
         var mNodes = {};
         var aRoots = [];
         var mHasParent = {};
@@ -564,7 +1461,7 @@ sap.ui.define([
             var sChildId = normalizeNodeId(getField(oRow, "child_id"));
 
             if (sChildId) {
-                mNodes[sChildId] = mapHierarchyRowToOption(oRow, mChildrenByParent);
+                mNodes[sChildId] = mapHierarchyRowToOption(oRow, mChildrenByParent, oTextMaps);
             }
         });
 
@@ -602,6 +1499,8 @@ sap.ui.define([
 
         function matches(oNode) {
             return clean(oNode.nodeText).toLowerCase().indexOf(sNormalizedQuery) > -1 ||
+                clean(oNode.rawCostCenterText).toLowerCase().indexOf(sNormalizedQuery) > -1 ||
+                clean(oNode.storeText).toLowerCase().indexOf(sNormalizedQuery) > -1 ||
                 clean(oNode.childId).toLowerCase().indexOf(sNormalizedQuery) > -1 ||
                 clean(oNode.manager).toLowerCase().indexOf(sNormalizedQuery) > -1;
         }
@@ -636,6 +1535,11 @@ sap.ui.define([
             return {
                 childId: sNormalizedOrgId,
                 nodeText: sNormalizedOrgId,
+                rawCostCenterText: "",
+                storeText: sNormalizedOrgId,
+                displayCostCenterText: sNormalizedOrgId,
+                usesStoreDisplay: false,
+                costCenterTooltip: sNormalizedOrgId,
                 manager: "",
                 hlevel: 0,
                 descendantIds: [sNormalizedOrgId],
@@ -646,6 +1550,11 @@ sap.ui.define([
         return {
             childId: "",
             nodeText: "",
+            rawCostCenterText: "",
+            storeText: "",
+            displayCostCenterText: "",
+            usesStoreDisplay: false,
+            costCenterTooltip: "",
             manager: "",
             hlevel: 0,
             descendantIds: [],
@@ -688,13 +1597,19 @@ sap.ui.define([
         });
     }
 
-    function distinctDocumentCount(aRows) {
+    function buildDocumentKey(oRow, aKeyFields) {
+        return (aKeyFields || ["Bukrs", "Gjahr", "Belnr"]).map(function (sFieldName) {
+            return clean(getField(oRow, sFieldName));
+        }).join("|");
+    }
+
+    function distinctDocumentCount(aRows, aKeyFields) {
         var mDocuments = {};
 
         (aRows || []).forEach(function (oRow) {
-            var sKey = [getField(oRow, "Bukrs"), getField(oRow, "Gjahr"), getField(oRow, "Belnr")].map(clean).join("|");
+            var sKey = buildDocumentKey(oRow, aKeyFields);
 
-            if (sKey !== "||") {
+            if (sKey.replace(/\|/g, "")) {
                 mDocuments[sKey] = true;
             }
         });
@@ -702,15 +1617,15 @@ sap.ui.define([
         return Object.keys(mDocuments).length;
     }
 
-    function documentCountsByField(aRows, sFieldName) {
+    function documentCountsByField(aRows, sFieldName, aKeyFields) {
         var mCounts = {};
         var mDocsByGroup = {};
 
         (aRows || []).forEach(function (oRow) {
             var sGroupKey = normalizeNodeId(getField(oRow, sFieldName));
-            var sDocKey = [getField(oRow, "Bukrs"), getField(oRow, "Gjahr"), getField(oRow, "Belnr")].map(clean).join("|");
+            var sDocKey = buildDocumentKey(oRow, aKeyFields);
 
-            if (!sGroupKey || sDocKey === "||") {
+            if (!sGroupKey || !sDocKey.replace(/\|/g, "")) {
                 return;
             }
 
@@ -729,7 +1644,15 @@ sap.ui.define([
     }
 
     function documentCountsByMonth(aRows) {
-        return documentCountsByField(aRows, "Monat");
+        return documentCountsByField(aRows, "Monat", COST_DOCUMENT_KEY_FIELDS);
+    }
+
+    function distinctCostDocumentCount(aRows) {
+        return distinctDocumentCount(aRows, COST_DOCUMENT_KEY_FIELDS);
+    }
+
+    function costDocumentCountsByField(aRows, sFieldName) {
+        return documentCountsByField(aRows, sFieldName, COST_DOCUMENT_KEY_FIELDS);
     }
 
     function currentDocumentRows(aRows, sPeriod) {
@@ -737,6 +1660,93 @@ sap.ui.define([
 
         return (aRows || []).filter(function (oRow) {
             return normalizeMonth(getField(oRow, "Monat")) === sNormalizedPeriod;
+        });
+    }
+
+    function uniqueNormalizedValues(aRows, sFieldName) {
+        var mValues = {};
+
+        (aRows || []).forEach(function (oRow) {
+            var sValue = normalizeNodeId(getField(oRow, sFieldName));
+
+            if (sValue) {
+                mValues[sValue] = true;
+            }
+        });
+
+        return Object.keys(mValues);
+    }
+
+    function textOrCode(sText, sCode) {
+        var sCleanText = clean(sText);
+        var sCleanCode = clean(sCode);
+
+        if (sCleanText && sCleanCode && sCleanText !== sCleanCode) {
+            return sCleanCode + " " + sCleanText;
+        }
+
+        return sCleanText || sCleanCode || "-";
+    }
+
+    function getFunctionalAreaKey(oRow) {
+        return normalizeNodeId(getField(oRow, "fkber") || getField(oRow, "FKBER"));
+    }
+
+    function getFunctionalAreaText(oRow) {
+        return clean(getField(oRow, "fkber_txt")) ||
+            clean(getField(oRow, "fkbtx")) ||
+            clean(getField(oRow, "fkberTxt")) ||
+            clean(getField(oRow, "FkberTxt")) ||
+            clean(getField(oRow, "FKBER_TXT")) ||
+            clean(getField(oRow, "FKBTX"));
+    }
+
+    function hasFunctionalAreaField(aRows) {
+        return (aRows || []).some(function (oRow) {
+            return !!getFunctionalAreaKey(oRow);
+        });
+    }
+
+    function costCenterContextByKostl(aRows) {
+        var mRows = {};
+
+        (aRows || []).forEach(function (oRow) {
+            var sKostl = normalizeNodeId(getField(oRow, "kostl") || getField(oRow, "Kostl"));
+
+            if (!sKostl || mRows[sKostl]) {
+                return;
+            }
+
+            mRows[sKostl] = {
+                prctr: normalizeNodeId(getField(oRow, "prctr")),
+                prctrTxt: clean(getField(oRow, "prctr_txt")),
+                segment: clean(getField(oRow, "segment")),
+                segmentTxt: clean(getField(oRow, "segment_txt")),
+                fkber: getFunctionalAreaKey(oRow),
+                fkberTxt: getFunctionalAreaText(oRow)
+            };
+        });
+
+        return mRows;
+    }
+
+    function filterDocumentsByCostCenters(aDocumentRows, aActualRows) {
+        var mKostls = {};
+
+        (aActualRows || []).forEach(function (oRow) {
+            var sKostl = normalizeNodeId(getField(oRow, "kostl"));
+
+            if (sKostl) {
+                mKostls[sKostl] = true;
+            }
+        });
+
+        if (!Object.keys(mKostls).length) {
+            return [];
+        }
+
+        return (aDocumentRows || []).filter(function (oRow) {
+            return !!mKostls[normalizeNodeId(getField(oRow, "Kostl"))];
         });
     }
 
@@ -748,6 +1758,7 @@ sap.ui.define([
             var sSaknrTxt = clean(getField(oRow, "SaknrTxt")) || "-";
             var sKtoks = clean(getField(oRow, "Ktoks"));
             var sKtoksTxt = clean(getField(oRow, "KtoksTxt")) || "-";
+            var oRole = accountRoleInfo(sSaknr);
 
             if (!sSaknr || mAccounts[sSaknr]) {
                 return;
@@ -758,8 +1769,11 @@ sap.ui.define([
                 saknrTxt: sSaknrTxt,
                 ktoks: sKtoks,
                 ktoksTxt: sKtoksTxt,
+                accountRoleKey: oRole.accountRoleKey,
+                accountRoleText: oRole.accountRoleText,
+                accountRoleDetail: oRole.accountRoleDetail,
                 displayText: sSaknr + " " + sSaknrTxt,
-                searchText: [sSaknr, sSaknrTxt, sKtoksTxt].join(" ").toLowerCase()
+                searchText: [sSaknr, sSaknrTxt, sKtoksTxt, oRole.accountRoleText, oRole.accountRoleDetail].join(" ").toLowerCase()
             };
         });
 
@@ -841,9 +1855,10 @@ sap.ui.define([
                 return fTotal + toNumber(oChild.amount);
             }, 0);
             var fAmount = fOwnAmount + fChildrenAmount;
-            var sNodeText = oNode.nodeType === "L" ? resolveCostCenterText(oNode.childId, oNode.nodeText, mTextMaps) : (oNode.nodeText || oNode.childId);
+            var oContext = oNode.nodeType === "L" ? resolveCostCenterContext(oNode.childId, oNode.rawCostCenterText || oNode.nodeText, mTextMaps, oNode) : {};
+            var sNodeText = oNode.nodeType === "L" ? oContext.displayCostCenterText : (oNode.nodeText || oNode.childId);
 
-            return Object.assign({}, oNode, {
+            return Object.assign({}, oNode, oContext, {
                 nodeText: sNodeText,
                 manager: oNode.manager || mTextMaps.hierarchyManagers[oNode.childId] || "-",
                 amount: fAmount,
@@ -894,6 +1909,7 @@ sap.ui.define([
             var sSaknr = normalizeNodeId(getField(oRow, "saknr")) || "미지정";
             var sSaknrTxt = clean(getField(oRow, "saknr_txt")) || "-";
             var sKey = sSaknr + "|" + sSaknrTxt;
+            var oRole = accountRoleInfo(sSaknr);
 
             if (!mGroups[sKey]) {
                 mGroups[sKey] = {
@@ -901,6 +1917,12 @@ sap.ui.define([
                     accountName: sSaknrTxt,
                     accountLabel: sSaknrTxt,
                     includedSaknrs: [sSaknr],
+                    accountRoleKey: oRole.accountRoleKey,
+                    accountRoleText: oRole.accountRoleText,
+                    accountRoleDetail: oRole.accountRoleDetail,
+                    isFinalManufacturingAccount: oRole.isFinalManufacturingAccount,
+                    isSourceActualAccount: oRole.isSourceActualAccount,
+                    isSplitSourceAccount: oRole.isSplitSourceAccount,
                     amount: 0
                 };
             }
@@ -929,6 +1951,12 @@ sap.ui.define([
                 includedSaknrs: aEtcGroups.map(function (oGroup) {
                     return oGroup.saknr;
                 }),
+                accountRoleKey: "MIXED",
+                accountRoleText: "복합",
+                accountRoleDetail: "여러 계정 성격 포함",
+                isFinalManufacturingAccount: false,
+                isSourceActualAccount: false,
+                isSplitSourceAccount: false,
                 amount: fEtcAmount
             });
         }
@@ -937,6 +1965,7 @@ sap.ui.define([
             var fRatio = fTotal ? Math.abs(oGroup.amount) / fTotal * 100 : 0;
 
             return Object.assign(oGroup, {
+                chartAmount: Math.abs(oGroup.amount || 0),
                 ratio: fRatio,
                 ratioText: Math.round(fRatio * 10) / 10 + "%"
             });
@@ -960,11 +1989,12 @@ sap.ui.define([
 
     function aggregateCostCenters(aActualRows, aBudgetRows, aCurrentRows, aPreviousRows, aHierarchyRows, aDocumentRows) {
         var mTextMaps = buildCostCenterTextMaps(aHierarchyRows, aActualRows, aDocumentRows);
+        var mCostCenterContext = costCenterContextByKostl(aActualRows);
         var mBudget = {};
         var mCurrent = {};
         var mPrevious = {};
         var bHasPreviousRows = (aPreviousRows || []).length > 0;
-        var mDocuments = documentCountsByField(aDocumentRows, "Kostl");
+        var mDocuments = costDocumentCountsByField(aDocumentRows, "Kostl");
         var mRows = {};
 
         (aBudgetRows || []).forEach(function (oRow) {
@@ -993,18 +2023,46 @@ sap.ui.define([
 
         (aActualRows || []).forEach(function (oRow) {
             var sKostl = normalizeNodeId(getField(oRow, "kostl"));
+            var oContext;
 
             if (!sKostl) {
                 return;
             }
 
             if (!mRows[sKostl]) {
+                oContext = resolveCostCenterContext(sKostl, getField(oRow, "kostl_txt"), mTextMaps, oRow);
                 mRows[sKostl] = {
                     kostl: sKostl,
-                    kostlTxt: resolveCostCenterText(sKostl, getField(oRow, "kostl_txt"), mTextMaps),
+                    kostlTxt: oContext.displayCostCenterText,
+                    rawCostCenterText: oContext.rawCostCenterText,
+                    storeText: oContext.storeText,
+                    displayCostCenterText: oContext.displayCostCenterText,
+                    usesStoreDisplay: oContext.usesStoreDisplay,
+                    costCenterTooltip: oContext.costCenterTooltip,
                     manager: mTextMaps.hierarchyManagers[sKostl] || "-",
+                    prctr: "",
+                    prctrTxt: "",
+                    segment: "",
+                    segmentTxt: "",
+                    fkber: "",
+                    fkberTxt: "",
                     actualAmount: 0
                 };
+            }
+
+            if (!mRows[sKostl].prctr && normalizeNodeId(getField(oRow, "prctr"))) {
+                mRows[sKostl].prctr = normalizeNodeId(getField(oRow, "prctr"));
+                mRows[sKostl].prctrTxt = clean(getField(oRow, "prctr_txt"));
+            }
+
+            if (!mRows[sKostl].segment && clean(getField(oRow, "segment"))) {
+                mRows[sKostl].segment = clean(getField(oRow, "segment"));
+                mRows[sKostl].segmentTxt = clean(getField(oRow, "segment_txt"));
+            }
+
+            if (!mRows[sKostl].fkber && getFunctionalAreaKey(oRow)) {
+                mRows[sKostl].fkber = getFunctionalAreaKey(oRow);
+                mRows[sKostl].fkberTxt = getFunctionalAreaText(oRow);
             }
 
             mRows[sKostl].actualAmount += toNumber(getField(oRow, "amount"));
@@ -1012,6 +2070,7 @@ sap.ui.define([
 
         return Object.keys(mRows).map(function (sKostl) {
             var oRow = mRows[sKostl];
+            var oCostCenterContext = mCostCenterContext[sKostl] || {};
             var fBudget = mBudget[sKostl] || 0;
             var bHasBudget = fBudget > 0;
             var fVariance = bHasBudget ? oRow.actualAmount - fBudget : null;
@@ -1028,6 +2087,15 @@ sap.ui.define([
                 varianceRate: fVarianceRate,
                 momAmount: fMom,
                 documentCount: mDocuments[sKostl] || 0,
+                prctr: oRow.prctr || oCostCenterContext.prctr || "",
+                prctrTxt: oRow.prctrTxt || oCostCenterContext.prctrTxt || "",
+                prctrDisplayText: textOrCode(oRow.prctrTxt || oCostCenterContext.prctrTxt, oRow.prctr || oCostCenterContext.prctr),
+                segment: oRow.segment || oCostCenterContext.segment || "",
+                segmentTxt: oRow.segmentTxt || oCostCenterContext.segmentTxt || "",
+                segmentDisplayText: textOrCode(oRow.segmentTxt || oCostCenterContext.segmentTxt, oRow.segment || oCostCenterContext.segment),
+                fkber: oRow.fkber || oCostCenterContext.fkber || "",
+                fkberTxt: oRow.fkberTxt || oCostCenterContext.fkberTxt || "",
+                fkberDisplayText: textOrCode(oRow.fkberTxt || oCostCenterContext.fkberTxt, oRow.fkber || oCostCenterContext.fkber),
                 statusText: sStatus,
                 statusState: sStatus === "주의" ? "Warning" : (sStatus === "정상" ? "Success" : "None"),
                 varianceState: !bHasBudget || fVariance === 0 || fVariance === null ? "None" : (fVariance > 0 ? "Error" : "Success"),
@@ -1043,12 +2111,14 @@ sap.ui.define([
     }
 
     function aggregateAccounts(aActualRows, aBudgetRows, aCurrentRows, aPreviousRows, aDocumentRows) {
-        var fTotal = sum(aActualRows, "amount");
+        var fTotalAbs = (aActualRows || []).reduce(function (fAmount, oRow) {
+            return fAmount + Math.abs(toNumber(getField(oRow, "amount")));
+        }, 0);
         var mBudget = {};
         var mCurrent = {};
         var mPrevious = {};
         var bHasPreviousRows = (aPreviousRows || []).length > 0;
-        var mDocuments = documentCountsByField(aDocumentRows, "Saknr");
+        var mDocuments = costDocumentCountsByField(aDocumentRows, "Saknr");
         var mRows = {};
 
         (aBudgetRows || []).forEach(function (oRow) {
@@ -1083,10 +2153,17 @@ sap.ui.define([
             }
 
             if (!mRows[sSaknr]) {
+                var oRole = accountRoleInfo(sSaknr);
                 mRows[sSaknr] = {
                     saknr: sSaknr,
                     saknrTxt: clean(getField(oRow, "saknr_txt")) || sSaknr,
                     ktoksTxt: clean(getField(oRow, "ktoks_txt")) || "-",
+                    accountRoleKey: oRole.accountRoleKey,
+                    accountRoleText: oRole.accountRoleText,
+                    accountRoleDetail: oRole.accountRoleDetail,
+                    isFinalManufacturingAccount: oRole.isFinalManufacturingAccount,
+                    isSourceActualAccount: oRole.isSourceActualAccount,
+                    isSplitSourceAccount: oRole.isSplitSourceAccount,
                     actualAmount: 0
                 };
             }
@@ -1111,7 +2188,8 @@ sap.ui.define([
                 varianceRate: fVarianceRate,
                 momAmount: fMom,
                 documentCount: mDocuments[sSaknr] || 0,
-                ratio: fTotal ? oRow.actualAmount / fTotal * 100 : null,
+                chartAmount: Math.abs(oRow.actualAmount || 0),
+                ratio: fTotalAbs ? Math.abs(oRow.actualAmount || 0) / fTotalAbs * 100 : null,
                 varianceState: !bHasBudget || fVariance === 0 || fVariance === null ? "None" : (fVariance > 0 ? "Error" : "Success"),
                 momState: fMom === null || fMom === 0 ? "None" : (fMom > 0 ? "Error" : "Success")
             });
@@ -1133,6 +2211,12 @@ sap.ui.define([
             var sKostl = normalizeNodeId(getField(oRow, "Kostl"));
             var sSenderKostl = normalizeNodeId(getField(oRow, "SenderKostl"));
             var sReceiverKostl = normalizeNodeId(getField(oRow, "ReceiverKostl"));
+            var sSaknr = normalizeNodeId(getField(oRow, "Saknr"));
+            var oAccountRole = accountRoleInfo(sSaknr);
+            var oProcessStep = processStepInfo(sSaknr, oRow, oAccountRole);
+            var oKostlContext = resolveCostCenterContext(sKostl, getField(oRow, "KostlTxt"), oTextMaps, oRow);
+            var oSenderContext = resolveCostCenterContext(sSenderKostl, getField(oRow, "SenderKostlTxt"), oTextMaps, oRow);
+            var oReceiverContext = resolveCostCenterContext(sReceiverKostl, getField(oRow, "ReceiverKostlTxt"), oTextMaps, oRow);
 
             return {
                 rowNo: 0,
@@ -1153,15 +2237,30 @@ sap.ui.define([
                 Bktxt: clean(getField(oRow, "Bktxt")),
                 BstatTxt: clean(getField(oRow, "BstatTxt")),
                 Xblnr: clean(getField(oRow, "Xblnr")),
-                Saknr: normalizeNodeId(getField(oRow, "Saknr")),
+                Saknr: sSaknr,
                 SaknrTxt: clean(getField(oRow, "SaknrTxt")),
                 KtoksTxt: clean(getField(oRow, "KtoksTxt")),
+                AccountRoleKey: oAccountRole.accountRoleKey,
+                AccountRoleText: oAccountRole.accountRoleText,
+                AccountRoleDetail: oAccountRole.accountRoleDetail,
+                IsFinalManufacturingAccount: oAccountRole.isFinalManufacturingAccount,
+                IsSourceActualAccount: oAccountRole.isSourceActualAccount,
+                IsSplitSourceAccount: oAccountRole.isSplitSourceAccount,
+                ProcessStepKey: oProcessStep.key,
+                ProcessStepText: oProcessStep.text,
+                ProcessStepDetail: oProcessStep.detail,
+                FinalManufacturingRelevantText: oProcessStep.finalManufacturingRelevant ? "반영" : "미반영",
                 Drcrk: clean(getField(oRow, "Drcrk")),
                 DrcrkTxt: clean(getField(oRow, "DrcrkTxt")),
                 CostFlowType: clean(getField(oRow, "CostFlowType")),
                 CostFlowTypeTxt: clean(getField(oRow, "CostFlowTypeTxt")),
                 Kostl: sKostl,
-                KostlTxt: resolveCostCenterText(sKostl, getField(oRow, "KostlTxt"), oTextMaps),
+                KostlTxt: oKostlContext.displayCostCenterText,
+                RawCostCenterText: oKostlContext.rawCostCenterText,
+                StoreText: oKostlContext.storeText,
+                DisplayCostCenterText: oKostlContext.displayCostCenterText,
+                UsesStoreDisplay: oKostlContext.usesStoreDisplay,
+                KostlTooltip: oKostlContext.costCenterTooltip,
                 Manager: clean(getField(oRow, "Manager")) || (oTextMaps && oTextMaps.hierarchyManagers && oTextMaps.hierarchyManagers[sKostl]) || "-",
                 Partner: clean(getField(oRow, "Partner")),
                 PartnerName: clean(getField(oRow, "PartnerName")),
@@ -1170,10 +2269,20 @@ sap.ui.define([
                 RawAmount: toNumber(getField(oRow, "RawAmount")),
                 Waers: clean(getField(oRow, "Waers")) || CURRENCY,
                 SenderKostl: sSenderKostl,
-                SenderKostlTxt: resolveCostCenterText(sSenderKostl, getField(oRow, "SenderKostlTxt"), oTextMaps),
+                SenderKostlTxt: oSenderContext.displayCostCenterText,
+                SenderRawCostCenterText: oSenderContext.rawCostCenterText,
+                SenderStoreText: oSenderContext.storeText,
+                SenderDisplayCostCenterText: oSenderContext.displayCostCenterText,
+                SenderUsesStoreDisplay: oSenderContext.usesStoreDisplay,
+                SenderKostlTooltip: oSenderContext.costCenterTooltip,
                 SenderManager: clean(getField(oRow, "SenderManager")) || (oTextMaps && oTextMaps.hierarchyManagers && oTextMaps.hierarchyManagers[sSenderKostl]) || "-",
                 ReceiverKostl: sReceiverKostl,
-                ReceiverKostlTxt: resolveCostCenterText(sReceiverKostl, getField(oRow, "ReceiverKostlTxt"), oTextMaps),
+                ReceiverKostlTxt: oReceiverContext.displayCostCenterText,
+                ReceiverRawCostCenterText: oReceiverContext.rawCostCenterText,
+                ReceiverStoreText: oReceiverContext.storeText,
+                ReceiverDisplayCostCenterText: oReceiverContext.displayCostCenterText,
+                ReceiverUsesStoreDisplay: oReceiverContext.usesStoreDisplay,
+                ReceiverKostlTooltip: oReceiverContext.costCenterTooltip,
                 ReceiverManager: clean(getField(oRow, "ReceiverManager")) || (oTextMaps && oTextMaps.hierarchyManagers && oTextMaps.hierarchyManagers[sReceiverKostl]) || "-",
                 ReceiverPrctr: clean(getField(oRow, "ReceiverPrctr")),
                 ReceiverPrctrTxt: clean(getField(oRow, "ReceiverPrctrTxt")),
@@ -1219,7 +2328,14 @@ sap.ui.define([
         filterHierarchyTree: filterHierarchyTree,
         buildOrgRollupTree: buildOrgRollupTree,
         buildCostCenterTextMaps: buildCostCenterTextMaps,
+        resolveCostCenterContext: resolveCostCenterContext,
+        resolveRawCostCenterText: resolveRawCostCenterText,
+        resolveStoreText: resolveStoreText,
         resolveCostCenterText: resolveCostCenterText,
+        resolveOrgSelectionText: resolveOrgSelectionText,
+        buildDepartmentPageTitle: buildDepartmentPageTitle,
+        buildDepartmentHeaderTitle: buildDepartmentHeaderTitle,
+        normalizeTextKey: normalizeTextKey,
         getOrgSelection: getOrgSelection,
         filterByOrg: filterByOrg,
         filterByAccount: filterByAccount,
@@ -1230,15 +2346,41 @@ sap.ui.define([
         buildMonthlyTrend: buildMonthlyTrend,
         buildAccountComposition: buildAccountComposition,
         buildAccountValueHelpRows: buildAccountValueHelpRows,
+        hasFunctionalAreaField: hasFunctionalAreaField,
+        getFunctionalAreaKey: getFunctionalAreaKey,
+        getFunctionalAreaText: getFunctionalAreaText,
+        filterDocumentsByCostCenters: filterDocumentsByCostCenters,
+        uniqueNormalizedValues: uniqueNormalizedValues,
+        textOrCode: textOrCode,
+        costCenterContextByKostl: costCenterContextByKostl,
         aggregateCostCenters: aggregateCostCenters,
         aggregateAccounts: aggregateAccounts,
+        getManufacturingAccountCategory: getManufacturingAccountCategory,
+        isManufacturingFlowAccount: isManufacturingFlowAccount,
+        isProductionClearingRecordAccount: isProductionClearingRecordAccount,
+        isSourceManufacturingPoolAccount: isSourceManufacturingPoolAccount,
+        isManufacturingReceiptAccount: isManufacturingReceiptAccount,
+        isCostPerspectiveAccount: isCostPerspectiveAccount,
+        filterCostPerspectiveRows: filterCostPerspectiveRows,
+        buildManufacturingFlowRows: buildManufacturingFlowRows,
+        buildClearingValidationRows: buildClearingValidationRows,
+        buildSourcePoolRows: buildSourcePoolRows,
+        buildLedgerRows: buildLedgerRows,
+        buildManufacturingFlowSummary: buildManufacturingFlowSummary,
+        buildClearingValidationSummary: buildClearingValidationSummary,
+        summarizeRows: summarizeRows,
+        isProductionOrgSelection: isProductionOrgSelection,
         distinctDocumentCount: distinctDocumentCount,
+        distinctCostDocumentCount: distinctCostDocumentCount,
         documentCountsByField: documentCountsByField,
+        costDocumentCountsByField: costDocumentCountsByField,
         documentCountsByMonth: documentCountsByMonth,
         currentDocumentRows: currentDocumentRows,
         mapDocumentRows: mapDocumentRows,
         sum: sum,
         clean: clean,
+        accountRoleInfo: accountRoleInfo,
+        processStepInfo: processStepInfo,
         normalizeMonth: normalizeMonth,
         normalizeNodeId: normalizeNodeId,
         getField: getField

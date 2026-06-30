@@ -10,6 +10,61 @@ sap.ui.define([
             return "flow2";
         },
 
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("flow2");
+            var oSelected = oModel.getProperty("/selectedDetail") || {};
+
+            return {
+                title: "[EverNiture-CO] 배부 상세 내역",
+                fileName: "AllocationFlowDetail",
+                variant: "allocation",
+                description: "선택 배부 흐름의 상세 전표 라인과 SKF 기준 요약 리포트",
+                filters: this.exportFilterRows("flow2", [
+                    { label: "송신 코스트센터", property: "senderKostl" },
+                    { label: "수신 코스트센터", property: "receiverKostl" },
+                    { label: "세그먼트", property: "segmNo" },
+                    { label: "배부기준", property: "skfId" }
+                ]),
+                summary: this.exportKpiRows("flow2").concat([
+                    { label: "선택 전표번호", value: oSelected.belnr },
+                    { label: "선택 전기일자", value: oSelected.budatText },
+                    { label: "선택 계정", value: oSelected.saknrText },
+                    { label: "선택 배부사이클", value: oSelected.cycleText },
+                    { label: "선택 배부기준", value: oSelected.skfText },
+                    { label: "선택 금액", value: this.exportAmount(oSelected.allocAmount || oSelected.amount, oSelected.waers) }
+                ]),
+                sections: [
+                    this.exportSection("배부 상세 라인", oModel.getProperty("/detailRows"), this._flowDetailExportColumns()),
+                    this.exportSection("SKF 기준 요약", oModel.getProperty("/skfSummaryRows"), [
+                        { label: "SKF ID", property: "skfId" },
+                        { label: "배부기준", property: "skfText" },
+                        { label: "기준값", property: "basisValueText" },
+                        { label: "비율", property: "basisRatioText", type: "text", summary: false },
+                        { label: "금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) }
+                    ])
+                ]
+            };
+        },
+
+        _flowDetailExportColumns: function () {
+            return [
+                { label: "전표번호", property: "belnr" },
+                { label: "전기일자", property: "budatText" },
+                { label: "라인", property: "docln" },
+                { label: "송신 코스트센터", property: "senderText" },
+                { label: "수신 코스트센터", property: "receiverText" },
+                { label: "계정", property: "saknrText" },
+                { label: "계정 성격", property: "accountRoleText" },
+                { label: "배부사이클", property: "cycleText" },
+                { label: "세그먼트", property: "segmentText" },
+                { label: "배부기준", property: "skfText" },
+                { label: "기준값", property: "basisValueText" },
+                { label: "비율", property: "basisRatioText", type: "text", summary: false },
+                { label: "금액", value: function (oRow) { return this.exportAmount(oRow.allocAmount || oRow.amount, oRow.waers); }.bind(this) },
+                { label: "통화", property: "waers" }
+            ];
+        },
+
         onInit: function () {
             var oModel = this.createViewModel({
                 pageTitle: "[EverNiture-CO] 배부 상세 내역",
@@ -194,29 +249,32 @@ sap.ui.define([
                 var aRows = aResults[0] || [];
                 var oHierarchyIndex = Flow.buildHierarchyIndex(aResults[1] || []);
                 var aEnriched = Flow.enrichRows(aRows, oHierarchyIndex, oFilters.groupBasis);
-                var aFiltered = this._applyFilters(aEnriched, oFilters);
-                var oEffectiveFilters = oFilters;
+                var oEffectiveFilters = this._normalizeFiltersWithAvailableOptions(aEnriched, oFilters);
+                var aFiltered = this._applyFilters(aEnriched, oEffectiveFilters);
                 var aDetailRows = this._buildDetailRows(aFiltered);
                 var oSelected = aDetailRows[0] || this._emptyDetail();
                 var oContext = oModel.getProperty("/context") || {};
+                var oFilterOptions;
 
-                if (!aDetailRows.length && oFilters.senderCcgId && oFilters.receiverKostl) {
-                    oEffectiveFilters = Object.assign({}, oFilters, {
+                if (!aDetailRows.length && oEffectiveFilters.senderCcgId && oEffectiveFilters.receiverKostl) {
+                    oEffectiveFilters = Object.assign({}, oEffectiveFilters, {
                         senderCcgId: ""
                     });
+                    oEffectiveFilters = this._normalizeFiltersWithAvailableOptions(aEnriched, oEffectiveFilters);
                     aFiltered = this._applyFilters(aEnriched, oEffectiveFilters);
                     aDetailRows = this._buildDetailRows(aFiltered);
                     oSelected = aDetailRows[0] || this._emptyDetail();
                 }
 
+                oFilterOptions = this._buildFilterOptions(aEnriched, oEffectiveFilters);
                 oModel.setProperty("/filters", oEffectiveFilters);
-                oModel.setProperty("/cycleOptions", Flow.createOptions(aRows, "Cycle", "CycleText", "전체"));
-                oModel.setProperty("/senderCcgOptions", Flow.createCcgOptions(aEnriched, "_senderCcgId", "_senderCcgText"));
-                oModel.setProperty("/receiverCcgOptions", Flow.createCcgOptions(aEnriched, "_receiverCcgId", "_receiverCcgText"));
-                oModel.setProperty("/senderCostCenterOptions", this._costCenterOptions(aEnriched, "_senderKostl", "_senderKostlText"));
-                oModel.setProperty("/receiverCostCenterOptions", this._costCenterOptions(aEnriched, "_receiverKostl", "_receiverKostlText"));
-                oModel.setProperty("/segmentOptions", Flow.createOptions(aRows, "SegmNo", "SegmName", "전체"));
-                oModel.setProperty("/skfOptions", Flow.createOptions(aRows, "SkfId", "SkfTxt", "전체"));
+                oModel.setProperty("/cycleOptions", oFilterOptions.cycleOptions);
+                oModel.setProperty("/senderCcgOptions", oFilterOptions.senderCcgOptions);
+                oModel.setProperty("/receiverCcgOptions", oFilterOptions.receiverCcgOptions);
+                oModel.setProperty("/senderCostCenterOptions", oFilterOptions.senderCostCenterOptions);
+                oModel.setProperty("/receiverCostCenterOptions", oFilterOptions.receiverCostCenterOptions);
+                oModel.setProperty("/segmentOptions", oFilterOptions.segmentOptions);
+                oModel.setProperty("/skfOptions", oFilterOptions.skfOptions);
                 oModel.setProperty("/detailRows", aDetailRows);
                 oModel.setProperty("/selectedDetail", oSelected);
                 oModel.setProperty("/skfSummaryRows", this._buildSkfSummary(aFiltered));
@@ -273,42 +331,133 @@ sap.ui.define([
             }
         },
 
-        _applyFilters: function (aRows, oFilters) {
+        _applyFilters: function (aRows, oFilters, mExclude) {
             var aSenderCcgIds = Flow.normalizeIdList(oFilters.senderCcgIds);
             var aReceiverCcgIds = Flow.normalizeIdList(oFilters.receiverCcgIds);
 
+            mExclude = mExclude || {};
             return (aRows || []).filter(function (oRow) {
-                if (oFilters.cycle && oRow._cycle !== oFilters.cycle) {
+                if (!mExclude.cycle && oFilters.cycle && oRow._cycle !== oFilters.cycle) {
                     return false;
                 }
-                if (aSenderCcgIds.length && aSenderCcgIds.indexOf(oRow._senderCcgId) === -1) {
+                if (!mExclude.senderCcg && aSenderCcgIds.length && aSenderCcgIds.indexOf(oRow._senderCcgId) === -1) {
                     return false;
                 }
-                if (!aSenderCcgIds.length && oFilters.senderCcgId && oRow._senderCcgId !== oFilters.senderCcgId) {
+                if (!mExclude.senderCcg && !aSenderCcgIds.length && oFilters.senderCcgId && oRow._senderCcgId !== oFilters.senderCcgId) {
                     return false;
                 }
-                if (aReceiverCcgIds.length && aReceiverCcgIds.indexOf(oRow._receiverCcgId) === -1) {
+                if (!mExclude.receiverCcg && aReceiverCcgIds.length && aReceiverCcgIds.indexOf(oRow._receiverCcgId) === -1) {
                     return false;
                 }
-                if (!aReceiverCcgIds.length && oFilters.receiverCcgId && oRow._receiverCcgId !== oFilters.receiverCcgId) {
+                if (!mExclude.receiverCcg && !aReceiverCcgIds.length && oFilters.receiverCcgId && oRow._receiverCcgId !== oFilters.receiverCcgId) {
                     return false;
                 }
-                if (oFilters.senderKostl && oRow._senderKostl !== oFilters.senderKostl) {
+                if (!mExclude.senderKostl && oFilters.senderKostl && oRow._senderKostl !== oFilters.senderKostl) {
                     return false;
                 }
-                if (oFilters.receiverKostl && oRow._receiverKostl !== oFilters.receiverKostl) {
+                if (!mExclude.receiverKostl && oFilters.receiverKostl && oRow._receiverKostl !== oFilters.receiverKostl) {
                     return false;
                 }
-                if (oFilters.segmNo && oRow._segmNo !== oFilters.segmNo) {
+                if (!mExclude.segmNo && oFilters.segmNo && oRow._segmNo !== oFilters.segmNo) {
                     return false;
                 }
-                if (oFilters.skfId && oRow._skfId !== oFilters.skfId) {
+                if (!mExclude.skfId && oFilters.skfId && oRow._skfId !== oFilters.skfId) {
                     return false;
                 }
-                if (oFilters.belnr && Flow.clean(Flow.getField(oRow, "Belnr")).indexOf(oFilters.belnr) === -1) {
+                if (!mExclude.belnr && oFilters.belnr && Flow.clean(Flow.getField(oRow, "Belnr")).indexOf(oFilters.belnr) === -1) {
                     return false;
                 }
                 return true;
+            });
+        },
+
+        _normalizeFiltersWithAvailableOptions: function (aRows, oFilters) {
+            var oEffectiveFilters = Object.assign({}, oFilters || {});
+            var bChanged = true;
+            var iPass = 0;
+            var oOptions;
+            var aFields;
+
+            while (bChanged && iPass < 3) {
+                bChanged = false;
+                iPass += 1;
+                oOptions = this._buildFilterOptions(aRows, oEffectiveFilters);
+                aFields = [
+                    { path: "cycle", options: oOptions.cycleOptions },
+                    { path: "senderCcgId", options: oOptions.senderCcgOptions },
+                    { path: "receiverCcgId", options: oOptions.receiverCcgOptions },
+                    { path: "senderKostl", options: oOptions.senderCostCenterOptions },
+                    { path: "receiverKostl", options: oOptions.receiverCostCenterOptions },
+                    { path: "segmNo", options: oOptions.segmentOptions },
+                    { path: "skfId", options: oOptions.skfOptions }
+                ];
+
+                aFields.some(function (oField) {
+                    if (oEffectiveFilters[oField.path] && !this._hasOptionKey(oField.options, oEffectiveFilters[oField.path])) {
+                        oEffectiveFilters[oField.path] = "";
+                        bChanged = true;
+                        return true;
+                    }
+                    return false;
+                }.bind(this));
+            }
+
+            return oEffectiveFilters;
+        },
+
+        _buildFilterOptions: function (aRows, oFilters) {
+            return {
+                cycleOptions: this._fieldOptions(this._optionRows(aRows, oFilters, "cycle"), "_cycle", "_cycleText", "전체"),
+                senderCcgOptions: Flow.createCcgOptions(this._optionRows(aRows, oFilters, "senderCcg"), "_senderCcgId", "_senderCcgText"),
+                receiverCcgOptions: Flow.createCcgOptions(this._optionRows(aRows, oFilters, "receiverCcg"), "_receiverCcgId", "_receiverCcgText"),
+                senderCostCenterOptions: this._costCenterOptions(this._optionRows(aRows, oFilters, "senderKostl"), "_senderKostl", "_senderKostlText"),
+                receiverCostCenterOptions: this._costCenterOptions(this._optionRows(aRows, oFilters, "receiverKostl"), "_receiverKostl", "_receiverKostlText"),
+                segmentOptions: this._fieldOptions(this._optionRows(aRows, oFilters, "segmNo"), "_segmNo", "_segmText", "전체"),
+                skfOptions: this._fieldOptions(this._optionRows(aRows, oFilters, "skfId"), "_skfId", "_skfText", "전체")
+            };
+        },
+
+        _optionRows: function (aRows, oFilters, sExcludedField) {
+            var mExclude = {};
+
+            mExclude[sExcludedField] = true;
+            return this._applyFilters(aRows, oFilters, mExclude);
+        },
+
+        _hasOptionKey: function (aOptions, sKey) {
+            return (aOptions || []).some(function (oOption) {
+                return oOption.key === sKey;
+            });
+        },
+
+        _fieldOptions: function (aRows, sKeyField, sTextField, sAllText) {
+            var mSeen = {};
+            var aOptions = [{
+                key: "",
+                text: sAllText || "전체"
+            }];
+
+            (aRows || []).forEach(function (oRow) {
+                var sKey = Flow.clean(oRow[sKeyField]);
+                var sText = Flow.clean(oRow[sTextField]) || sKey;
+
+                if (sKey && !mSeen[sKey]) {
+                    mSeen[sKey] = true;
+                    aOptions.push({
+                        key: sKey,
+                        text: sText
+                    });
+                }
+            });
+
+            return aOptions.sort(function (oFirst, oSecond) {
+                if (!oFirst.key) {
+                    return -1;
+                }
+                if (!oSecond.key) {
+                    return 1;
+                }
+                return oFirst.text.localeCompare(oSecond.text, "ko");
             });
         },
 
@@ -317,6 +466,7 @@ sap.ui.define([
                 var sBelnr = Flow.clean(Flow.getField(oRow, "Belnr"));
                 var sDocln = Flow.clean(Flow.getField(oRow, "Docln"));
                 var sSaknr = Flow.clean(Flow.getField(oRow, "Saknr"));
+                var oDocumentStatus = this._documentStatusInfo(oRow);
 
                 return {
                     raw: oRow,
@@ -344,21 +494,93 @@ sap.ui.define([
                     budatText: Flow.formatDate(oRow._budat),
                     saknr: sSaknr,
                     saknrText: Flow.textOrCode(Flow.getField(oRow, "SaknrTxt"), sSaknr),
+                    accountRoleText: oRow._accountRoleText,
+                    accountRoleDetail: oRow._accountRoleDetail,
                     waers: oRow._waers,
                     ruleStatusText: Flow.isBasisMatched(oRow) ? "규칙 매칭 완료" : "배부기준값을 찾을 수 없습니다.",
                     ruleState: Flow.isBasisMatched(oRow) ? "Success" : "Warning",
                     cyclePeriodText: [Flow.formatDate(Flow.getField(oRow, "CycleStartDate")), Flow.formatDate(Flow.getField(oRow, "CycleEndDate"))].join(" ~ "),
                     createdBy: Flow.textOrCode(Flow.getField(oRow, "CreatedBy"), ""),
                     createdAt: Flow.textOrCode(Flow.getField(oRow, "CreatedAt"), ""),
-                    documentStatusText: Flow.textOrCode(Flow.getField(oRow, "BstatTxt"), Flow.getField(oRow, "Bstat")),
+                    documentStatusText: oDocumentStatus.title,
+                    documentStatusTitle: oDocumentStatus.title,
+                    documentStatusDetailText: oDocumentStatus.detailText,
+                    documentStatusCodeText: oDocumentStatus.codeText,
+                    documentStatusRawText: oDocumentStatus.rawText,
+                    documentStatusState: oDocumentStatus.state,
+                    documentStatusIcon: oDocumentStatus.icon,
+                    documentStatusTooltip: oDocumentStatus.tooltip,
                     _sortBudat: oRow._budat,
                     _sortDocln: Number(sDocln || 0)
                 };
-            }).sort(function (oFirst, oSecond) {
+            }.bind(this)).sort(function (oFirst, oSecond) {
                 return Flow.clean(oSecond._sortBudat).localeCompare(Flow.clean(oFirst._sortBudat)) ||
                     Flow.clean(oSecond.belnr).localeCompare(Flow.clean(oFirst.belnr)) ||
                     oFirst._sortDocln - oSecond._sortDocln ||
                     Math.abs(oSecond.amount || 0) - Math.abs(oFirst.amount || 0);
+            });
+        },
+
+        _documentStatusInfo: function (oRow) {
+            var sCode = Flow.clean(Flow.getField(oRow, "Bstat")).toUpperCase();
+            var sRawText = Flow.clean(Flow.getField(oRow, "BstatTxt"));
+            var sNormalizedText = sRawText.replace(/\s/g, "");
+            var mCodeInfo = {
+                N: { title: "정상", state: "Success", icon: "sap-icon://message-success", detailText: "BSTAT N: 정상 전표입니다." },
+                P: { title: "임시저장", state: "Warning", icon: "sap-icon://message-warning", detailText: "BSTAT P: 임시저장 상태의 전표입니다." },
+                C: { title: "반제", state: "Information", icon: "sap-icon://message-information", detailText: "BSTAT C: 반제 처리된 전표입니다." },
+                R: { title: "역분개", state: "Error", icon: "sap-icon://message-error", detailText: "BSTAT R: 역분개 전표입니다." }
+            };
+            var oInfo;
+
+            if (mCodeInfo[sCode]) {
+                oInfo = mCodeInfo[sCode];
+            } else if (sNormalizedText.indexOf("상태확인") > -1) {
+                oInfo = {
+                    title: "상태 확인 필요",
+                    state: "Warning",
+                    icon: "sap-icon://message-warning",
+                    detailText: "원천 상태 문구가 '상태확인'으로 내려왔습니다. 전표 헤더의 최종 전기/취소 상태를 추가 확인해야 합니다."
+                };
+            } else if (sNormalizedText.indexOf("취소") > -1 || sNormalizedText.indexOf("오류") > -1 || sNormalizedText.indexOf("삭제") > -1) {
+                oInfo = {
+                    title: sRawText,
+                    state: "Error",
+                    icon: "sap-icon://message-error",
+                    detailText: "원천 상태 문구상 취소/오류/삭제 성격의 전표로 표시됩니다."
+                };
+            } else if (sNormalizedText.indexOf("정상") > -1 || sNormalizedText.indexOf("전기완료") > -1 || sNormalizedText.indexOf("완료") > -1) {
+                oInfo = {
+                    title: sRawText,
+                    state: "Success",
+                    icon: "sap-icon://message-success",
+                    detailText: "원천 상태 문구상 정상 처리 또는 전기 완료된 전표로 표시됩니다."
+                };
+            } else if (sRawText) {
+                oInfo = {
+                    title: sRawText,
+                    state: "None",
+                    icon: "sap-icon://status-inactive",
+                    detailText: "원천 상태 문구를 그대로 표시합니다. BSTAT 코드가 있으면 상태 코드도 함께 확인하세요."
+                };
+            } else {
+                oInfo = {
+                    title: "상태 정보 없음",
+                    state: "Warning",
+                    icon: "sap-icon://message-warning",
+                    detailText: "원천 데이터에 전표 상태 코드 또는 상태 문구가 없어 상세 상태를 판단할 수 없습니다."
+                };
+            }
+
+            return Object.assign({}, oInfo, {
+                codeText: sCode || "코드 없음",
+                rawText: sRawText || "-",
+                tooltip: [
+                    oInfo.title,
+                    "BSTAT: " + (sCode || "코드 없음"),
+                    "원천 상태: " + (sRawText || "-"),
+                    oInfo.detailText
+                ].join("\n")
             });
         },
 
@@ -389,7 +611,7 @@ sap.ui.define([
                 this._createDetailKpi("배부금액", Flow.amountText(fTotal, "KRW"), "", "None", "sap-icon://money-bills"),
                 this._createDetailKpi("배부기준", this._basisNameText(aBasisGroups), "", "None", "sap-icon://group", this._basisNameLines(aBasisGroups)),
                 this._createDetailKpi("배부기준값", this._basisTotalText(aBasisGroups), "", "None", "sap-icon://lead", this._basisValueLines(aBasisGroups)),
-                this._createDetailKpi("비율", this._basisRatioText(aBasisGroups), "", "None", "sap-icon://percentage", this._basisRatioLines(aBasisGroups)),
+                this._createDetailKpi("비율", this._basisRatioText(aBasisGroups), "", "None", "sap-icon://pie-chart", this._basisRatioLines(aBasisGroups)),
                 this._createDetailKpi("전표 건수", Object.keys(mDocHeaders).length + "건 / " + Object.keys(mDocLines).length + "라인", "", "None", "sap-icon://documents")
             ];
         },
@@ -640,7 +862,15 @@ sap.ui.define([
                 waers: "-",
                 ruleStatusText: "-",
                 ruleState: "None",
-                cyclePeriodText: "-"
+                cyclePeriodText: "-",
+                documentStatusText: "상태 정보 없음",
+                documentStatusTitle: "상태 정보 없음",
+                documentStatusDetailText: "선택된 전표가 없습니다.",
+                documentStatusCodeText: "-",
+                documentStatusRawText: "-",
+                documentStatusState: "None",
+                documentStatusIcon: "sap-icon://status-inactive",
+                documentStatusTooltip: "선택된 전표가 없습니다."
             };
         }
     });

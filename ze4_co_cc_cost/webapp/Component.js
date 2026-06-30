@@ -27,6 +27,7 @@ sap.ui.define([
                     period: String(new Date().getMonth() + 1).padStart(2, "0"),
                     orgNodeId: "",
                     orgNodeText: "",
+                    saknr: "",
                     waers: "KRW",
                     budgetVersion: "BUD"
                 },
@@ -36,6 +37,7 @@ sap.ui.define([
                     period: String(new Date().getMonth() + 1).padStart(2, "0"),
                     orgNodeId: "",
                     orgNodeText: "",
+                    saknr: "",
                     waers: "KRW",
                     budgetVersion: "BUD"
                 },

@@ -6,6 +6,23 @@ sap.ui.define([
     var GROUP_UNASSIGNED = "__UNASSIGNED__";
     var GROUP_ETC = "__ETC__";
     var COLORS = ["#0A6ED1", "#2EB67D", "#A65EEA", "#FF8B2B", "#36C5D8", "#6B7785", "#E31B6D", "#D89000", "#8A63D2", "#00A0A0"];
+    var STEP_COLORS = {
+        "1": "#7C3AED",
+        "2": "#0891B2",
+        "3": "#F97316",
+        "4": "#16A34A",
+        "5": "#DB2777",
+        "UNSPECIFIED": "#64748B"
+    };
+    var ACCOUNT_ROLE_MAP = {
+        "800015": ["MATERIAL", "재료비", "최종 제조원가 반영"],
+        "800016": ["MANUFACTURING_RECEIPT", "제조입고", "최종 제조원가 차감"],
+        "800020": ["STANDARD_PROCESSING", "표준/귀속 가공비", "노무비배부"],
+        "800021": ["STANDARD_PROCESSING", "표준/귀속 가공비", "기계경비배부"],
+        "800022": ["STANDARD_PROCESSING", "표준/귀속 가공비", "간접비배부"],
+        "800023": ["PRICE_VARIANCE", "가격차이", "가격차이 영역 전용"],
+        "800024": ["ALLOCATION_VARIANCE", "배부차이", "실제 분할원가와 표준/귀속 가공비 차이"]
+    };
     var oAmountFormat = NumberFormat.getFloatInstance({
         groupingEnabled: true,
         minFractionDigits: 0,
@@ -42,6 +59,42 @@ sap.ui.define([
 
         fValue = Number(vValue);
         return isNaN(fValue) ? 0 : fValue;
+    }
+
+    function accountRoleInfo(vAccount) {
+        var sAccount = normalize(vAccount);
+        var iAccount = Number(sAccount);
+        var aMapped = ACCOUNT_ROLE_MAP[sAccount];
+
+        if (aMapped) {
+            return {
+                key: aMapped[0],
+                text: aMapped[1],
+                detail: aMapped[2]
+            };
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800001 && iAccount <= 800014) {
+            return {
+                key: sAccount === "800008" ? "SOURCE_ACTUAL_EXCLUDED" : "SOURCE_ACTUAL",
+                text: sAccount === "800008" ? "배부대상 제외 제조비" : "배부대상 제조비",
+                detail: sAccount === "800008" ? "현재 기준 배부대상에서 제외" : "활동단가 산출과 배부의 기준 금액"
+            };
+        }
+
+        if (/^\d+$/.test(sAccount) && iAccount >= 800017 && iAccount <= 800019) {
+            return {
+                key: "PRODUCTION_ABSORPTION",
+                text: "생산실적 차감/흡수",
+                detail: "일반 배부 원천/수신 제외"
+            };
+        }
+
+        return {
+            key: "OTHER",
+            text: "기타",
+            detail: ""
+        };
     }
 
     function numberOrNull(vValue) {
@@ -376,6 +429,7 @@ sap.ui.define([
             var sSegm = clean(getField(oRow, "SegmNo"));
             var sSkf = clean(getField(oRow, "SkfId"));
             var fAmount = toNumber(getField(oRow, "AllocAmount"));
+            var oAccountRole = accountRoleInfo(getField(oRow, "Saknr"));
 
             return Object.assign({}, oRow, {
                 _rowKey: "A" + iIndex,
@@ -395,6 +449,9 @@ sap.ui.define([
                 _skfText: textOrCode(getField(oRow, "SkfTxt"), sSkf),
                 _amount: fAmount,
                 _waers: clean(getField(oRow, "Waers")) || "KRW",
+                _accountRoleKey: oAccountRole.key,
+                _accountRoleText: oAccountRole.text,
+                _accountRoleDetail: oAccountRole.detail,
                 _documentKey: documentKey(oRow),
                 _budat: clean(getField(oRow, "Budat"))
             });
@@ -474,6 +531,22 @@ sap.ui.define([
         }
 
         return COLORS[Math.abs(iHash) % COLORS.length];
+    }
+
+    function stepNoFromText(vValue) {
+        var sValue = clean(vValue);
+        var aMatch = /(\d+)\s*단계/.exec(sValue);
+
+        if (aMatch) {
+            return aMatch[1];
+        }
+        return /^\d+$/.test(sValue) ? sValue : "";
+    }
+
+    function colorForStepText(sText, sFallbackKey) {
+        var sStepNo = stepNoFromText(sText) || stepNoFromText(sFallbackKey);
+
+        return STEP_COLORS[sStepNo] || colorForKey(sFallbackKey || sText);
     }
 
     function createOptions(aRows, sKeyField, sTextField, sAllText) {
@@ -583,12 +656,12 @@ sap.ui.define([
 
             if (oColumn && oColumn.centerCompact) {
                 iGap = oColumn.nodeGap || 24;
-                iGroupHeight = iCount * iNodeHeight + Math.max(0, iCount - 1) * iGap;
-                iStartY = Math.max(68, Math.round((iHeight - iGroupHeight) / 2));
-                return iStartY + iIndex * (iNodeHeight + iGap);
             }
 
-            return Math.round(68 + iGap + iIndex * (iNodeHeight + iGap));
+            iGroupHeight = iCount * iNodeHeight + Math.max(0, iCount - 1) * iGap;
+            iStartY = Math.max(68, Math.round((iHeight - iGroupHeight) / 2));
+
+            return iStartY + iIndex * (iNodeHeight + iGap);
         }
 
         function renderNode(oNode, oColumn, iColumnIndex, iNodeIndex, iCount) {
@@ -679,11 +752,13 @@ sap.ui.define([
         GROUP_UNASSIGNED: GROUP_UNASSIGNED,
         GROUP_ETC: GROUP_ETC,
         COLORS: COLORS,
+        STEP_COLORS: STEP_COLORS,
         clean: clean,
         normalize: normalize,
         normalizeMonth: normalizeMonth,
         toNumber: toNumber,
         numberOrNull: numberOrNull,
+        accountRoleInfo: accountRoleInfo,
         getField: getField,
         isUsableText: isUsableText,
         textOrCode: textOrCode,
@@ -703,6 +778,8 @@ sap.ui.define([
         decodeContext: decodeContext,
         normalizeIdList: normalizeIdList,
         colorForKey: colorForKey,
+        stepNoFromText: stepNoFromText,
+        colorForStepText: colorForStepText,
         createOptions: createOptions,
         createCcgOptions: createCcgOptions,
         renderFlowSvg: renderFlowSvg,

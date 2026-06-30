@@ -9,6 +9,56 @@ sap.ui.define([
             return "allocation";
         },
 
+        buildExportReport: function () {
+            var oModel = this.getView().getModel("allocation");
+
+            return {
+                title: "[EverNiture-CO] 부서별 배부/정산 분석",
+                fileName: "AllocationAnalysis",
+                variant: "allocation",
+                description: "배부 KPI, 월별 추이, Top 송신/수신 부서 및 배부 상세 리포트",
+                filters: this.exportFilterRows("allocation", [
+                    { label: "배부사이클", property: "cycle" },
+                    { label: "배부기준", property: "skfId" }
+                ]),
+                summary: this.exportKpiRows("allocation"),
+                charts: [
+                    { title: "월별 배부 추이", controlId: "allocationTrendChart", sourceSectionTitle: "월별 배부 추이", width: 760, height: 360, wide: true }
+                ],
+                sections: [
+                    this.exportSection("월별 배부 추이", oModel.getProperty("/monthlyTrend"), [
+                        { label: "기간", property: "periodText" },
+                        { label: "배부금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) },
+                        { label: "전표 건수", property: "documentCount" }
+                    ]),
+                    this.exportSection("Top 송신부서", oModel.getProperty("/topSenders"), this._departmentRankColumns()),
+                    this.exportSection("Top 수신부서", oModel.getProperty("/topReceivers"), this._departmentRankColumns()),
+                    this.exportSection("배부 상세", oModel.getProperty("/detailRows"), this._allocationDetailColumns())
+                ]
+            };
+        },
+
+        _departmentRankColumns: function () {
+            return [
+                { label: "부서/코스트센터", property: "text" },
+                { label: "코드", property: "code" },
+                { label: "금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) },
+                { label: "전표 건수", property: "documentCount" }
+            ];
+        },
+
+        _allocationDetailColumns: function () {
+            return [
+                { label: "사이클", property: "cycleText" },
+                { label: "송신부서", property: "senderText" },
+                { label: "수신부서", property: "receiverText" },
+                { label: "배부기준", property: "skfText" },
+                { label: "배부금액", value: function (oRow) { return this.exportAmount(oRow.allocAmount || oRow.amount); }.bind(this) },
+                { label: "전표번호", property: "belnr" },
+                { label: "통화", property: "waers" }
+            ];
+        },
+
         onInit: function () {
             var oAllocationModel = this.createViewModel({
                 activeMenu: "allocationAnalysis",

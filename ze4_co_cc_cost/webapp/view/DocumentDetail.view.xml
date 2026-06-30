@@ -39,7 +39,7 @@
                             <t:template>
                                 <HBox class="ze4TreeNodeCell" alignItems="Center">
                                     <core:Icon src="{document>icon}" class="{document>iconClass}" />
-                                    <Text text="{document>nodeText}" wrapping="false" tooltip="{document>nodeText}" class="ze4NoWrapText" />
+                                    <Text text="{document>nodeText}" wrapping="false" tooltip="{document>costCenterTooltip}" class="ze4NoWrapText" />
                                 </HBox>
                             </t:template>
                         </t:Column>
@@ -83,12 +83,14 @@
                     <columns>
                         <Column width="8rem"><Text text="G/L 계정" /></Column>
                         <Column width="14rem"><Text text="계정명" /></Column>
+                        <Column width="12rem"><Text text="계정 성격" /></Column>
                         <Column><Text text="계정그룹" /></Column>
                     </columns>
                     <ColumnListItem type="Active" press=".onAccountValueHelpConfirm">
                         <cells>
                             <Text text="{document>saknr}" wrapping="false" />
                             <Text text="{document>saknrTxt}" wrapping="false" tooltip="{document>saknrTxt}" class="ze4NoWrapText" />
+                            <ObjectStatus text="{document>accountRoleText}" tooltip="{document>accountRoleDetail}" state="Information" />
                             <Text text="{document>ktoksTxt}" wrapping="false" tooltip="{document>ktoksTxt}" class="ze4NoWrapText" />
                         </cells>
                     </ColumnListItem>
@@ -114,7 +116,8 @@
                             <HBox class="ze4PageActions" alignItems="Center">
                                 <Button text="대시보드" icon="sap-icon://home" type="Transparent" press=".onGoDashboard" />
                                 <Button text="배부 분석" icon="sap-icon://business-objects-experience" type="Transparent" press=".onGoAllocationAnalysis" />
-                                <Button text="조직도 탐색" icon="sap-icon://org-chart" type="Transparent" press=".onGoOrgExplorer" />
+                                <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel" />
+                                <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf" />
                             </HBox>
                         </HBox>
                         <VBox class="ze4FilterBar">
@@ -193,14 +196,17 @@
                                         <t:Column width="8.5rem"><Label text="전표유형명" /><t:template><Text text="{document>BlartTxt}" wrapping="false" tooltip="{document>BlartTxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="10rem"><Label text="비용 흐름 유형" /><t:template><ObjectStatus text="{parts: [{path: 'document>CostFlowType'}, {path: 'document>CostFlowTypeTxt'}, {path: 'document>Drcrk'}, {path: 'document>BlartTxt'}], formatter: '.formatter.documentFlowText'}" state="{parts: [{path: 'document>CostFlowType'}, {path: 'document>CostFlowTypeTxt'}, {path: 'document>Drcrk'}, {path: 'document>BlartTxt'}], formatter: '.formatter.documentFlowState'}" /></t:template></t:Column>
                                         <t:Column width="5.5rem"><Label text="차대변" /><t:template><Text text="{parts: [{path: 'document>Drcrk'}, {path: 'document>DrcrkTxt'}], formatter: '.formatter.drcrkText'}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="12rem"><Label text="분석 코스트센터명" /><t:template><Text text="{document>KostlTxt}" wrapping="false" tooltip="{document>KostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="12rem"><Label text="분석 코스트센터명" /><t:template><Text text="{document>KostlTxt}" wrapping="false" tooltip="{document>KostlTooltip}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="10rem"><Label text="계정명" /><t:template><Text text="{document>SaknrTxt}" wrapping="false" tooltip="{document>SaknrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="12rem"><Label text="계정 성격" /><t:template><ObjectStatus text="{document>AccountRoleText}" tooltip="{document>AccountRoleDetail}" state="Information" /></t:template></t:Column>
+                                        <t:Column width="12rem"><Label text="프로세스 단계" /><t:template><ObjectStatus text="{document>ProcessStepText}" tooltip="{document>ProcessStepDetail}" state="Information" /></t:template></t:Column>
+                                        <t:Column width="8rem"><Label text="최종 반영" /><t:template><Text text="{document>FinalManufacturingRelevantText}" wrapping="false" /></t:template></t:Column>
                                         <t:Column width="12rem"><Label text="계정그룹" /><t:template><Text text="{document>KtoksTxt}" wrapping="false" tooltip="{document>KtoksTxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="28rem"><Label text="적요" /><t:template><Text text="{document>Sgtxt}" wrapping="false" tooltip="{document>Sgtxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="10rem" hAlign="End"><Label text="금액" /><t:template><ObjectStatus text="{path: 'document>Amount', formatter: '.formatter.amount'}" state="{path: 'document>Amount', formatter: '.formatter.amountState'}" class="ze4DocumentAmountStatus" /></t:template></t:Column>
                                         <t:Column width="4.5rem"><Label text="통화" /><t:template><Text text="{document>Waers}" wrapping="false" /></t:template></t:Column>
-                                        <t:Column width="11.5rem"><Label text="송신 코스트센터" /><t:template><Text text="{path: 'document>SenderKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>SenderKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="11.5rem"><Label text="수신 코스트센터" /><t:template><Text text="{path: 'document>ReceiverKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverKostlTxt}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="11.5rem"><Label text="송신 코스트센터" /><t:template><Text text="{path: 'document>SenderKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>SenderKostlTooltip}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="11.5rem"><Label text="수신 코스트센터" /><t:template><Text text="{path: 'document>ReceiverKostlTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverKostlTooltip}" class="ze4NoWrapText" /></t:template></t:Column>
                                         <t:Column width="11.5rem"><Label text="수신 프로핏센터" /><t:template><Text text="{path: 'document>ReceiverPrctrTxt', formatter: '.formatter.empty'}" wrapping="false" tooltip="{document>ReceiverPrctrTxt}" class="ze4NoWrapText" /></t:template></t:Column>
                                     </t:columns>
                                 </t:Table>
@@ -224,6 +230,9 @@
                                     <Label text="거래처명" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/PartnerName', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="G/L 계정" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Saknr', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="계정명" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/SaknrTxt', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
+                                    <Label text="계정 성격" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/AccountRoleText', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
+                                    <Label text="프로세스 단계" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/ProcessStepText', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
+                                    <Label text="최종 제조원가 반영" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/FinalManufacturingRelevantText', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="분석 코스트센터" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/Kostl', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="분석 코스트센터명" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/KostlTxt', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
                                     <Label text="송신 코스트센터" class="ze4DetailLabel" /><Text text="{path: 'document>/selectedDocument/SenderKostl', formatter: '.formatter.empty'}" class="ze4DetailValue" wrapping="true" />
