@@ -8,8 +8,9 @@ sap.ui.define([
     "sap/m/MessageBox",
     "sap/m/MessageToast",
     "sap/viz/ui5/data/FlattenedDataset",
-    "sap/viz/ui5/controls/common/feeds/FeedItem"
-], (Controller, JSONModel, ODataModel, Filter, FilterOperator, History, MessageBox, MessageToast, FlattenedDataset, FeedItem) => {
+    "sap/viz/ui5/controls/common/feeds/FeedItem",
+    "ze4/co/s/cost/ze4coscost/util/ReportExport"
+], (Controller, JSONModel, ODataModel, Filter, FilterOperator, History, MessageBox, MessageToast, FlattenedDataset, FeedItem, ReportExport) => {
     "use strict";
 
     return Controller.extend("ze4.co.s.cost.ze4coscost.controller.StandardCostDetail", {
@@ -45,6 +46,13 @@ sap.ui.define([
                 reservationSummary: {
                     count: 0,
                     openQuantity: 0
+                },
+                variance: {
+                    busy: false,
+                    loaded: false,
+                    message: "",
+                    data: {},
+                    metricRows: []
                 }
             });
             this.getView().setModel(oDetailModel, "detail");
@@ -56,6 +64,15 @@ sap.ui.define([
             const gjahr = decodeURIComponent(oArgs.gjahr);
             const monat = decodeURIComponent(oArgs.monat);
             const mtopt = decodeURIComponent(oArgs.mtopt || "");
+            const oDetailModel = this.getView().getModel("detail");
+
+            oDetailModel.setProperty("/variance", {
+                busy: false,
+                loaded: false,
+                message: "",
+                data: {},
+                metricRows: []
+            });
 
             this._loadDetailData(matnr, gjahr, monat, mtopt);
         },
@@ -99,6 +116,165 @@ sap.ui.define([
                     console.error("Detail data load error:", oError);
                 }
             });
+        },
+
+        onDetailTabSelect(oEvent) {
+            const sKey = oEvent.getParameter("key");
+
+            if (sKey === "variance") {
+                this._loadVarianceData();
+            }
+        },
+
+        _loadVarianceData() {
+            const oDetailModel = this.getView().getModel("detail");
+            const oDetail = oDetailModel.getData();
+            const oVariance = oDetail.variance || {};
+            const oVarianceModel = this.getOwnerComponent().getModel("varianceModel");
+
+            if (oVariance.loaded || oVariance.busy) {
+                return;
+            }
+
+            if (!oVarianceModel) {
+                MessageBox.error("원가차이 조회 서비스가 정의되어 있지 않습니다.");
+                return;
+            }
+
+            if (!oDetail.matnr || !oDetail.gjahr || !oDetail.monat) {
+                MessageBox.warning(this._getText("varianceMissingDetailKey"));
+                return;
+            }
+
+            oDetailModel.setProperty("/variance/busy", true);
+            oDetailModel.setProperty("/variance/message", "");
+
+            this._getVarianceSetPath(oVarianceModel, {
+                p_bukrs: "0001",
+                p_gjahr: String(oDetail.gjahr),
+                p_monat: this._toPoper(oDetail.monat),
+                p_werks: ""
+            }).then((sPath) => this._readODataList(sPath, {
+                filters: [
+                    new Filter("matnr", FilterOperator.EQ, oDetail.matnr),
+                    new Filter("gjahr", FilterOperator.EQ, String(oDetail.gjahr)),
+                    new Filter("monat", FilterOperator.EQ, String(oDetail.monat).padStart(2, "0")),
+                    new Filter("mtopt", FilterOperator.EQ, oDetail.mtopt || "")
+                ],
+                urlParameters: {
+                    $orderby: "matnr asc,mtopt asc"
+                }
+            }, oVarianceModel)).then((aRows) => {
+                const oRow = (aRows || [])[0];
+                this._applyVarianceData(oRow || null);
+            }).catch((oError) => {
+                console.error("Variance data load error:", oError);
+                MessageBox.error(this._getText("varianceLoadFailed"));
+                oDetailModel.setProperty("/variance/loaded", true);
+            }).finally(() => {
+                oDetailModel.setProperty("/variance/busy", false);
+            });
+        },
+
+        _applyVarianceData(oRow) {
+            const oDetailModel = this.getView().getModel("detail");
+
+            if (!oRow) {
+                oDetailModel.setProperty("/variance/data", {});
+                oDetailModel.setProperty("/variance/metricRows", []);
+                oDetailModel.setProperty("/variance/message", "");
+                oDetailModel.setProperty("/variance/loaded", true);
+                return;
+            }
+
+            const oData = Object.assign({}, oRow, {
+                settlement_variance_amt: this._calculateSettlementVarianceAmount(oRow),
+                actualStatusText: this._formatVarianceActualStatus(oRow),
+                actualStatusState: this._formatVarianceActualState(oRow)
+            });
+
+            oDetailModel.setProperty("/variance/data", oData);
+            oDetailModel.setProperty("/variance/metricRows", this._buildVarianceMetricRows(oData));
+            oDetailModel.setProperty("/variance/message", "");
+            oDetailModel.setProperty("/variance/loaded", true);
+        },
+
+        _buildVarianceMetricRows(oData) {
+            return [
+                { label: this._getText("varianceStdTotalCost"), value: oData.std_total_cost, unit: oData.waers, state: "Information" },
+                { label: this._getText("varianceActualTotalCost"), value: oData.actual_total_cost, unit: oData.waers, state: "Success" },
+                { label: this._getText("variancePriceDiff"), value: oData.price_diff_amt, unit: oData.waers, state: this._varianceAmountState(oData.price_diff_amt) },
+                { label: this._getText("varianceProcessingDiff"), value: oData.processing_diff_amt, unit: oData.waers, state: this._varianceAmountState(oData.processing_diff_amt) },
+                { label: this._getText("varianceSettlementDiff"), value: oData.settlement_variance_amt, unit: oData.waers, state: this._varianceAmountState(oData.settlement_variance_amt) },
+                { label: this._getText("varianceTargetDiff"), value: oData.target_variance_amt, unit: oData.waers, state: this._varianceAmountState(oData.target_variance_amt) },
+                { label: this._getText("varianceDiffRate"), value: oData.diff_rate_pct, unit: "%", state: this._varianceAmountState(oData.diff_rate_pct) }
+            ];
+        },
+
+        _calculateSettlementVarianceAmount(oData) {
+            const bHasPriceDiff = this._hasFiniteNumber(oData.price_diff_amt);
+            const bHasProcessingDiff = this._hasFiniteNumber(oData.processing_diff_amt);
+
+            if (bHasPriceDiff || bHasProcessingDiff) {
+                return this._toAmountNumber(oData.price_diff_amt) + this._toAmountNumber(oData.processing_diff_amt);
+            }
+
+            return this._toAmountNumber(oData.settlement_variance_amt);
+        },
+
+        _hasFiniteNumber(vValue) {
+            if (vValue === null || vValue === undefined || vValue === "") {
+                return false;
+            }
+
+            return Number.isFinite(Number(vValue));
+        },
+
+        _toAmountNumber(vValue) {
+            const fValue = Number(vValue);
+            return Number.isFinite(fValue) ? fValue : 0;
+        },
+
+        _getVarianceSetPath(oModel, mParameters) {
+            return oModel.metadataLoaded().then(() => "/" + oModel.createKey("zcds_e4_co_0028", mParameters) + "/Set");
+        },
+
+        _toPoper(sMonth) {
+            return String(sMonth || "").replace(/\D/g, "").padStart(3, "0");
+        },
+
+        _formatVarianceActualStatus(oData) {
+            if (oData.actual_exists === "X") {
+                return this._getText("varianceActualDone");
+            }
+
+            if (oData.actual_calc_target === "X") {
+                return this._getText("varianceActualTarget");
+            }
+
+            return oData.actual_status || this._getText("varianceActualDisplayOnly");
+        },
+
+        _formatVarianceActualState(oData) {
+            if (oData.actual_exists === "X") {
+                return "Success";
+            }
+
+            if (oData.actual_calc_target === "X") {
+                return "Warning";
+            }
+
+            return "None";
+        },
+
+        _varianceAmountState(vValue) {
+            const fValue = Number(vValue);
+
+            if (!Number.isFinite(fValue) || fValue === 0) {
+                return "None";
+            }
+
+            return fValue > 0 ? "Warning" : "Success";
         },
 
         _applyDetailData(oData, aItems, aReservations, aSORequirements, aBOMCostBreakdown) {
@@ -774,6 +950,8 @@ sap.ui.define([
                 return;
             }
 
+            const bShowPointLabels = aChartData.length <= 24;
+            const mValueAxisScale = this._getCostHistoryAxisScale(aChartData);
             const oChartModel = new JSONModel({
                 costHistory: aChartData
             });
@@ -784,7 +962,7 @@ sap.ui.define([
             oChart.setVizProperties({
                 plotArea: {
                     dataLabel: {
-                        visible: true,
+                        visible: bShowPointLabels,
                         formatString: "#,##0"
                     },
                     marker: {
@@ -818,7 +996,8 @@ sap.ui.define([
                     },
                     label: {
                         formatString: "#,##0"
-                    }
+                    },
+                    scale: mValueAxisScale
                 },
                 legend: {
                     visible: false
@@ -924,6 +1103,32 @@ sap.ui.define([
                 || (oMonth.gjahr === String(gjahr) && oMonth.monat === String(monat).padStart(2, "0"));
         },
 
+        _getCostHistoryAxisScale(aChartData) {
+            const aCosts = (aChartData || [])
+                .map((oItem) => Number(oItem.cost))
+                .filter((fCost) => Number.isFinite(fCost));
+
+            if (aCosts.length === 0) {
+                return {
+                    fixedRange: false
+                };
+            }
+
+            const fMin = Math.min.apply(null, aCosts);
+            const fMax = Math.max.apply(null, aCosts);
+            const fSpread = Math.abs(fMax - fMin);
+            const fMagnitude = Math.max(Math.abs(fMin), Math.abs(fMax), 1);
+            const fPadding = Math.max(fSpread * 0.12, fMagnitude * 0.03);
+            const fMinValue = Math.max(0, Math.floor(fMin - fPadding));
+            const fMaxValue = Math.ceil(fMax + fPadding);
+
+            return {
+                fixedRange: true,
+                minValue: fMinValue,
+                maxValue: fMaxValue
+            };
+        },
+
         _getMonthRange(gjahr, monat, iCount) {
             const iEndYear = Number(gjahr);
             const iEndMonthIndex = Number(monat) - 1;
@@ -1015,73 +1220,89 @@ sap.ui.define([
             });
         },
 
+        onExportExcel() {
+            ReportExport.exportExcel(this._buildDetailExportReport(), this.getView());
+        },
+
+        onExportPdf() {
+            ReportExport.printPdf(this._buildDetailExportReport(), this.getView());
+        },
+
         onExportDetailToPdf() {
+            this.onExportPdf();
+        },
+
+        _buildDetailExportReport() {
             const oDetailModel = this.getView().getModel("detail");
             const oDetail = oDetailModel.getData();
-
-            if (!oDetail || !oDetail.matnr) {
-                MessageBox.warning("출력할 상세 데이터가 없습니다.");
-                return;
-            }
-
-            const sTitle = "[EverNiture-CO] 원가요소 세부 정보";
-            const sCostDonutSvg = this._getVizSvgMarkup("costDonutChart");
-            const sHistorySvg = this._getVizSvgMarkup("costHistoryLineChart");
             const aCostItems = oDetail.to_Item && oDetail.to_Item.results || [];
             const aBOMRows = oDetail.to_BOMCostBreakdown && oDetail.to_BOMCostBreakdown.results || [];
             const aReservationRows = oDetail.reservationRows || [];
-            const aHistoryRows = this.byId("costHistoryLineChart").getModel("history") &&
-                this.byId("costHistoryLineChart").getModel("history").getProperty("/costHistory") || [];
-            const sPrintCss = [
-                "<style>",
-                "@page { size: A4 landscape; margin: 8mm; }",
-                "* { box-sizing: border-box; }",
-                "html, body { margin: 0; padding: 0; background: #fff; }",
-                "body { font-family: Arial, 'Malgun Gothic', sans-serif; color: #1d2b3a; font-size: 10px; }",
-                ".pdfMeta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; border-bottom: 2px solid #d9e1e8; padding-bottom: 8px; color: #526376; }",
-                "h1 { margin: 0; font-size: 18px; color: #0b1f3a; } h2 { margin: 0 0 8px; font-size: 13px; color: #0b1f3a; }",
-                ".section { border: 1px solid #dfe7ef; border-radius: 4px; padding: 10px; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid; }",
-                ".summary { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }",
-                ".item { border-right: 1px solid #dfe7ef; min-height: 34px; } .item:last-child { border-right: 0; }",
-                ".label { color: #5b6b7f; font-weight: 700; margin-bottom: 3px; } .value { font-size: 12px; font-weight: 700; color: #0a6ed1; } .sub { color: #5b6b7f; }",
-                ".total { background: #0a6ed1; color: #fff; border-radius: 4px; padding: 8px 10px; } .total .label, .total .sub, .total .value { color: #fff; }",
-                ".grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }",
-                "table { width: 100%; border-collapse: collapse; table-layout: fixed; } th, td { border-bottom: 1px solid #dfe5eb; padding: 5px 6px; vertical-align: middle; word-break: keep-all; } th { background: #f4f7fa; font-weight: 700; text-align: left; } td.num, th.num { text-align: right; white-space: nowrap; } td.center, th.center { text-align: center; white-space: nowrap; }",
-                ".chartBox { min-height: 340px; overflow: visible; } .chartBox svg { display: block; width: 100%; height: 310px; overflow: visible; }",
-                ".historyBox { min-height: 300px; overflow: visible; } .historyBox svg { display: block; width: 100%; height: 260px; overflow: visible; }",
-                "@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }",
-                "</style>"
-            ].join("");
-            const sHtml = [
-                "<!DOCTYPE html>",
-                "<html><head><meta charset='UTF-8'/>",
-                "<title>" + sTitle + "</title>",
-                sPrintCss,
-                "</head><body>",
-                "<div class='pdfMeta'><h1>" + sTitle + "</h1><span>생성일시: " + this._escapeHtml(new Date().toLocaleString("ko-KR")) + "</span></div>",
-                this._buildDetailPdfSummary(oDetail),
-                "<div class='grid'>",
-                this._buildDetailPdfCostTable(aCostItems),
-                "<section class='section chartBox'><h2>" + this._escapeHtml(oDetail.isBomChart ? "재료비 세부 비중" : "원가 구조 비중") + "</h2>" + (sCostDonutSvg || "<p>차트 데이터가 없습니다.</p>") + "</section>",
-                "</div>",
-                oDetail.isFinishedProduct ? this._buildDetailPdfBOMTable(aBOMRows) : "",
-                "<section class='section historyBox'><h2>최근 10년 표준단가 흐름</h2>" + (sHistorySvg || this._buildDetailPdfHistoryTable(aHistoryRows)) + "</section>",
-                this._buildDetailPdfReservationSummary(oDetail.reservationSummary, aReservationRows),
-                "</body></html>"
-            ].join("");
-            const oWindow = window.open("", "", "width=1200,height=800");
+            const oHistoryChart = this.byId("costHistoryLineChart");
+            const oHistoryModel = oHistoryChart && oHistoryChart.getModel("history");
+            const aHistoryRows = oHistoryModel && oHistoryModel.getProperty("/costHistory") || [];
+            const aVarianceRows = oDetail.variance && oDetail.variance.metricRows || [];
+            const oReservationSummary = oDetail.reservationSummary || {};
 
-            if (!oWindow) {
-                MessageBox.warning("팝업 차단을 해제한 뒤 다시 시도해주세요.");
-                return;
-            }
-
-            oWindow.document.write(sHtml);
-            oWindow.document.close();
-            oWindow.focus();
-            setTimeout(() => {
-                oWindow.print();
-            }, 500);
+            return {
+                title: "[EverNiture-CO] 원가요소 세부 정보",
+                fileName: "StandardCostDetail_" + (oDetail.matnr || "Material"),
+                variant: "standard",
+                description: "제품 원가 구조, BOM 원가, 원가 이력 및 예약/가용 정보 리포트",
+                filters: [
+                    { label: "제품번호", value: oDetail.matnr },
+                    { label: "옵션", value: oDetail.mtopt },
+                    { label: "통화", value: oDetail.waers }
+                ],
+                summary: [
+                    { label: "제품명", value: oDetail.maktx },
+                    { label: "옵션명", value: oDetail.mtopt_t },
+                    { label: "제품유형", value: oDetail.mtbez },
+                    { label: "제품그룹", value: oDetail.wgbez },
+                    { label: "총 표준원가", value: this.formatAmount(oDetail.total_cost) + " " + (oDetail.waers || "") },
+                    { label: "예약 건수", value: this.formatQuantity(oReservationSummary.count) },
+                    { label: "오픈 예약수량", value: this.formatQuantity(oReservationSummary.openQuantity) }
+                ],
+                charts: [
+                    ReportExport.chart("원가 구조 비중", "costDonutChart", "원가요소", { width: 720, height: 360 }),
+                    ReportExport.chart("원가 이력 추이", "costHistoryLineChart", "원가 이력", { width: 720, height: 360 })
+                ],
+                sections: [
+                    ReportExport.section("원가요소", aCostItems, [
+                        { label: "원가요소", property: "cost_comp_text" },
+                        { label: "금액", rawProperty: "amount", value: (oRow) => this.formatAmount(oRow.amount), type: "amount", total: true },
+                        { label: "비중(%)", rawProperty: "percent", value: (oRow) => this.formatPercent(oRow.percent), type: "percent", percentScale: "point", summary: false },
+                        { label: "통화", property: "waers" }
+                    ]),
+                    ReportExport.section("BOM 원가", aBOMRows, [
+                        { label: "구성품", value: (oRow) => this.formatBomComponentName(oRow.maktx, oRow.idnrk) },
+                        { label: "수량", value: (oRow) => this.formatBomComponentQuantity(oRow.menge, oRow.bmeng) },
+                        { label: "단위", property: "meins" },
+                        { label: "단위원가", rawProperty: "comp_unit_cost", value: (oRow) => this.formatAmount(oRow.comp_unit_cost), type: "amount" },
+                        { label: "금액", rawProperty: "comp_total_cost", value: (oRow) => this.formatAmount(oRow.comp_total_cost), type: "amount", total: true },
+                        { label: "통화", property: "waers" }
+                    ]),
+                    ReportExport.section("원가 이력", aHistoryRows, [
+                        { label: "기간", property: "period" },
+                        { label: "표준원가", rawValue: (oRow) => oRow.total_cost || oRow.amount || oRow.value, value: (oRow) => this.formatAmount(oRow.total_cost || oRow.amount || oRow.value), type: "amount" },
+                        { label: "통화", property: "waers" }
+                    ]),
+                    ReportExport.section("실제/표준 차이", aVarianceRows, [
+                        { label: "지표", property: "label" },
+                        { label: "금액", rawProperty: "value", value: (oRow) => this.formatAmount(oRow.value), type: "amount", total: true },
+                        { label: "단위", property: "unit" },
+                        { label: "상태", property: "state" }
+                    ]),
+                    ReportExport.section("예약/가용 정보", aReservationRows, [
+                        { label: "구분", property: "source" },
+                        { label: "문서", property: "document" },
+                        { label: "항목", property: "item" },
+                        { label: "예약수량", rawProperty: "reservationQuantity", value: (oRow) => this.formatQuantity(oRow.reservationQuantity), type: "integer", total: true },
+                        { label: "단위", property: "meins" },
+                        { label: "상태", property: "statusText" }
+                    ])
+                ]
+            };
         },
 
         _getVizSvgMarkup(sChartId) {
@@ -1111,12 +1332,12 @@ sap.ui.define([
 
         _buildDetailPdfSummary(oDetail) {
             return [
-                "<section class='section summary'>",
-                this._buildPdfSummaryItem("자재번호", oDetail.matnr),
-                this._buildPdfSummaryItem("자재명", oDetail.maktx),
+                "<section class='section summary avoid'>",
+                this._buildPdfSummaryItem("제품번호", oDetail.matnr),
+                this._buildPdfSummaryItem("제품명", oDetail.maktx),
                 this._buildPdfSummaryItem("제품 옵션", oDetail.mtopt_t, oDetail.mtopt),
-                this._buildPdfSummaryItem("자재유형", oDetail.mtbez, oDetail.mtart),
-                this._buildPdfSummaryItem("자재그룹", oDetail.wgbez, oDetail.matkl),
+                this._buildPdfSummaryItem("제품유형", oDetail.mtbez, oDetail.mtart),
+                this._buildPdfSummaryItem("제품그룹", oDetail.wgbez, oDetail.matkl),
                 "<div class='item total'><div class='label'>총 표준원가</div><div class='value'>" + this._escapeHtml(this.formatAmount(oDetail.total_cost)) + " " + this._escapeHtml(oDetail.waers) + "</div><div class='sub'>" + this._escapeHtml(oDetail.gjahr + " / " + oDetail.monat) + "</div></div>",
                 "</section>"
             ].join("");
@@ -1133,49 +1354,120 @@ sap.ui.define([
         },
 
         _buildDetailPdfCostTable(aRows) {
-            const aMarkup = ["<section class='section'><h2>원가 구성요소 상세</h2><table><thead><tr><th>원가구성요소</th><th class='num'>금액</th><th class='num'>비율(%)</th><th class='center'>통화</th></tr></thead><tbody>"];
+            const aMarkup = ["<section class='section avoid'><h2>원가 구성요소 상세</h2><table><colgroup><col/><col style='width: 31%;'/><col style='width: 18%;'/><col style='width: 13%;'/></colgroup><thead><tr><th>원가구성요소</th><th class='num'>금액</th><th class='num'>비율(%)</th><th class='center'>통화</th></tr></thead><tbody>"];
+            if (!aRows.length) {
+                aMarkup.push("<tr><td colspan='4' class='center empty'>원가 구성요소 데이터가 없습니다.</td></tr>");
+            }
             aRows.forEach((oItem) => {
-                aMarkup.push("<tr><td>" + this._escapeHtml(oItem.cost_comp_text) + "</td><td class='num'>" + this._escapeHtml(this.formatAmount(oItem.amount)) + "</td><td class='num'>" + this._escapeHtml(this.formatPercent(oItem.percent)) + "</td><td class='center'>" + this._escapeHtml(oItem.waers) + "</td></tr>");
+                aMarkup.push("<tr><td>" + this._escapeHtml(oItem.cost_comp_text) + "</td><td class='num'><span class='numBadge'>" + this._escapeHtml(this.formatAmount(oItem.amount)) + "</span></td><td class='num'>" + this._escapeHtml(this.formatPercent(oItem.percent)) + "%</td><td class='center'>" + this._escapeHtml(oItem.waers) + "</td></tr>");
             });
             aMarkup.push("</tbody></table></section>");
             return aMarkup.join("");
+        },
+
+        _buildDetailPdfComposition(aRows) {
+            const aChartRows = this._getDetailPdfCompositionRows(aRows);
+            const aMarkup = ["<section class='section avoid'><h2>원가 구조 비중</h2>"];
+
+            if (!aChartRows.length) {
+                aMarkup.push("<p class='empty'>원가 비중 데이터가 없습니다.</p></section>");
+                return aMarkup.join("");
+            }
+
+            aMarkup.push("<div class='composition'>");
+            aChartRows.forEach((oItem) => {
+                aMarkup.push([
+                    "<div class='barRow'>",
+                    "<div class='barLabel'>" + this._escapeHtml(oItem.label) + "</div>",
+                    "<div class='barTrack'><div class='barFill' style='width: " + this._escapeHtml(oItem.percentWidth) + "%;'></div></div>",
+                    "<div class='barPct'>" + this._escapeHtml(oItem.percentText) + "%</div>",
+                    "</div>"
+                ].join(""));
+            });
+            aMarkup.push("</div></section>");
+            return aMarkup.join("");
+        },
+
+        _getDetailPdfCompositionRows(aRows) {
+            const fTotal = (aRows || []).reduce((fSum, oItem) => {
+                const fAmount = Number(oItem.amount || 0);
+                return Number.isNaN(fAmount) ? fSum : fSum + fAmount;
+            }, 0);
+
+            return (aRows || []).map((oItem) => {
+                const fAmount = Number(oItem.amount || 0);
+                const fProvidedPercent = Number(oItem.percent);
+                const fPercent = Number.isNaN(fProvidedPercent)
+                    ? (fTotal ? (fAmount / fTotal) * 100 : 0)
+                    : fProvidedPercent;
+                const fSafePercent = Number.isNaN(fPercent) ? 0 : Math.max(0, fPercent);
+
+                return {
+                    label: oItem.cost_comp_text || "-",
+                    percent: fSafePercent,
+                    percentText: this.formatPercent(fSafePercent),
+                    percentWidth: String(Math.max(2, Math.min(100, fSafePercent))).replace(/[^0-9.]/g, "")
+                };
+            }).filter((oItem) => oItem.percent > 0);
         },
 
         _buildDetailPdfBOMTable(aRows) {
-            const aMarkup = ["<section class='section'><h2>BOM 재료비 구성</h2><table><thead><tr><th>구성자재</th><th class='num'>투입량</th><th class='num'>단가</th><th class='num'>금액</th><th class='center'>통화</th></tr></thead><tbody>"];
+            const aMarkup = ["<section class='section'><h2>BOM 재료비 구성</h2><table><colgroup><col/><col style='width: 15%;'/><col style='width: 16%;'/><col style='width: 17%;'/><col style='width: 9%;'/></colgroup><thead><tr><th>구성자재</th><th class='num'>투입량</th><th class='num'>단가</th><th class='num'>금액</th><th class='center'>통화</th></tr></thead><tbody>"];
+            if (!aRows.length) {
+                aMarkup.push("<tr><td colspan='5' class='center empty'>BOM 재료비 구성 데이터가 없습니다.</td></tr>");
+            }
             aRows.forEach((oItem) => {
-                aMarkup.push("<tr><td>" + this._escapeHtml(this.formatBomComponentName(oItem.maktx, oItem.idnrk)) + "</td><td class='num'>" + this._escapeHtml(this.formatBomComponentQuantity(oItem.menge, oItem.bmeng)) + " " + this._escapeHtml(oItem.meins) + "</td><td class='num'>" + this._escapeHtml(this.formatAmount(oItem.comp_unit_cost)) + "</td><td class='num'>" + this._escapeHtml(this.formatAmount(oItem.comp_total_cost)) + "</td><td class='center'>" + this._escapeHtml(oItem.waers) + "</td></tr>");
+                aMarkup.push("<tr><td>" + this._escapeHtml(this.formatBomComponentName(oItem.maktx, oItem.idnrk)) + "</td><td class='num'>" + this._escapeHtml(this.formatBomComponentQuantity(oItem.menge, oItem.bmeng)) + " " + this._escapeHtml(oItem.meins) + "</td><td class='num'><span class='numBadge'>" + this._escapeHtml(this.formatAmount(oItem.comp_unit_cost)) + "</span></td><td class='num'><span class='numBadge'>" + this._escapeHtml(this.formatAmount(oItem.comp_total_cost)) + "</span></td><td class='center'>" + this._escapeHtml(oItem.waers) + "</td></tr>");
             });
             aMarkup.push("</tbody></table></section>");
             return aMarkup.join("");
         },
 
+        _buildDetailPdfHistorySection(aRows) {
+            return [
+                "<section class='section'><h2>최근 10년 표준단가 흐름</h2>",
+                this._buildDetailPdfHistoryTable(aRows),
+                "</section>"
+            ].join("");
+        },
+
         _buildDetailPdfHistoryTable(aRows) {
-            const aMarkup = ["<table><thead><tr><th>기간</th><th class='num'>표준단가</th></tr></thead><tbody>"];
+            const aMarkup = ["<table><colgroup><col/><col style='width: 34%;'/><col style='width: 16%;'/></colgroup><thead><tr><th>기간</th><th class='num'>표준단가</th><th class='center'>통화</th></tr></thead><tbody>"];
+            if (!aRows.length) {
+                aMarkup.push("<tr><td colspan='3' class='center empty'>최근 표준단가 데이터가 없습니다.</td></tr>");
+            }
             aRows.forEach((oItem) => {
-                aMarkup.push("<tr><td>" + this._escapeHtml(oItem.period) + "</td><td class='num'>" + this._escapeHtml(this.formatAmount(oItem.cost)) + "</td></tr>");
+                aMarkup.push("<tr><td>" + this._escapeHtml(oItem.period) + "</td><td class='num'><span class='numBadge'>" + this._escapeHtml(this.formatAmount(oItem.cost)) + "</span></td><td class='center'>" + this._escapeHtml(oItem.waers) + "</td></tr>");
             });
             aMarkup.push("</tbody></table>");
             return aMarkup.join("");
         },
 
         _buildDetailPdfReservationSummary(oSummary, aRows) {
+            if (!(aRows || []).length && !Number(oSummary && oSummary.count || 0)) {
+                return "";
+            }
+
             return [
                 "<section class='section'><h2>예약 데이터 요약</h2>",
-                "<p>예약 건수: " + this._escapeHtml(this.formatQuantity(oSummary && oSummary.count)) + " / 예약수량 합계: " + this._escapeHtml(this.formatQuantity(oSummary && oSummary.openQuantity)) + "</p>",
-                "<table><thead><tr><th>구분</th><th>문서</th><th>항목</th><th class='num'>예약수량</th><th class='center'>단위</th><th class='center'>상태</th></tr></thead><tbody>",
+                "<div class='facts'><div class='fact'><span class='label'>예약 건수</span> <span class='value'>" + this._escapeHtml(this.formatAmount(oSummary && oSummary.count)) + "</span></div><div class='fact'><span class='label'>예약수량 합계</span> <span class='value'>" + this._escapeHtml(this.formatQuantity(oSummary && oSummary.openQuantity)) + "</span></div></div>",
+                "<table><colgroup><col style='width: 12%;'/><col/><col style='width: 16%;'/><col style='width: 18%;'/><col style='width: 10%;'/><col style='width: 14%;'/></colgroup><thead><tr><th>구분</th><th>문서</th><th>항목</th><th class='num'>예약수량</th><th class='center'>단위</th><th class='center'>상태</th></tr></thead><tbody>",
                 (aRows || []).map((oItem) => "<tr><td>" + this._escapeHtml(oItem.source) + "</td><td>" + this._escapeHtml(oItem.document) + "</td><td>" + this._escapeHtml(oItem.item) + "</td><td class='num'>" + this._escapeHtml(this.formatQuantity(oItem.reservationQuantity)) + "</td><td class='center'>" + this._escapeHtml(oItem.meins) + "</td><td class='center'>" + this._escapeHtml(oItem.statusText) + "</td></tr>").join(""),
                 "</tbody></table></section>"
             ].join("");
         },
 
         _escapeHtml(sValue) {
-            return String(sValue || "")
+            return String(sValue ?? "")
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#39;");
+        },
+
+        _getText(sKey, aArgs) {
+            return this.getOwnerComponent().getModel("i18n").getResourceBundle().getText(sKey, aArgs);
         },
 
         onNavBack() {

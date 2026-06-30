@@ -70,15 +70,16 @@
                     <headerToolbar>
                         <OverflowToolbar>
                             <ToolbarSpacer/>
-                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" type="Transparent" press=".onExportDetailToPdf"/>
+                            <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel"/>
+                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" type="Transparent" press=".onExportPdf"/>
                             <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
                             <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
                         </OverflowToolbar>
                     </headerToolbar>
                     <content>
-                        <IconTabBar id="detailTabs" expandable="false" class="detailTabs">
+                        <IconTabBar id="detailTabs" expandable="false" class="detailTabs" select=".onDetailTabSelect">
                             <items>
-                                <IconTabFilter text="{i18n>tabCostBreakdown}" icon="sap-icon://detail-view" tooltip="{i18n>tabCostBreakdownTooltip}">
+                                <IconTabFilter key="breakdown" text="{i18n>tabCostBreakdown}" icon="sap-icon://detail-view" tooltip="{i18n>tabCostBreakdownTooltip}">
                                     <content>
                                         <VBox id="breakdownGrid" renderType="Bare" class="breakdownGrid" width="100%">
                                             <Panel class="breakdownPanel costComponentPanel" backgroundDesign="Solid">
@@ -197,7 +198,7 @@
                                                         uiConfig="{applicationSet:'fiori'}"
                                                         vizType="line"
                                                         width="100%"
-                                                        height="18rem"
+                                                        height="30rem"
                                                         selectData=".onCostHistorySelect">
                                                     </viz:VizFrame>
                                                 </VBox>
@@ -206,7 +207,52 @@
                                     </content>
                                 </IconTabFilter>
 
-                                <IconTabFilter text="{i18n>tabReservationTracking}" icon="sap-icon://table-view" tooltip="{i18n>tabReservationTrackingTooltip}">
+                                <IconTabFilter key="variance" text="{i18n>tabActualVariance}" icon="sap-icon://compare" tooltip="{i18n>tabActualVarianceTooltip}">
+                                    <content>
+                                        <VBox class="varianceTabContent" busy="{detail>/variance/busy}">
+                                            <Panel class="varianceSummaryPanel" backgroundDesign="Solid">
+                                                <headerToolbar>
+                                                    <OverflowToolbar>
+                                                        <Title text="{i18n>varianceSummaryTitle}" level="H2"/>
+                                                        <ToolbarSpacer/>
+                                                        <ObjectStatus
+                                                            text="{detail>/variance/data/actualStatusText}"
+                                                            state="{detail>/variance/data/actualStatusState}"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table
+                                                        items="{detail>/variance/metricRows}"
+                                                        mode="None"
+                                                        noDataText="{i18n>varianceNoData}">
+                                                        <columns>
+                                                            <Column width="42%">
+                                                                <Label text="{i18n>varianceMetric}"/>
+                                                            </Column>
+                                                            <Column hAlign="End">
+                                                                <Label text="{i18n>varianceAmount}"/>
+                                                            </Column>
+                                                            <Column hAlign="Center" width="6rem">
+                                                                <Label text="{i18n>colCurrency}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <Text text="{detail>label}"/>
+                                                                <ObjectStatus
+                                                                    text="{path: 'detail>value', formatter: '.formatAmount'}"
+                                                                    state="{detail>state}"/>
+                                                                <Text text="{detail>unit}" textAlign="Center"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
+                                        </VBox>
+                                    </content>
+                                </IconTabFilter>
+
+                                <IconTabFilter key="reservation" text="{i18n>tabReservationTracking}" icon="sap-icon://table-view" tooltip="{i18n>tabReservationTrackingTooltip}">
                                     <content>
                                         <Panel class="reservationSummaryCard reservationSummaryInline" backgroundDesign="Solid">
                                             <content>

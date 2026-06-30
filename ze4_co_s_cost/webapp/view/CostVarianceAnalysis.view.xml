@@ -1,0 +1,855 @@
+<mvc:View controllerName="ze4.co.s.cost.ze4coscost.controller.CostVarianceAnalysis"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:t="sap.ui.table"
+    xmlns:viz="sap.viz.ui5.controls">
+    <Page id="variancePage" title="{i18n>varianceTitle}" showHeader="false" busy="{variance>/busy}">
+        <content>
+            <VBox class="sapUiContentPadding standardCostPage varianceAnalysisPage" width="100%">
+                <HBox class="breadcrumbLine" alignItems="Center">
+                    <Link text="{i18n>breadcrumbList}" press=".onNavBack"/>
+                    <core:Icon src="sap-icon://slim-arrow-right" class="breadcrumbIcon"/>
+                    <Text text="{i18n>varianceTitle}"/>
+                </HBox>
+
+                <HBox class="pageTitleBar" alignItems="End" justifyContent="SpaceBetween" wrap="Wrap">
+                    <VBox class="pageTitleBlock">
+                        <Title text="{i18n>varianceTitle}" level="H1" titleStyle="H1" class="pageHeroTitle"/>
+                        <Text text="{i18n>varianceSubtitle}" class="pageSubtitle"/>
+                    </VBox>
+                    <HBox class="filterActions">
+                        <Button text="{i18n>varianceBackToList}" icon="sap-icon://nav-back" type="Transparent" press=".onNavBack"/>
+                        <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel"/>
+                        <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" type="Transparent" press=".onExportPdf"/>
+                    </HBox>
+                </HBox>
+
+                <Panel class="filterPanel appCard varianceFilterPanel" width="100%" backgroundDesign="Solid">
+                    <content>
+                        <FlexBox wrap="Wrap" alignItems="Start" class="filterGrid varianceFilterBar">
+                            <VBox class="filterField">
+                                <Label text="{i18n>companyCode}" labelFor="varianceCompany"/>
+                                <Input id="varianceCompany" value="{variance>/filters/bukrs}" editable="false" width="10rem"/>
+                            </VBox>
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblYear}" labelFor="varianceYear"/>
+                                <Input id="varianceYear" value="{variance>/filters/gjahr}" maxLength="4" width="10rem" submit=".onSearch"/>
+                            </VBox>
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMonth}" labelFor="varianceMonth"/>
+                                <Input id="varianceMonth" value="{variance>/filters/monat}" maxLength="2" width="10rem" submit=".onSearch"/>
+                            </VBox>
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblMaterial}" labelFor="varianceMatnr"/>
+                                <Input id="varianceMatnr" value="{variance>/filters/matnr}" maxLength="40" width="13rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" valueHelpRequest=".onMaterialValueHelp" submit=".onSearch"/>
+                                <Text text="{variance>/filters/maktx}" visible="{= !!${variance>/filters/maktx} }" class="filterValueText"/>
+                            </VBox>
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblOption}" labelFor="varianceMtopt"/>
+                                <Input id="varianceMtopt" value="{variance>/filters/mtopt}" maxLength="8" width="10rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" valueHelpRequest=".onOptionValueHelp" submit=".onSearch"/>
+                                <Text text="{variance>/filters/mtopt_t}" visible="{= !!${variance>/filters/mtopt_t} }" class="filterValueText"/>
+                            </VBox>
+                            <HBox class="filterActions varianceFilterActions">
+                                <Button text="{i18n>varianceSearch}" icon="sap-icon://search" type="Emphasized" press=".onSearch"/>
+                                <Button text="{i18n>btnReset}" icon="sap-icon://reset" press=".onReset"/>
+                            </HBox>
+                        </FlexBox>
+                    </content>
+                </Panel>
+
+                <Panel class="appCard varianceOverviewPanel" width="100%" backgroundDesign="Solid">
+                    <headerToolbar>
+                        <OverflowToolbar class="summaryToolbar">
+                            <core:Icon src="sap-icon://business-objects-experience" class="sectionIcon"/>
+                            <VBox class="toolbarTitle">
+                                <Title text="{variance>/analysisTitleText}" level="H2"/>
+                                <Text text="{variance>/analysisScopeText}" class="toolbarSubText"/>
+                            </VBox>
+                            <ToolbarSpacer/>
+                            <ObjectStatus text="{variance>/analysisBadgeText}" state="Information" class="varianceScopeBadge"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <content>
+                        <FlexBox class="varianceKpiGrid varianceKpiGridFive" wrap="Wrap" renderType="Bare">
+                            <VBox class="varianceKpiCard varianceKpiStatus">
+                                <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                                    <core:Icon src="sap-icon://status-positive" class="summaryKpiIcon"/>
+                                    <Label text="{i18n>varianceStatus}"/>
+                                </HBox>
+                                <ObjectStatus
+                                    text="{variance>/analysis/statusText}"
+                                    state="{variance>/analysis/statusState}"
+                                    class="varianceKpiObjectStatus"/>
+                                <Text text="{variance>/analysis/completedStatusText}" class="mutedText"/>
+                            </VBox>
+                            <VBox class="varianceKpiCard varianceTotalDiffKpi">
+                                <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                                    <core:Icon src="sap-icon://compare" class="summaryKpiIcon"/>
+                                    <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                </HBox>
+                                <ObjectNumber
+                                    class="summaryKpiValue"
+                                    number="{path: 'variance>/analysis/totalDiff', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/currency}"
+                                    emphasized="true"
+                                    state="{variance>/analysis/totalDiffState}"/>
+                            </VBox>
+                            <VBox class="varianceKpiCard">
+                                <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                                    <core:Icon src="sap-icon://cart" class="summaryKpiIcon"/>
+                                    <Label text="{i18n>varianceMaterialPriceDiff}"/>
+                                </HBox>
+                                <ObjectNumber
+                                    class="summaryKpiValue"
+                                    number="{path: 'variance>/analysis/priceNetAmount', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/currency}"
+                                    emphasized="true"
+                                    state="{variance>/analysis/priceNetState}"/>
+                            </VBox>
+                            <VBox class="varianceKpiCard">
+                                <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                                    <core:Icon src="sap-icon://factory" class="summaryKpiIcon"/>
+                                    <Label text="{i18n>varianceProcessingDiff}"/>
+                                </HBox>
+                                <ObjectNumber
+                                    class="summaryKpiValue"
+                                    number="{path: 'variance>/analysis/processingNetAmount', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/currency}"
+                                    emphasized="true"
+                                    state="{variance>/analysis/processingNetState}"/>
+                            </VBox>
+                            <VBox class="varianceKpiCard" visible="{= !${variance>/isDetailMode} }">
+                                <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                                    <core:Icon src="sap-icon://flag" class="summaryKpiIcon"/>
+                                    <Label text="{i18n>variancePriorityIssueTitle}"/>
+                                </HBox>
+                                <ObjectNumber
+                                    class="summaryKpiValue"
+                                    number="{path: 'variance>/analysis/priorityIssueCount', formatter: '.formatAmount'}"
+                                    unit="{i18n>countUnit}"
+                                    emphasized="true"
+                                    state="{variance>/analysis/statusState}"/>
+                            </VBox>
+                        </FlexBox>
+                    </content>
+                </Panel>
+
+                <Panel class="appCard varianceMainInsightPanel" width="100%" backgroundDesign="Solid" visible="{= !${variance>/isDetailMode} }">
+                    <headerToolbar>
+                        <OverflowToolbar class="summaryToolbar">
+                            <core:Icon src="sap-icon://hint" class="sectionIcon"/>
+                            <Title text="{i18n>varianceMainInsightTitle}" level="H2"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <content>
+                        <FlexBox class="varianceMainInsightGrid" wrap="Wrap" renderType="Bare">
+                            <VBox class="varianceInsightMetric">
+                                <Label text="{i18n>varianceDominantFactor}"/>
+                                <ObjectStatus
+                                    text="{variance>/analysis/dominantFactorText}"
+                                    state="{variance>/analysis/dominantFactorState}"/>
+                                <ObjectNumber
+                                    number="{path: 'variance>/analysis/dominantFactorAmount', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/currency}"
+                                    state="{variance>/analysis/dominantFactorState}"/>
+                            </VBox>
+                            <VBox class="varianceInsightMetric varianceTotalDiffInsight">
+                                <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                <ObjectNumber
+                                    number="{path: 'variance>/analysis/totalDiff', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/currency}"
+                                    emphasized="true"
+                                    state="{variance>/analysis/totalDiffState}"/>
+                                <ObjectStatus
+                                    text="{variance>/analysis/statusText}"
+                                    state="{variance>/analysis/statusState}"/>
+                            </VBox>
+                            <VBox class="varianceInsightMetric varianceInsightMetricWide">
+                                <Label text="{i18n>variancePriorityIssueTitle}"/>
+                                <ObjectStatus
+                                    text="{variance>/analysis/mainIssueText}"
+                                    state="{variance>/analysis/mainIssueState}"/>
+                                <Text text="{variance>/analysis/mainIssueDescription}" class="mutedText"/>
+                            </VBox>
+                            <VBox class="varianceInsightMetric">
+                                <Label text="{i18n>varianceImpactAmount}"/>
+                                <ObjectNumber
+                                    number="{path: 'variance>/analysis/mainIssueAmount', formatter: '.formatAmount'}"
+                                    unit="{variance>/analysis/mainIssueUnit}"
+                                    state="{variance>/analysis/mainIssueState}"/>
+                            </VBox>
+                        </FlexBox>
+                    </content>
+                </Panel>
+
+                <FlexBox class="varianceAnalysisGrid" wrap="Wrap" renderType="Bare">
+                    <Panel class="appCard varianceAnalysisPanel varianceChartPanel" backgroundDesign="Solid">
+                        <headerToolbar>
+                            <OverflowToolbar class="summaryToolbar">
+                                <core:Icon src="sap-icon://horizontal-bar-chart" class="sectionIcon"/>
+                                <VBox class="toolbarTitle">
+                                    <Title text="{i18n>varianceCompositionTitle}" level="H2"/>
+                                    <Text text="{variance>/analysisScopeText}" class="toolbarSubText"/>
+                                </VBox>
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <content>
+                            <VBox visible="{variance>/isDetailMode}" class="varianceBridgeChart">
+                                <FlexBox class="varianceBridgeEquation" alignItems="Stretch" justifyContent="Center" wrap="Wrap" renderType="Bare">
+                                    <VBox class="varianceBridgeNode">
+                                        <HBox class="varianceBridgeNodeHeader" alignItems="Center">
+                                            <core:Icon src="sap-icon://cart" class="varianceBridgeIcon"/>
+                                            <Label text="{i18n>varianceMaterialPriceDiff}"/>
+                                        </HBox>
+                                        <ObjectNumber
+                                            class="varianceBridgeAmount"
+                                            number="{path: 'variance>/analysis/priceNetAmount', formatter: '.formatAmount'}"
+                                            unit="{variance>/analysis/currency}"
+                                            state="{variance>/analysis/priceNetState}"/>
+                                        <Text text="{i18n>varianceBridgeMaterialHint}" class="varianceBridgeHint"/>
+                                    </VBox>
+                                    <Text text="+" class="varianceBridgeOperator"/>
+                                    <VBox class="varianceBridgeNode">
+                                        <HBox class="varianceBridgeNodeHeader" alignItems="Center">
+                                            <core:Icon src="sap-icon://factory" class="varianceBridgeIcon"/>
+                                            <Label text="{i18n>varianceProcessingDiff}"/>
+                                        </HBox>
+                                        <ObjectNumber
+                                            class="varianceBridgeAmount"
+                                            number="{path: 'variance>/analysis/processingNetAmount', formatter: '.formatAmount'}"
+                                            unit="{variance>/analysis/currency}"
+                                            state="{variance>/analysis/processingNetState}"/>
+                                        <Text text="{i18n>varianceBridgeProcessingHint}" class="varianceBridgeHint"/>
+                                    </VBox>
+                                    <Text text="=" class="varianceBridgeOperator"/>
+                                    <VBox class="varianceBridgeNode varianceBridgeTotalNode">
+                                        <HBox class="varianceBridgeNodeHeader" alignItems="Center">
+                                            <core:Icon src="sap-icon://compare" class="varianceBridgeIcon"/>
+                                            <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                        </HBox>
+                                        <ObjectNumber
+                                            class="varianceBridgeAmount"
+                                            number="{path: 'variance>/analysis/totalDiff', formatter: '.formatAmount'}"
+                                            unit="{variance>/analysis/currency}"
+                                            state="{variance>/analysis/totalDiffState}"/>
+                                        <Text text="{i18n>varianceBridgeTotalHint}" class="varianceBridgeHint"/>
+                                    </VBox>
+                                </FlexBox>
+                                <VBox
+                                    class="varianceCheckPrioritySection varianceLeftInsightSection">
+                                    <VBox class="varianceLeftMeaningCard">
+                                        <HBox alignItems="Center" class="varianceLeftMeaningHeader">
+                                            <core:Icon src="sap-icon://hint" class="sectionIcon"/>
+                                            <Title text="{i18n>varianceMeaningTitle}" level="H3"/>
+                                            <ToolbarSpacer/>
+                                            <ObjectStatus
+                                                text="{variance>/analysis/detailMeaningTitle}"
+                                                state="{variance>/analysis/detailMeaningState}"/>
+                                        </HBox>
+                                        <Text text="{variance>/analysis/detailMeaningText}" class="varianceLeftMeaningText"/>
+                                        <FlexBox class="varianceLeftMeaningMetrics" wrap="Wrap" renderType="Bare">
+                                            <VBox class="varianceLeftMeaningMetric">
+                                                <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                                <ObjectNumber
+                                                    number="{path: 'variance>/analysis/totalDiff', formatter: '.formatAmount'}"
+                                                    unit="{variance>/analysis/currency}"
+                                                    state="{variance>/analysis/totalDiffState}"/>
+                                            </VBox>
+                                            <VBox class="varianceLeftMeaningMetric">
+                                                <Label text="{i18n>varianceKpiDiffRate}"/>
+                                                <ObjectStatus
+                                                    text="{path: 'variance>/analysis/totalDiffRate', formatter: '.formatPercent'}"
+                                                    state="{variance>/analysis/totalDiffRateState}"/>
+                                            </VBox>
+                                        </FlexBox>
+                                    </VBox>
+                                    <FlexBox class="varianceLeftInsightGrid" wrap="Wrap" renderType="Bare">
+                                        <VBox class="varianceLeftInsightCard">
+                                            <HBox alignItems="Center" class="varianceLeftInsightCardHeader">
+                                                <core:Icon src="{variance>/analysis/detailMeaningRows/0/icon}" class="varianceMeaningIcon"/>
+                                                <ObjectStatus
+                                                    text="{variance>/analysis/detailMeaningRows/0/label}"
+                                                    state="{variance>/analysis/detailMeaningRows/0/state}"/>
+                                            </HBox>
+                                            <Text text="{variance>/analysis/detailMeaningRows/0/text}" class="varianceMeaningText"/>
+                                            <Text
+                                                text="{variance>/analysis/detailMeaningRows/0/evidence}"
+                                                class="varianceMeaningEvidence"
+                                                visible="{= !!${variance>/analysis/detailMeaningRows/0/evidence} }"/>
+                                        </VBox>
+                                        <VBox class="varianceLeftInsightCard varianceLeftPriorityCard" visible="{variance>/analysis/hasCheckPriorityRows}">
+                                            <HBox alignItems="Center" class="varianceCheckPriorityHeader">
+                                                <core:Icon src="sap-icon://flag" class="sectionIcon"/>
+                                                <Title text="{i18n>varianceCheckPriorityTitle}" level="H3"/>
+                                            </HBox>
+                                            <VBox
+                                                class="varianceCheckPriorityRows"
+                                                items="{variance>/analysis/checkPriorityRows}">
+                                                <items>
+                                                    <HBox class="varianceCheckPriorityRow" alignItems="Center" justifyContent="SpaceBetween" wrap="Wrap">
+                                                        <HBox class="varianceCheckPriorityLabelBlock" alignItems="Start">
+                                                            <ObjectStatus text="{variance>rankText}" state="{variance>state}" class="variancePriorityBadge"/>
+                                                            <VBox class="varianceCheckPriorityTextBlock">
+                                                                <Text text="{variance>label}" class="varianceCheckPriorityLabel"/>
+                                                                <Text text="{variance>reason}" class="varianceCheckPriorityReason"/>
+                                                            </VBox>
+                                                        </HBox>
+                                                        <ObjectNumber
+                                                            class="varianceCheckPriorityAmount"
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>unit}"
+                                                            state="{variance>state}"/>
+                                                    </HBox>
+                                                </items>
+                                            </VBox>
+                                            <HBox alignItems="Start" class="varianceCheckPriorityDecision">
+                                                <core:Icon src="sap-icon://message-information" class="varianceChecklistIcon"/>
+                                                <Text text="{variance>/analysis/checkPrioritySummary}" class="varianceCheckPriorityDecisionText"/>
+                                            </HBox>
+                                        </VBox>
+                                    </FlexBox>
+                                </VBox>
+                            </VBox>
+                            <viz:VizFrame id="varianceFactorChart"
+                                visible="{= !${variance>/isDetailMode} }"
+                                uiConfig="{applicationSet:'fiori'}"
+                                vizType="bar"
+                                width="100%"
+                                height="18rem"/>
+                        </content>
+                    </Panel>
+
+                    <Panel class="appCard varianceAnalysisPanel varianceMeaningPanel" backgroundDesign="Solid" visible="{variance>/isDetailMode}">
+                        <content>
+                            <VBox class="varianceDetailStack varianceMeaningStack">
+                                <VBox class="varianceActivityMeaning" visible="{variance>/analysis/hasDetailActivityRows}">
+                                    <HBox alignItems="Center" class="varianceActivityMeaningHeader">
+                                        <core:Icon src="sap-icon://factory" class="sectionIcon"/>
+                                        <Title text="{i18n>varianceActivityMeaningTitle}" level="H3"/>
+                                    </HBox>
+                                    <FlexBox class="varianceActivityChartGrid" wrap="Wrap" renderType="Bare">
+                                        <VBox class="varianceActivityChartPanel">
+                                            <VBox class="varianceActivityChartHeader">
+                                                <Title text="{i18n>varianceActivityAmountChartTitle}" level="H4"/>
+                                                <Text text="{i18n>varianceActivityAmountChartText}" class="varianceActivityChartSubText"/>
+                                            </VBox>
+                                            <VBox
+                                                class="varianceActivityChartRows"
+                                                items="{variance>/analysis/detailActivityRows}">
+                                                <items>
+                                                    <HBox class="varianceActivityChartRow" alignItems="Center">
+                                                        <Text text="{variance>label}" class="varianceActivityChartLabel"/>
+                                                        <ProgressIndicator
+                                                            percentValue="{variance>amountChartPercent}"
+                                                            state="{variance>state}"
+                                                            class="varianceActivityChartBar"/>
+                                                        <ObjectNumber
+                                                            class="varianceActivityChartValue"
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>unit}"
+                                                            state="{variance>state}"/>
+                                                    </HBox>
+                                                </items>
+                                            </VBox>
+                                        </VBox>
+                                        <VBox class="varianceActivityChartPanel" visible="{variance>/analysis/hasActivityRateDiffPercent}">
+                                            <VBox class="varianceActivityChartHeader">
+                                                <Title text="{i18n>varianceActivityRateChartTitle}" level="H4"/>
+                                                <Text text="{i18n>varianceActivityRateChartText}" class="varianceActivityChartSubText"/>
+                                            </VBox>
+                                            <VBox
+                                                class="varianceActivityChartRows"
+                                                items="{variance>/analysis/detailActivityRows}">
+                                                <items>
+                                                    <HBox class="varianceActivityChartRow" alignItems="Center" visible="{variance>hasRateDiffPercent}">
+                                                        <Text text="{variance>label}" class="varianceActivityChartLabel"/>
+                                                        <ProgressIndicator
+                                                            percentValue="{variance>rateChartPercent}"
+                                                            state="{variance>state}"
+                                                            class="varianceActivityChartBar"/>
+                                                        <ObjectStatus
+                                                            class="varianceActivityChartValue"
+                                                            text="{variance>rateDisplayText}"
+                                                            state="{variance>state}"/>
+                                                    </HBox>
+                                                </items>
+                                            </VBox>
+                                        </VBox>
+                                    </FlexBox>
+                                    <FlexBox
+                                        class="varianceActivityMeaningRows"
+                                        wrap="Wrap"
+                                        renderType="Bare"
+                                        items="{variance>/analysis/detailActivityRows}">
+                                        <items>
+                                            <VBox class="varianceActivityMeaningCard">
+                                                <HBox alignItems="Center" justifyContent="SpaceBetween" wrap="Wrap" class="varianceActivityMeaningTop">
+                                                    <ObjectStatus text="{variance>priorityText}" state="{variance>priorityState}" class="varianceActivityPriorityBadge"/>
+                                                    <Text text="{variance>label}" class="varianceActivityMeaningName"/>
+                                                </HBox>
+                                                <FlexBox class="varianceActivityMetrics" wrap="Wrap" renderType="Bare">
+                                                    <VBox class="varianceActivityMetric">
+                                                        <Label text="{i18n>varianceActivityDiffAmountLabel}"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>unit}"
+                                                            state="{variance>state}"/>
+                                                    </VBox>
+                                                    <VBox class="varianceActivityMetric" visible="{variance>hasRateDiffPercent}">
+                                                        <Label text="{i18n>varianceActivityDiffRateLabel}"/>
+                                                        <ObjectStatus
+                                                            text="{path: 'variance>rateDiffPercent', formatter: '.formatPercent'}"
+                                                            state="{variance>state}"/>
+                                                    </VBox>
+                                                </FlexBox>
+                                                <VBox class="varianceActivityMeaningField">
+                                                    <Label text="{i18n>varianceActivityJudgementLabel}"/>
+                                                    <Text text="{variance>judgement}" class="varianceActivityMeaningText"/>
+                                                </VBox>
+                                                <VBox class="varianceActivityMeaningField">
+                                                    <Label text="{i18n>varianceActivityCheckLabel}"/>
+                                                    <Text text="{variance>checkText}" class="varianceActivityMeaningAction"/>
+                                                </VBox>
+                                            </VBox>
+                                        </items>
+                                    </FlexBox>
+                                </VBox>
+                            </VBox>
+                    </content>
+                </Panel>
+
+                    <Panel class="appCard varianceAnalysisPanel varianceIssuePanel" backgroundDesign="Solid" visible="{= !${variance>/isDetailMode} }">
+                        <headerToolbar>
+                            <OverflowToolbar class="summaryToolbar">
+                                <core:Icon src="sap-icon://flag" class="sectionIcon"/>
+                                <Title text="{i18n>varianceActionTitle}" level="H2"/>
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <content>
+                            <List
+                                class="varianceIssueList"
+                                items="{variance>/analysis/actionRows}"
+                                showSeparators="Inner"
+                                noDataText="{i18n>varianceNoData}">
+                                <CustomListItem>
+                                    <HBox class="varianceIssueItem" alignItems="Center" justifyContent="SpaceBetween">
+                                        <VBox class="varianceSignalText">
+                                            <ObjectStatus text="{variance>area}" state="{variance>state}"/>
+                                            <Text text="{variance>signal}" class="mutedText"/>
+                                            <Text text="{variance>recommendation}" class="mutedText"/>
+                                        </VBox>
+                                        <ObjectNumber
+                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                            unit="{variance>unit}"
+                                            state="{variance>state}"/>
+                                    </HBox>
+                                </CustomListItem>
+                            </List>
+                        </content>
+                    </Panel>
+                </FlexBox>
+
+                <Panel class="appCard varianceTabsCard" width="100%" backgroundDesign="Solid" visible="{= !${variance>/isDetailMode} }">
+                    <content>
+                        <IconTabBar id="varianceDetailTabs" expandable="false" class="detailTabs varianceDetailTabs">
+                            <items>
+                                <IconTabFilter key="material" text="{i18n>varianceMaterialPriceDiff}" icon="sap-icon://cart">
+                                    <content>
+                                        <VBox class="varianceTabContent">
+                                            <Table
+                                                visible="{= !${variance>/isDetailMode} }"
+                                                items="{variance>/analysis/priceDirectionRows}"
+                                                mode="None"
+                                                noDataText="{i18n>varianceNoData}">
+                                                <columns>
+                                                    <Column width="38%">
+                                                        <Label text="{i18n>varianceImpact}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="10rem">
+                                                        <Label text="{i18n>varianceImpactAmount}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="6rem">
+                                                        <Label text="{i18n>countUnit}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="7rem">
+                                                        <Label text="{i18n>varianceShare}"/>
+                                                    </Column>
+                                                </columns>
+                                                <items>
+                                                    <ColumnListItem>
+                                                        <VBox>
+                                                            <ObjectStatus text="{variance>label}" state="{variance>state}"/>
+                                                            <Text text="{variance>interpretation}" class="mutedText"/>
+                                                        </VBox>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>/analysis/currency}"
+                                                            state="{variance>state}"/>
+                                                        <Text text="{variance>count}" textAlign="End"/>
+                                                        <Text text="{variance>shareText}" textAlign="End"/>
+                                                    </ColumnListItem>
+                                                </items>
+                                            </Table>
+                                            <Table
+                                                visible="{variance>/isDetailMode}"
+                                                items="{variance>/analysis/priceDetailRows}"
+                                                mode="None"
+                                                noDataText="{i18n>varianceNoData}">
+                                                <columns>
+                                                    <Column>
+                                                        <Label text="{i18n>varianceMetric}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="12rem">
+                                                        <Label text="{i18n>varianceImpactAmount}"/>
+                                                    </Column>
+                                                </columns>
+                                                <items>
+                                                    <ColumnListItem>
+                                                        <ObjectStatus text="{variance>label}" state="{variance>state}"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>unit}"
+                                                            state="{variance>state}"/>
+                                                    </ColumnListItem>
+                                                </items>
+                                            </Table>
+                                        </VBox>
+                                    </content>
+                                </IconTabFilter>
+
+                                <IconTabFilter key="processing" text="{i18n>varianceProcessingDiff}" icon="sap-icon://factory">
+                                    <content>
+                                        <VBox class="varianceTabContent">
+                                            <Table
+                                                visible="{= !${variance>/isDetailMode} }"
+                                                items="{variance>/analysis/activityRateRows}"
+                                                mode="None"
+                                                noDataText="{i18n>varianceActivityRateNoData}">
+                                                <columns>
+                                                    <Column width="30%">
+                                                        <Label text="{i18n>varianceMetric}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="11rem">
+                                                        <Label text="{i18n>varianceStandardActivityRate}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="11rem">
+                                                        <Label text="{i18n>varianceActualActivityRate}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="10rem">
+                                                        <Label text="{i18n>varianceImpactAmount}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="7rem">
+                                                        <Label text="{i18n>varianceDiffRatePct}"/>
+                                                    </Column>
+                                                </columns>
+                                                <items>
+                                                    <ColumnListItem>
+                                                        <VBox>
+                                                            <ObjectStatus text="{variance>label}" state="{variance>state}"/>
+                                                            <Text text="{variance>interpretation}" class="mutedText"/>
+                                                        </VBox>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>standardRate', formatter: '.formatRate'}"
+                                                            unit="{variance>rateUnit}"
+                                                            state="Information"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>actualRate', formatter: '.formatRate'}"
+                                                            unit="{variance>rateUnit}"
+                                                            state="Information"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>rateDiff', formatter: '.formatRate'}"
+                                                            unit="{variance>rateUnit}"
+                                                            state="{variance>state}"/>
+                                                        <Text text="{path: 'variance>rateDiffPercent', formatter: '.formatPercent'}" textAlign="End"/>
+                                                    </ColumnListItem>
+                                                </items>
+                                            </Table>
+                                            <Table
+                                                visible="{variance>/isDetailMode}"
+                                                items="{variance>/analysis/processingDetailRows}"
+                                                mode="None"
+                                                noDataText="{i18n>varianceNoData}">
+                                                <columns>
+                                                    <Column>
+                                                        <Label text="{i18n>varianceMetric}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="12rem">
+                                                        <Label text="{i18n>varianceImpactAmount}"/>
+                                                    </Column>
+                                                </columns>
+                                                <items>
+                                                    <ColumnListItem>
+                                                        <ObjectStatus text="{variance>label}" state="{variance>state}"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>unit}"
+                                                            state="{variance>state}"/>
+                                                    </ColumnListItem>
+                                                </items>
+                                            </Table>
+                                        </VBox>
+                                    </content>
+                                </IconTabFilter>
+
+                                <IconTabFilter key="validation" text="{i18n>varianceDataValidationTitle}" icon="sap-icon://validate">
+                                    <content>
+                                        <VBox class="varianceTabContent">
+                                            <Table
+                                                items="{variance>/analysis/validationRows}"
+                                                mode="None"
+                                                noDataText="{i18n>varianceNoData}">
+                                                <columns>
+                                                    <Column width="40%">
+                                                        <Label text="{i18n>varianceMetric}"/>
+                                                    </Column>
+                                                    <Column width="8rem">
+                                                        <Label text="{i18n>varianceStatus}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="6rem">
+                                                        <Label text="{i18n>countUnit}"/>
+                                                    </Column>
+                                                    <Column hAlign="End" width="10rem">
+                                                        <Label text="{i18n>varianceImpactAmount}"/>
+                                                    </Column>
+                                                </columns>
+                                                <items>
+                                                    <ColumnListItem>
+                                                        <Text text="{variance>label}"/>
+                                                        <ObjectStatus text="{variance>statusText}" state="{variance>state}"/>
+                                                        <Text text="{variance>count}" textAlign="End"/>
+                                                        <ObjectNumber
+                                                            number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                            unit="{variance>/analysis/currency}"
+                                                            state="{variance>state}"/>
+                                                    </ColumnListItem>
+                                                </items>
+                                            </Table>
+                                            <Panel class="varianceInlinePanel" backgroundDesign="Solid" visible="{= !${variance>/isDetailMode} }">
+                                                <headerToolbar>
+                                                    <OverflowToolbar class="summaryToolbar">
+                                                        <Title text="{i18n>varianceManagementSignalTitle}" level="H2"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table
+                                                        items="{variance>/analysis/managementSignalRows}"
+                                                        mode="None"
+                                                        noDataText="{i18n>varianceNoData}">
+                                                        <columns>
+                                                            <Column width="34%">
+                                                                <Label text="{i18n>varianceMetric}"/>
+                                                            </Column>
+                                                            <Column>
+                                                                <Label text="{i18n>varianceImpact}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="10rem">
+                                                                <Label text="{i18n>varianceAmount}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <ObjectStatus text="{variance>title}" state="{variance>state}"/>
+                                                                <Text text="{variance>text}" class="mutedText"/>
+                                                                <ObjectNumber
+                                                                    number="{path: 'variance>value', formatter: '.formatAmount'}"
+                                                                    unit="{variance>unit}"
+                                                                    state="{variance>state}"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
+                                            <Panel class="varianceInlinePanel" backgroundDesign="Solid" visible="{= !${variance>/isDetailMode} }">
+                                                <headerToolbar>
+                                                    <OverflowToolbar class="summaryToolbar">
+                                                        <Title text="{i18n>variancePortfolioTitle}" level="H2"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table
+                                                        items="{variance>/analysis/portfolioRows}"
+                                                        mode="None"
+                                                        noDataText="{i18n>varianceNoData}">
+                                                        <columns>
+                                                            <Column>
+                                                                <Label text="{i18n>varianceSegment}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="6rem">
+                                                                <Label text="{i18n>countUnit}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="10rem">
+                                                                <Label text="{i18n>varianceAmount}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="7rem">
+                                                                <Label text="{i18n>varianceShare}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <VBox>
+                                                                    <ObjectStatus text="{variance>label}" state="{variance>state}"/>
+                                                                    <Text text="{variance>text}" class="mutedText"/>
+                                                                </VBox>
+                                                                <Text text="{variance>count}" textAlign="End"/>
+                                                                <ObjectNumber
+                                                                    number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                                    unit="{variance>/analysis/currency}"
+                                                                    state="{variance>state}"/>
+                                                                <Text text="{variance>shareText}" textAlign="End"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
+                                            <Panel class="varianceInlinePanel" backgroundDesign="Solid">
+                                                <headerToolbar>
+                                                    <OverflowToolbar class="summaryToolbar">
+                                                        <Title text="{i18n>varianceActionTitle}" level="H2"/>
+                                                    </OverflowToolbar>
+                                                </headerToolbar>
+                                                <content>
+                                                    <Table
+                                                        items="{variance>/analysis/actionRows}"
+                                                        mode="None"
+                                                        noDataText="{i18n>varianceNoData}">
+                                                        <columns>
+                                                            <Column width="4rem" hAlign="Center">
+                                                                <Label text="{i18n>variancePriority}"/>
+                                                            </Column>
+                                                            <Column width="24%">
+                                                                <Label text="{i18n>varianceActionArea}"/>
+                                                            </Column>
+                                                            <Column>
+                                                                <Label text="{i18n>varianceActionRecommendation}"/>
+                                                            </Column>
+                                                            <Column hAlign="End" width="10rem">
+                                                                <Label text="{i18n>varianceActionMetric}"/>
+                                                            </Column>
+                                                        </columns>
+                                                        <items>
+                                                            <ColumnListItem>
+                                                                <ObjectStatus text="{variance>priority}" state="{variance>state}"/>
+                                                                <VBox>
+                                                                    <ObjectStatus text="{variance>area}" state="{variance>state}"/>
+                                                                    <Text text="{variance>signal}" class="mutedText"/>
+                                                                </VBox>
+                                                                <Text text="{variance>recommendation}"/>
+                                                                <ObjectNumber
+                                                                    number="{path: 'variance>amount', formatter: '.formatAmount'}"
+                                                                    unit="{variance>unit}"
+                                                                    state="{variance>state}"/>
+                                                            </ColumnListItem>
+                                                        </items>
+                                                    </Table>
+                                                </content>
+                                            </Panel>
+                                        </VBox>
+                                    </content>
+                                </IconTabFilter>
+
+                                <IconTabFilter key="documents" text="{i18n>varianceDocumentTabTitle}" icon="sap-icon://table-view">
+                                    <content>
+                                        <VBox class="varianceTabContent varianceDocumentsTab">
+                                            <OverflowToolbar class="varianceTableToolbar">
+                                                <VBox class="toolbarTitle">
+                                                    <Title text="{i18n>varianceDocumentTabTitle}" level="H2"/>
+                                                    <Text text="{variance>/detailScopeText}" class="toolbarSubText"/>
+                                                </VBox>
+                                                <ToolbarSpacer/>
+                                                <Text text="{path: 'variance>/rows', formatter: '.formatCount'}" class="countText"/>
+                                                <Button text="{i18n>varianceShowAll}" icon="sap-icon://expand" type="Transparent" press=".onShowAllRows"/>
+                                            </OverflowToolbar>
+                                            <FlexBox
+                                                visible="{variance>/isDetailMode}"
+                                                class="varianceDetailSummaryStrip"
+                                                wrap="Wrap"
+                                                renderType="Bare">
+                                                <VBox class="varianceDetailSummaryItem varianceDetailSummaryWide">
+                                                    <Label text="{i18n>colMatnr}"/>
+                                                    <ObjectIdentifier
+                                                        title="{variance>/selectedRow/matnr}"
+                                                        text="{variance>/selectedRow/maktx}"/>
+                                                </VBox>
+                                                <VBox class="varianceDetailSummaryItem">
+                                                    <Label text="{i18n>colOptionText}"/>
+                                                    <ObjectIdentifier
+                                                        title="{variance>/selectedRow/mtopt}"
+                                                        text="{variance>/selectedRow/mtopt_t}"/>
+                                                </VBox>
+                                                <VBox class="varianceDetailSummaryItem">
+                                                    <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                                    <ObjectNumber
+                                                        number="{path: 'variance>/selectedRow/settlement_variance_amt', formatter: '.formatAmount'}"
+                                                        unit="{variance>/selectedRow/waers}"
+                                                        state="{variance>/selectedRow/settlementVarianceState}"/>
+                                                </VBox>
+                                                <VBox class="varianceDetailSummaryItem">
+                                                    <Label text="{i18n>varianceStatus}"/>
+                                                    <ObjectStatus
+                                                        text="{variance>/selectedRow/actualStatusText}"
+                                                        state="{variance>/selectedRow/actualStatusState}"/>
+                                                </VBox>
+                                            </FlexBox>
+                                            <t:Table id="varianceTable"
+                                                width="100%"
+                                                rows="{variance>/rows}"
+                                                selectionMode="Single"
+                                                rowSelectionChange=".onRowSelectionChange"
+                                                visibleRowCountMode="Fixed"
+                                                visibleRowCount="{variance>/tableVisibleRowCount}"
+                                                rowHeight="40"
+                                                columnHeaderHeight="34"
+                                                enableColumnReordering="true"
+                                                class="costSummaryTable varianceCompactTable"
+                                                noData="{i18n>varianceNoData}">
+                                                <t:columns>
+                                                    <t:Column width="8rem">
+                                                        <Label text="{i18n>colMatnr}"/>
+                                                        <t:template><Text text="{variance>matnr}" wrapping="false"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="14rem">
+                                                        <Label text="{i18n>colMaktx}"/>
+                                                        <t:template><Text text="{variance>maktx}" tooltip="{variance>maktx}" wrapping="false"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="8rem">
+                                                        <Label text="{i18n>colOptionText}"/>
+                                                        <t:template><Text text="{variance>mtopt_t}" tooltip="{variance>mtopt_t}" wrapping="false"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="10rem" hAlign="End">
+                                                        <Label text="{i18n>varianceKpiTotalDiff}"/>
+                                                        <t:template><ObjectStatus text="{path: 'variance>settlement_variance_amt', formatter: '.formatAmount'}" state="{variance>settlementVarianceState}"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="9rem" hAlign="End">
+                                                        <Label text="{i18n>varianceMaterialPriceDiff}"/>
+                                                        <t:template><ObjectStatus text="{path: 'variance>price_diff_amt', formatter: '.formatAmount'}" state="{variance>priceDiffState}"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="9rem" hAlign="End">
+                                                        <Label text="{i18n>varianceProcessingDiff}"/>
+                                                        <t:template><ObjectStatus text="{path: 'variance>processing_diff_amt', formatter: '.formatAmount'}" state="{variance>processingDiffState}"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="7rem" hAlign="End">
+                                                        <Label text="{i18n>varianceDiffRatePct}"/>
+                                                        <t:template><ObjectStatus text="{path: 'variance>diff_rate_pct', formatter: '.formatPercent'}" state="{variance>diffRateState}"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="8rem">
+                                                        <Label text="{i18n>varianceStatus}"/>
+                                                        <t:template><ObjectStatus text="{variance>actualStatusText}" state="{variance>actualStatusState}"/></t:template>
+                                                    </t:Column>
+                                                    <t:Column width="5rem">
+                                                        <Label text="{i18n>colCurrency}"/>
+                                                        <t:template><Text text="{variance>waers}" wrapping="false"/></t:template>
+                                                    </t:Column>
+                                                </t:columns>
+                                            </t:Table>
+                                        </VBox>
+                                    </content>
+                                </IconTabFilter>
+                            </items>
+                        </IconTabBar>
+                    </content>
+                </Panel>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

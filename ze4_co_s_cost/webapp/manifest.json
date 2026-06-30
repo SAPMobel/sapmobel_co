@@ -3,7 +3,13 @@
   "sap.app": {
     "id": "ze4.co.s.cost.ze4coscost",
     "type": "application",
-    "i18n": "i18n/i18n.properties",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        ""
+      ],
+      "fallbackLocale": ""
+    },
     "applicationVersion": {
       "version": "0.0.1"
     },
@@ -31,6 +37,20 @@
             "ZCDS_E4_CO_0010_CDS_VAN"
           ],
           "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "varianceService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0028_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "standardActivityRateService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0016_CDS/",
+        "type": "OData",
+        "settings": {
           "odataVersion": "2.0"
         }
       }
@@ -79,17 +99,31 @@
         "settings": {
           "bundleName": "ze4.co.s.cost.ze4coscost.i18n.i18n",
           "supportedLocales": [
-            "ko",
-            "en",
             ""
           ],
-          "fallbackLocale": "ko"
+          "fallbackLocale": ""
         }
       },
       "": {
         "dataSource": "mainService",
         "preload": true,
-        "settings": {}
+        "settings": {
+          "useBatch": false
+        }
+      },
+      "varianceModel": {
+        "dataSource": "varianceService",
+        "preload": false,
+        "settings": {
+          "useBatch": false
+        }
+      },
+      "standardActivityRateModel": {
+        "dataSource": "standardActivityRateService",
+        "preload": false,
+        "settings": {
+          "useBatch": false
+        }
       }
     },
     "resources": {
@@ -125,6 +159,20 @@
           "target": [
             "TargetStandardCostDetail"
           ]
+        },
+        {
+          "name": "RouteCostVarianceAnalysis",
+          "pattern": "variance",
+          "target": [
+            "TargetCostVarianceAnalysis"
+          ]
+        },
+        {
+          "name": "RouteCostVarianceAnalysisDetail",
+          "pattern": "variance/{matnr}/{gjahr}/{monat}/{mtopt}",
+          "target": [
+            "TargetCostVarianceAnalysis"
+          ]
         }
       ],
       "targets": {
@@ -135,6 +183,10 @@
         "TargetStandardCostDetail": {
           "id": "StandardCostDetail",
           "name": "StandardCostDetail"
+        },
+        "TargetCostVarianceAnalysis": {
+          "id": "CostVarianceAnalysis",
+          "name": "CostVarianceAnalysis"
         }
       }
     },

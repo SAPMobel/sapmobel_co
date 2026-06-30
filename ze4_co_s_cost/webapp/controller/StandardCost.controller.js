@@ -5,11 +5,11 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/ui/core/routing/History",
-    "sap/ui/export/Spreadsheet",
     "sap/m/MessageBox",
     "sap/m/SelectDialog",
-    "sap/m/StandardListItem"
-], (Controller, JSONModel, ODataModel, Filter, FilterOperator, History, Spreadsheet, MessageBox, SelectDialog, StandardListItem) => {
+    "sap/m/StandardListItem",
+    "ze4/co/s/cost/ze4coscost/util/ReportExport"
+], (Controller, JSONModel, ODataModel, Filter, FilterOperator, History, MessageBox, SelectDialog, StandardListItem, ReportExport) => {
     "use strict";
 
     return Controller.extend("ze4.co.s.cost.ze4coscost.controller.StandardCost", {
@@ -23,19 +23,34 @@ sap.ui.define([
                     gjahr: new Date().getFullYear(),
                     monat: String(new Date().getMonth() + 1).padStart(2, '0'),
                     matnr: "",
+                    maktx: "",
                     mtart: "",
                     matkl: ""
                 },
                 costData: [],
+                tableVisibleRowCount: 8,
+                materialValueHelpRows: [],
                 materialTypes: [],
                 materialTypesLoaded: false,
                 materialGroups: [],
                 materialGroupsLoaded: false
             });
             this.getView().setModel(oModel, "view");
+            this._fnResizeTable = this._updateTableVisibleRowCount.bind(this);
+            window.addEventListener("resize", this._fnResizeTable);
             
             // Load initial data
             this._loadCostData();
+        },
+
+        onAfterRendering() {
+            this._updateTableVisibleRowCount();
+        },
+
+        onExit() {
+            if (this._fnResizeTable) {
+                window.removeEventListener("resize", this._fnResizeTable);
+            }
         },
 
         _onRouteMatched() {
@@ -71,6 +86,9 @@ sap.ui.define([
             if (filters.matnr && String(filters.matnr).trim()) {
                 aFilters.push(new Filter("matnr", FilterOperator.Contains, String(filters.matnr).trim().toUpperCase()));
             }
+            if (filters.maktx && String(filters.maktx).trim()) {
+                aFilters.push(new Filter("maktx", FilterOperator.Contains, String(filters.maktx).trim()));
+            }
             if (filters.mtart && String(filters.mtart).trim()) {
                 aFilters.push(new Filter("mtart", FilterOperator.Contains, String(filters.mtart).trim().toUpperCase()));
             }
@@ -85,6 +103,7 @@ sap.ui.define([
                 },
                 success: (oData) => {
                     oViewModel.setProperty("/costData", oData.results || []);
+                    setTimeout(() => this._updateTableVisibleRowCount(), 0);
                 },
                 error: (oError) => {
                     MessageBox.error("데이터 조회 실패");
@@ -97,12 +116,41 @@ sap.ui.define([
             this._loadCostData();
         },
 
+        _updateTableVisibleRowCount() {
+            const oTable = this.byId("costSummaryTable");
+            const oViewModel = this.getView().getModel("view");
+
+            if (!oTable || !oViewModel) {
+                return;
+            }
+
+            const oTableDom = oTable.getDomRef();
+            if (!oTableDom) {
+                return;
+            }
+
+            const oFooterDom = this.getView().getDomRef() && this.getView().getDomRef().querySelector(".tableFooter");
+            const iFooterHeight = oFooterDom ? oFooterDom.getBoundingClientRect().height : 48;
+            const iViewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const iTableTop = oTableDom.getBoundingClientRect().top;
+            const iBottomPadding = 24;
+            const iHeaderHeight = 78;
+            const iRowHeight = 40;
+            const iAvailableRowHeight = iViewportHeight - iTableTop - iFooterHeight - iBottomPadding - iHeaderHeight;
+            const iRowCount = Math.max(8, Math.floor(iAvailableRowHeight / iRowHeight));
+
+            if (oViewModel.getProperty("/tableVisibleRowCount") !== iRowCount) {
+                oViewModel.setProperty("/tableVisibleRowCount", iRowCount);
+            }
+        },
+
         onResetFilters() {
             const oViewModel = this.getView().getModel("view");
             oViewModel.setProperty("/filters", {
                 gjahr: new Date().getFullYear(),
                 monat: String(new Date().getMonth() + 1).padStart(2, '0'),
                 matnr: "",
+                maktx: "",
                 mtart: "",
                 matkl: ""
             });
@@ -127,6 +175,22 @@ sap.ui.define([
             this._navToDetail(oEvent.getSource().getBindingContext("view"));
         },
 
+        onOpenVarianceOverview() {
+            this._navToVarianceOverview();
+        },
+
+        onOpenVarianceAnalysis(oEvent) {
+            this._navToVarianceDetail(oEvent.getSource().getBindingContext("view"));
+        },
+
+        onMaterialValueHelp() {
+            const oDialog = this._getMaterialValueHelpDialog();
+
+            this._loadMaterialValueHelpRows().then(() => {
+                oDialog.open();
+            }).catch(() => {});
+        },
+
         onMtartValueHelp() {
             this._getMtartValueHelpDialog();
             this._loadMaterialTypes().then(() => {
@@ -141,118 +205,59 @@ sap.ui.define([
             }).catch(() => {});
         },
 
+        onExportExcel() {
+            this.onExportToExcel();
+        },
+
+        onExportPdf() {
+            this.onExportToPdf();
+        },
+
         onExportToExcel() {
-            const aData = this.getView().getModel("view").getProperty("/costData");
-            
-            if (!aData || aData.length === 0) {
-                MessageBox.warning("내보낼 데이터가 없습니다.");
-                return;
-            }
-
-            const aExportData = aData.map((oItem) => Object.assign({}, oItem, this._getStockExportValues(oItem)));
-            const aCols = [
-                { label: "자재번호", property: "matnr" },
-                { label: "자재명", property: "maktx" },
-                { label: "옵션명", property: "mtopt_t" },
-                { label: "총 표준원가", property: "total_cost" },
-                { label: "통화", property: "waers" },
-                { label: "실시간 재고 현황", property: "stock_status" },
-                { label: "단위", property: "display_meins" }
-            ];
-
-            const oSettings = {
-                workbook: {
-                    columns: aCols
-                },
-                dataSource: aExportData,
-                fileName: "StandardCostReport_" + new Date().toISOString().slice(0, 10) + ".xlsx"
-            };
-
-            const oSheet = new Spreadsheet(oSettings);
-            oSheet.build().then(() => {
-                MessageBox.success("Excel 파일이 다운로드되었습니다.");
-            }).catch((oError) => {
-                MessageBox.error("Excel 내보내기 실패");
-            });
+            ReportExport.exportExcel(this._buildExportReport(), this.getView());
         },
 
         onExportToPdf() {
-            const aPrintMarkup = [];
-            const aData = this.getView().getModel("view").getProperty("/costData") || [];
+            ReportExport.printPdf(this._buildExportReport(), this.getView());
+        },
 
-            if (aData.length === 0) {
-                MessageBox.warning("출력할 데이터가 없습니다.");
-                return;
-            }
-            
-            aPrintMarkup.push("<!DOCTYPE html>");
-            aPrintMarkup.push("<html>");
-            aPrintMarkup.push("<head>");
-            aPrintMarkup.push("<meta charset='UTF-8'/>");
-            aPrintMarkup.push("<title>표준원가 리포트</title>");
-            aPrintMarkup.push("<style>");
-            aPrintMarkup.push("@page { size: A4 landscape; margin: 10mm; }");
-            aPrintMarkup.push("* { box-sizing: border-box; }");
-            aPrintMarkup.push("html, body { margin: 0; padding: 0; }");
-            aPrintMarkup.push("body { font-family: Arial, 'Malgun Gothic', sans-serif; color: #1d2b3a; font-size: 10px; }");
-            aPrintMarkup.push(".report { width: 100%; }");
-            aPrintMarkup.push(".reportHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; border-bottom: 2px solid #d9e1e8; padding-bottom: 8px; }");
-            aPrintMarkup.push("h1 { margin: 0; font-size: 18px; line-height: 1.25; color: #0b1f3a; }");
-            aPrintMarkup.push(".meta { margin: 2px 0 0; color: #526376; font-size: 9px; white-space: nowrap; }");
-            aPrintMarkup.push("table { border-collapse: collapse; table-layout: fixed; width: 100%; }");
-            aPrintMarkup.push("th, td { border: 1px solid #dfe5eb; padding: 5px 4px; vertical-align: middle; white-space: normal; word-break: keep-all; overflow-wrap: normal; line-height: 1.25; }");
-            aPrintMarkup.push("th { background: #f4f7fa; font-weight: 700; text-align: center; }");
-            aPrintMarkup.push("td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }");
-            aPrintMarkup.push("td.center { text-align: center; white-space: nowrap; }");
-            aPrintMarkup.push(".matnr { width: 11%; } .maktx { width: 22%; } .optionText { width: 13%; } .cost { width: 11%; } .waers { width: 6%; } .stockStatus { width: 31%; } .unit { width: 7%; }");
-            aPrintMarkup.push("@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }");
-            aPrintMarkup.push("</style>");
-            aPrintMarkup.push("</head>");
-            aPrintMarkup.push("<body>");
-            aPrintMarkup.push("<section class='report'>");
-            aPrintMarkup.push("<div class='reportHeader'>");
-            aPrintMarkup.push("<h1>[EverNiture-CO] 표준원가 정보</h1>");
-            aPrintMarkup.push("<p class='meta'>생성일시: " + this._escapeHtml(new Date().toLocaleString('ko-KR')) + "</p>");
-            aPrintMarkup.push("</div>");
+        _buildExportReport() {
+            const oViewModel = this.getView().getModel("view");
+            const oFilters = oViewModel.getProperty("/filters") || {};
+            const aData = (oViewModel.getProperty("/costData") || []).map((oItem) => Object.assign({}, oItem, this._getStockExportValues(oItem)));
 
-            aPrintMarkup.push("<table>");
-            aPrintMarkup.push("<colgroup>");
-            aPrintMarkup.push("<col class='matnr'/><col class='maktx'/><col class='optionText'/><col class='cost'/><col class='waers'/><col class='stockStatus'/><col class='unit'/>");
-            aPrintMarkup.push("</colgroup>");
-            aPrintMarkup.push("<thead><tr>");
-            aPrintMarkup.push("<th>자재번호</th><th>자재명</th><th>옵션명</th><th>총 표준원가</th><th>통화</th><th>실시간 재고 현황</th><th>단위</th>");
-            aPrintMarkup.push("</tr></thead>");
-            aPrintMarkup.push("<tbody>");
-
-            aData.forEach((oItem) => {
-                const oStockValues = this._getStockExportValues(oItem);
-                aPrintMarkup.push("<tr>");
-                aPrintMarkup.push("<td class='center'>" + this._escapeHtml(oItem.matnr) + "</td>");
-                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.maktx) + "</td>");
-                aPrintMarkup.push("<td>" + this._escapeHtml(oItem.mtopt_t) + "</td>");
-                aPrintMarkup.push("<td class='num'>" + this._escapeHtml(this.formatAmount(oItem.total_cost, oItem.waers)) + "</td>");
-                aPrintMarkup.push("<td class='center'>" + this._escapeHtml(oItem.waers) + "</td>");
-                aPrintMarkup.push("<td>" + this._escapeHtml(oStockValues.stock_status) + "</td>");
-                aPrintMarkup.push("<td class='center'>" + this._escapeHtml(oStockValues.display_meins) + "</td>");
-                aPrintMarkup.push("</tr>");
-            });
-
-            aPrintMarkup.push("</tbody></table>");
-            aPrintMarkup.push("</section>");
-            aPrintMarkup.push("</body></html>");
-
-            const sHtml = aPrintMarkup.join("");
-            const oWindow = window.open("", "", "width=800,height=600");
-            if (!oWindow) {
-                MessageBox.warning("팝업 차단을 해제한 뒤 다시 시도해주세요.");
-                return;
-            }
-            oWindow.document.write(sHtml);
-            oWindow.document.close();
-            oWindow.focus();
-            setTimeout(() => {
-                oWindow.print();
-            }, 250);
+            return {
+                title: "[EverNiture-CO] 표준원가 정보",
+                fileName: "StandardCostReport",
+                variant: "standard",
+                description: "현재 조회조건으로 로드된 표준원가 목록 리포트",
+                filters: ReportExport.labelRows(oFilters, [
+                    { label: "회사코드", property: "bukrs" },
+                    { label: "회계연도", property: "gjahr" },
+                    { label: "월", property: "monat" },
+                    { label: "제품번호", property: "matnr" },
+                    { label: "제품명", property: "maktx" },
+                    { label: "제품유형", property: "mtart" },
+                    { label: "제품그룹", property: "matkl" }
+                ]),
+                summary: [
+                    { label: "조회 건수", value: aData.length + "건" }
+                ],
+                sections: [
+                    ReportExport.section("표준원가 목록", aData, [
+                        { label: "제품번호", property: "matnr" },
+                        { label: "제품명", property: "maktx" },
+                        { label: "옵션", property: "mtopt" },
+                        { label: "옵션명", property: "mtopt_t" },
+                        { label: "제품유형", property: "mtart" },
+                        { label: "제품그룹", property: "matkl" },
+                        { label: "총 표준원가", rawProperty: "total_cost", value: (oRow) => this.formatAmount(oRow.total_cost), type: "amount", total: true, width: 16 },
+                        { label: "통화", property: "waers" },
+                        { label: "실시간 재고 현황", property: "stock_status" },
+                        { label: "단위", property: "display_meins" }
+                    ])
+                ]
+            };
         },
 
         formatAmount(vValue) {
@@ -289,6 +294,27 @@ sap.ui.define([
             return `${iCount}건`;
         },
 
+        formatResultCountNumber(aRows) {
+            const iCount = Array.isArray(aRows) ? aRows.length : 0;
+            return this._formatNumber(iCount, 0);
+        },
+
+        formatTotalActualStock(aRows) {
+            return this._formatStockTotal(aRows, "total_clabs");
+        },
+
+        formatTotalAvailableStock(aRows) {
+            return this._formatStockTotal(aRows, "total_verme");
+        },
+
+        formatTotalInspectionStock(aRows) {
+            return this._formatStockTotal(aRows, "total_cspem");
+        },
+
+        formatTotalReservedStock(aRows) {
+            return this._formatStockTotal(aRows, "total_resme");
+        },
+
         _getStockExportValues(oItem) {
             return {
                 stock_status: this.formatStockStatus(
@@ -300,6 +326,19 @@ sap.ui.define([
                 ),
                 display_meins: this.isDefaultOption(oItem.mtopt) ? oItem.meins : ""
             };
+        },
+
+        _formatStockTotal(aRows, sProperty) {
+            const fTotal = (Array.isArray(aRows) ? aRows : []).reduce((fSum, oItem) => {
+                if (!this.isDefaultOption(oItem.mtopt)) {
+                    return fSum;
+                }
+
+                const fValue = Number(oItem[sProperty]);
+                return Number.isNaN(fValue) ? fSum : fSum + fValue;
+            }, 0);
+
+            return this.formatQuantity(fTotal);
         },
 
         _formatNumber(vValue, iMaximumFractionDigits) {
@@ -325,6 +364,32 @@ sap.ui.define([
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#39;");
+        },
+
+        _getMaterialValueHelpDialog() {
+            if (this._oMaterialValueHelpDialog) {
+                return this._oMaterialValueHelpDialog;
+            }
+
+            this._oMaterialValueHelpDialog = new SelectDialog({
+                title: this._getText("materialHelpTitle"),
+                noDataText: this._getText("materialHelpNoData"),
+                search: this._onMaterialValueHelpSearch.bind(this),
+                liveChange: this._onMaterialValueHelpSearch.bind(this),
+                confirm: this._onMaterialValueHelpConfirm.bind(this),
+                cancel: this._clearMaterialValueHelpSearch.bind(this),
+                items: {
+                    path: "view>/materialValueHelpRows",
+                    template: new StandardListItem({
+                        title: "{view>matnr}",
+                        description: "{view>maktx}",
+                        type: "Active"
+                    })
+                }
+            });
+
+            this.getView().addDependent(this._oMaterialValueHelpDialog);
+            return this._oMaterialValueHelpDialog;
         },
 
         _getMtartValueHelpDialog() {
@@ -377,6 +442,68 @@ sap.ui.define([
 
             this.getView().addDependent(this._oMatklValueHelpDialog);
             return this._oMatklValueHelpDialog;
+        },
+
+        _loadMaterialValueHelpRows() {
+            const oViewModel = this.getView().getModel("view");
+            const oFilters = oViewModel.getProperty("/filters") || {};
+            const sYear = String(oFilters.gjahr || "").trim();
+            const sMonth = String(oFilters.monat || "").trim().padStart(2, "0");
+
+            if (!/^\d{4}$/.test(sYear)) {
+                MessageBox.warning("연도는 4자리 숫자로 입력해주세요.");
+                return Promise.reject(new Error("Invalid year"));
+            }
+
+            if (!/^(0[1-9]|1[0-2])$/.test(sMonth)) {
+                MessageBox.warning("월은 01부터 12까지 입력해주세요.");
+                return Promise.reject(new Error("Invalid month"));
+            }
+
+            const aFilters = [
+                new Filter("gjahr", FilterOperator.EQ, sYear),
+                new Filter("monat", FilterOperator.EQ, sMonth)
+            ];
+
+            if (oFilters.maktx && String(oFilters.maktx).trim()) {
+                aFilters.push(new Filter("maktx", FilterOperator.Contains, String(oFilters.maktx).trim()));
+            }
+
+            if (oFilters.mtart && String(oFilters.mtart).trim()) {
+                aFilters.push(new Filter("mtart", FilterOperator.Contains, String(oFilters.mtart).trim().toUpperCase()));
+            }
+
+            if (oFilters.matkl && String(oFilters.matkl).trim()) {
+                aFilters.push(new Filter("matkl", FilterOperator.Contains, String(oFilters.matkl).trim().toUpperCase()));
+            }
+
+            oViewModel.setProperty("/filters/gjahr", sYear);
+            oViewModel.setProperty("/filters/monat", sMonth);
+
+            return new Promise((resolve, reject) => {
+                this.getOwnerComponent().getModel().read("/zcds_e4_co_0010", {
+                    filters: aFilters,
+                    urlParameters: {
+                        $select: "matnr,maktx",
+                        $orderby: "matnr",
+                        $top: "5000"
+                    },
+                    success: (oData) => {
+                        const aMaterials = this._dedupeByKey(oData.results || [], "matnr", (oItem, sKey) => ({
+                            matnr: sKey,
+                            maktx: String(oItem.maktx || "").trim()
+                        }));
+
+                        oViewModel.setProperty("/materialValueHelpRows", aMaterials);
+                        resolve();
+                    },
+                    error: (oError) => {
+                        MessageBox.error(this._getText("materialHelpLoadError"));
+                        console.error("Material value help load error:", oError);
+                        reject(oError);
+                    }
+                });
+            });
         },
 
         _loadMaterialTypes() {
@@ -527,6 +654,22 @@ sap.ui.define([
             }, []);
         },
 
+        _onMaterialValueHelpSearch(oEvent) {
+            const sValue = oEvent.getParameter("value") || "";
+            const oBinding = oEvent.getSource().getBinding("items");
+            const aFilters = sValue ? [
+                new Filter({
+                    filters: [
+                        new Filter("matnr", FilterOperator.Contains, sValue.toUpperCase()),
+                        new Filter("maktx", FilterOperator.Contains, sValue)
+                    ],
+                    and: false
+                })
+            ] : [];
+
+            oBinding.filter(aFilters);
+        },
+
         _onMtartValueHelpSearch(oEvent) {
             const sValue = oEvent.getParameter("value") || "";
             const oBinding = oEvent.getSource().getBinding("items");
@@ -560,6 +703,17 @@ sap.ui.define([
             oBinding.filter(aFilters);
         },
 
+        _onMaterialValueHelpConfirm(oEvent) {
+            const oSelectedItem = oEvent.getParameter("selectedItem");
+            if (!oSelectedItem) {
+                return;
+            }
+
+            this.getView().getModel("view").setProperty("/filters/matnr", oSelectedItem.getTitle());
+            this._clearMaterialValueHelpSearch();
+            this._loadCostData();
+        },
+
         _onMtartValueHelpConfirm(oEvent) {
             const oSelectedItem = oEvent.getParameter("selectedItem");
             if (!oSelectedItem) {
@@ -580,6 +734,17 @@ sap.ui.define([
             this.getView().getModel("view").setProperty("/filters/matkl", oSelectedItem.getTitle());
             this._clearMatklValueHelpSearch();
             this._loadCostData();
+        },
+
+        _clearMaterialValueHelpSearch() {
+            if (!this._oMaterialValueHelpDialog) {
+                return;
+            }
+
+            const oBinding = this._oMaterialValueHelpDialog.getBinding("items");
+            if (oBinding) {
+                oBinding.filter([]);
+            }
         },
 
         _clearMtartValueHelpSearch() {
@@ -616,6 +781,33 @@ sap.ui.define([
             const oData = oContext.getObject();
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.navTo("RouteStandardCostDetail", {
+                matnr: encodeURIComponent(oData.matnr),
+                gjahr: encodeURIComponent(oData.gjahr),
+                monat: encodeURIComponent(oData.monat),
+                mtopt: encodeURIComponent(oData.mtopt || "")
+            });
+        },
+
+        _navToVarianceOverview() {
+            const oRouter = this.getOwnerComponent().getRouter();
+            this.getOwnerComponent().setModel(new JSONModel({
+                reset: true
+            }), "varianceNav");
+            oRouter.navTo("RouteCostVarianceAnalysis");
+        },
+
+        _navToVarianceDetail(oContext) {
+            if (!oContext) {
+                return;
+            }
+
+            const oData = oContext.getObject();
+            const oRouter = this.getOwnerComponent().getRouter();
+            this.getOwnerComponent().setModel(new JSONModel({
+                maktx: oData.maktx || "",
+                mtopt_t: oData.mtopt_t || ""
+            }), "varianceNav");
+            oRouter.navTo("RouteCostVarianceAnalysisDetail", {
                 matnr: encodeURIComponent(oData.matnr),
                 gjahr: encodeURIComponent(oData.gjahr),
                 monat: encodeURIComponent(oData.monat),

@@ -8,10 +8,21 @@
     <Page id="page" title="{i18n>title}" showNavButton="false" showHeader="false">
         <content>
             <VBox class="sapUiContentPadding standardCostPage" width="100%">
-                <Title text="{i18n>title}" level="H1" titleStyle="H1" class="pageHeroTitle"/>
+                <HBox class="pageTitleBar" alignItems="End" justifyContent="SpaceBetween" wrap="Wrap">
+                    <VBox class="pageTitleBlock">
+                        <Title text="{i18n>title}" level="H1" titleStyle="H1" class="pageHeroTitle"/>
+                        <Text text="{i18n>pageSubtitle}" class="pageSubtitle"/>
+                    </VBox>
+                </HBox>
 
                 <Panel class="filterPanel appCard" width="100%" backgroundDesign="Solid">
                     <content>
+                        <HBox class="sectionHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                            <VBox class="sectionTitleBlock">
+                                <Title text="{i18n>filterSectionTitle}" level="H2"/>
+                                <Text text="{i18n>filterSectionDescription}" class="mutedText"/>
+                            </VBox>
+                        </HBox>
                         <FlexBox wrap="Wrap" alignItems="End" class="filterGrid">
                             <VBox class="filterField">
                                 <Label text="{i18n>lblYear}" labelFor="inputYear"/>
@@ -25,7 +36,12 @@
 
                             <VBox class="filterField">
                                 <Label text="{i18n>lblMaterial}" labelFor="inputMatnr"/>
-                                <Input id="inputMatnr" value="{view>/filters/matnr}" placeholder="{i18n>plhMaterial}" width="13rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" submit=".onSearch"/>
+                                <Input id="inputMatnr" value="{view>/filters/matnr}" placeholder="{i18n>plhMaterial}" width="13rem" showValueHelp="true" valueHelpIconSrc="sap-icon://search" valueHelpRequest=".onMaterialValueHelp" submit=".onSearch"/>
+                            </VBox>
+
+                            <VBox class="filterField">
+                                <Label text="{i18n>lblProductName}" labelFor="inputMaktx"/>
+                                <Input id="inputMaktx" value="{view>/filters/maktx}" placeholder="{i18n>plhProductName}" width="13rem" submit=".onSearch"/>
                             </VBox>
 
                             <VBox class="filterField">
@@ -46,14 +62,83 @@
                     </content>
                 </Panel>
 
+                <FlexBox class="summaryKpiGrid" wrap="Wrap" renderType="Bare">
+                    <VBox class="summaryKpiCard summaryKpiRows">
+                        <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                            <core:Icon src="sap-icon://table-view" class="summaryKpiIcon"/>
+                            <Label text="{i18n>kpiResultCount}"/>
+                        </HBox>
+                        <ObjectNumber
+                            class="summaryKpiValue"
+                            number="{path: 'view>/costData', formatter: '.formatResultCountNumber'}"
+                            unit="{i18n>countUnit}"
+                            emphasized="true"
+                            state="Information"/>
+                        <Text text="{i18n>kpiResultSubtitle}" class="mutedText"/>
+                    </VBox>
+                    <VBox class="summaryKpiCard summaryKpiActual">
+                        <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                            <core:Icon src="sap-icon://inventory" class="summaryKpiIcon"/>
+                            <Label text="{i18n>kpiActualStock}"/>
+                        </HBox>
+                        <ObjectNumber
+                            class="summaryKpiValue"
+                            number="{path: 'view>/costData', formatter: '.formatTotalActualStock'}"
+                            emphasized="true"
+                            state="Success"/>
+                        <Text text="{i18n>kpiDefaultStockSubtitle}" class="mutedText"/>
+                    </VBox>
+                    <VBox class="summaryKpiCard summaryKpiAvailable">
+                        <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                            <core:Icon src="sap-icon://shipping-status" class="summaryKpiIcon"/>
+                            <Label text="{i18n>kpiAvailableStock}"/>
+                        </HBox>
+                        <ObjectNumber
+                            class="summaryKpiValue"
+                            number="{path: 'view>/costData', formatter: '.formatTotalAvailableStock'}"
+                            emphasized="true"
+                            state="Information"/>
+                        <Text text="{i18n>kpiDefaultStockSubtitle}" class="mutedText"/>
+                    </VBox>
+                    <VBox class="summaryKpiCard summaryKpiInspection">
+                        <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                            <core:Icon src="sap-icon://inspection" class="summaryKpiIcon"/>
+                            <Label text="{i18n>kpiInspectionStock}"/>
+                        </HBox>
+                        <ObjectNumber
+                            class="summaryKpiValue"
+                            number="{path: 'view>/costData', formatter: '.formatTotalInspectionStock'}"
+                            emphasized="true"
+                            state="Warning"/>
+                        <Text text="{i18n>kpiDefaultStockSubtitle}" class="mutedText"/>
+                    </VBox>
+                    <VBox class="summaryKpiCard summaryKpiReservation">
+                        <HBox class="summaryKpiHeader" renderType="Bare" alignItems="Center">
+                            <core:Icon src="sap-icon://appointment-2" class="summaryKpiIcon"/>
+                            <Label text="{i18n>kpiReservationStock}"/>
+                        </HBox>
+                        <ObjectNumber
+                            class="summaryKpiValue"
+                            number="{path: 'view>/costData', formatter: '.formatTotalReservedStock'}"
+                            emphasized="true"
+                            state="None"/>
+                        <Text text="{i18n>kpiDefaultStockSubtitle}" class="mutedText"/>
+                    </VBox>
+                </FlexBox>
+
                 <Panel class="appCard summaryPanel" width="100%" backgroundDesign="Solid">
                     <headerToolbar>
-                        <OverflowToolbar>
+                        <OverflowToolbar class="summaryToolbar">
                             <core:Icon src="sap-icon://table-view" class="sectionIcon"/>
-                            <Title text="{= ${view>/filters/gjahr} + '년 ' + ${view>/filters/monat} + '월 원가/재고 요약' }" level="H2"/>
+                            <VBox class="toolbarTitle">
+                                <Title text="{= ${view>/filters/gjahr} + '년 ' + ${view>/filters/monat} + '월 원가/재고 요약' }" level="H2"/>
+                                <Text text="{i18n>tableSummarySubtitle}" class="toolbarSubText"/>
+                            </VBox>
                             <ToolbarSpacer/>
-                            <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" press=".onExportToExcel"/>
-                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" press=".onExportToPdf"/>
+                            <Text text="{path: 'view>/costData', formatter: '.formatResultCount'}" class="countText"/>
+                            <Button text="{i18n>btnVarianceAnalysis}" icon="sap-icon://compare" type="Transparent" press=".onOpenVarianceOverview"/>
+                            <Button text="{i18n>btnExcelExport}" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel"/>
+                            <Button text="{i18n>btnPdfExport}" icon="sap-icon://print" type="Transparent" press=".onExportPdf"/>
                             <Button icon="sap-icon://action-settings" type="Transparent" tooltip="{i18n>btnSettings}"/>
                             <Button icon="sap-icon://full-screen" type="Transparent" tooltip="{i18n>btnFullScreen}"/>
                         </OverflowToolbar>
@@ -62,109 +147,114 @@
                         <t:Table id="costSummaryTable"
                             width="100%"
                             rows="{view>/costData}"
-                            selectionMode="Single"
-                            rowSelectionChange=".onRowSelectionChange"
+                            selectionMode="None"
                             enableColumnReordering="true"
                             enableGrouping="true"
                             alternateRowColors="true"
                             visibleRowCountMode="Fixed"
-                            visibleRowCount="8"
+                            visibleRowCount="{view>/tableVisibleRowCount}"
                             rowHeight="40"
                             columnHeaderHeight="34"
                             class="costSummaryTable"
                             noData="{i18n>msgNoData}">
                             <t:columns>
-                                <t:Column width="6%" hAlign="Center">
-                                    <Label text="{i18n>colAction}" class="singleHeaderLabel"/>
-                                    <t:template>
-                                        <Button text="{i18n>btnDetail}" icon="sap-icon://detail-view" type="Transparent" width="5rem" tooltip="{i18n>btnDetailTooltip}" visible="{= !!${view>matnr} }" press=".onOpenDetail"/>
-                                    </t:template>
-                                </t:Column>
-                                <t:Column width="8%">
+                                <t:Column width="8rem">
                                     <Label text="{i18n>colMatnr}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>matnr}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="17%">
+                                <t:Column width="18rem">
                                     <Label text="{i18n>colMaktx}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>maktx}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="13%">
+                                <t:Column width="12rem">
                                     <Label text="{i18n>colOptionText}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>mtopt_t}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8%">
+                                <t:Column width="10rem">
                                     <Label text="{i18n>colMaterialType}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>mtbez}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8%">
+                                <t:Column width="10rem">
                                     <Label text="{i18n>colMaterialGroup}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>wgbez}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="10%" hAlign="End">
+                                <t:Column width="11rem" hAlign="End">
                                     <Label text="{i18n>colTotalCost}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <ObjectNumber class="amountText" number="{parts: [{path: 'view>total_cost'}, {path: 'view>waers'}], formatter: '.formatAmount'}" emphasized="false"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="4%">
+                                <t:Column width="5rem">
                                     <Label text="{i18n>colCurrency}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>waers}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="8%" hAlign="End" headerSpan="4">
+                                <t:Column width="9rem" hAlign="End" headerSpan="4">
                                     <t:multiLabels>
                                         <Label text="{i18n>stockFlowGroup}" width="100%" textAlign="Center" wrapping="true" class="stockGroupHeader"/>
                                         <Label text="{i18n>colAvailStock}" width="100%" textAlign="End" class="stockSubHeader"/>
                                     </t:multiLabels>
                                     <t:template>
-                                        <HBox justifyContent="End" alignItems="Center" width="100%">
-                                            <ObjectNumber number="{path: 'view>total_clabs', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
-                                            <Text text="{i18n>customOrderStockMessage}" wrapping="false" visible="{path: 'view>mtopt', formatter: '.isCustomOption'}"/>
+                                        <HBox class="stockCell" justifyContent="End" alignItems="Center" width="100%">
+                                            <Text text="{path: 'view>total_clabs', formatter: '.formatQuantity'}" width="100%" textAlign="End" wrapping="false" class="stockNumber" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
+                                            <Text text="{i18n>customOrderStockMessage}" width="100%" textAlign="End" wrapping="false" class="customStockMessage" visible="{path: 'view>mtopt', formatter: '.isCustomOption'}"/>
                                         </HBox>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="5%" hAlign="End">
+                                <t:Column width="9rem" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colInspection}" width="100%" textAlign="End" class="stockSubHeader"/>
                                     </t:multiLabels>
                                     <t:template>
-                                        <ObjectNumber number="{path: 'view>total_verme', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
+                                        <Text text="{path: 'view>total_verme', formatter: '.formatQuantity'}" width="100%" textAlign="End" wrapping="false" class="stockNumber" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="5%" hAlign="End">
+                                <t:Column width="9rem" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colHoldStock}" width="100%" textAlign="End" class="stockSubHeader"/>
                                     </t:multiLabels>
                                     <t:template>
-                                        <ObjectNumber number="{path: 'view>total_cspem', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
+                                        <Text text="{path: 'view>total_cspem', formatter: '.formatQuantity'}" width="100%" textAlign="End" wrapping="false" class="stockNumber" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="5%" hAlign="End">
+                                <t:Column width="9rem" hAlign="End">
                                     <t:multiLabels>
                                         <Label text=""/>
                                         <Label text="{i18n>colReservation}" width="100%" textAlign="End" class="stockSubHeader"/>
                                     </t:multiLabels>
                                     <t:template>
-                                        <ObjectNumber number="{path: 'view>total_resme', formatter: '.formatQuantity'}" emphasized="false" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
+                                        <Text text="{path: 'view>total_resme', formatter: '.formatQuantity'}" width="100%" textAlign="End" wrapping="false" class="stockNumber" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
                                     </t:template>
                                 </t:Column>
-                                <t:Column width="3%" hAlign="Center">
+                                <t:Column width="5rem" hAlign="Center">
                                     <Label text="{i18n>colUnit}" class="singleHeaderLabel"/>
                                     <t:template>
                                         <Text text="{view>meins}" visible="{path: 'view>mtopt', formatter: '.isDefaultOption'}"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="7rem" hAlign="Center">
+                                    <Label text="{i18n>colCostDetail}" class="singleHeaderLabel"/>
+                                    <t:template>
+                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="{i18n>btnDetailTooltip}" visible="{= !!${view>matnr} }" press=".onOpenDetail"/>
+                                    </t:template>
+                                </t:Column>
+                                <t:Column width="7rem" hAlign="Center">
+                                    <Label text="{i18n>colVarianceAnalysis}" class="singleHeaderLabel"/>
+                                    <t:template>
+                                        <Button icon="sap-icon://compare" type="Transparent" tooltip="{i18n>btnVarianceTooltip}" visible="{= !!${view>matnr} }" press=".onOpenVarianceAnalysis"/>
                                     </t:template>
                                 </t:Column>
                             </t:columns>
