@@ -579,7 +579,7 @@ sap.ui.define([
                 companyCode: "0001",
                 fiscalYear: sYear,
                 month: sMonth,
-                planVersion: "000",
+                planVersion: "001",
                 matnr: "",
                 mtopt: "",
                 mtart: "",
