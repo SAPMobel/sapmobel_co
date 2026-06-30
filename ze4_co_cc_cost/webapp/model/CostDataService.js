@@ -5,7 +5,7 @@ sap.ui.define([
 
     var SAP_CLIENT = "100";
     var SAP_LANGUAGE = "KO";
-    var BUDGET_VERSION = "BUD";
+    var BUDGET_VERSION = "001";
     var CURRENCY = "KRW";
     var MONTHS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
     var COST_DOCUMENT_KEY_FIELDS = ["Bukrs", "Gjahr", "Monat", "Kostl", "Belnr"];
@@ -216,6 +216,13 @@ sap.ui.define([
         return sMonth ? sMonth.padStart(2, "0") : "";
     }
 
+    function normalizePeriodNumber(vPeriod) {
+        var sPeriod = clean(vPeriod);
+        var iPeriod = Number(sPeriod);
+
+        return sPeriod && !isNaN(iPeriod) ? iPeriod : null;
+    }
+
     function normalizeNodeId(vValue) {
         return clean(vValue).toUpperCase();
     }
@@ -390,6 +397,16 @@ sap.ui.define([
     function filterCostPerspectiveRows(aRows, sFieldName) {
         return (aRows || []).filter(function (oRow) {
             return isCostPerspectiveAccount(getField(oRow, sFieldName || "saknr"));
+        });
+    }
+
+    function isCostBalanceAccount(vAccount) {
+        return isCostPerspectiveAccount(vAccount) && !isProductionClearingRecordAccount(vAccount);
+    }
+
+    function filterCostBalanceRows(aRows, sFieldName) {
+        return (aRows || []).filter(function (oRow) {
+            return isCostBalanceAccount(getField(oRow, sFieldName || "saknr"));
         });
     }
 
@@ -1793,10 +1810,12 @@ sap.ui.define([
     }
 
     function cumulativeBudgetRows(aRows, sPeriod) {
-        var sNormalizedPeriod = normalizeMonth(sPeriod);
+        var iSelectedPeriod = normalizePeriodNumber(sPeriod);
 
         return (aRows || []).filter(function (oRow) {
-            return normalizeMonth(getField(oRow, "Poper")) <= sNormalizedPeriod;
+            var iBudgetPeriod = normalizePeriodNumber(getField(oRow, "Poper"));
+
+            return iSelectedPeriod !== null && iBudgetPeriod !== null && iBudgetPeriod <= iSelectedPeriod;
         });
     }
 
@@ -1820,6 +1839,8 @@ sap.ui.define([
 
     function buildMonthlyTrend(aActualRows, aBudgetRows) {
         return MONTHS.map(function (sMonth) {
+            var iMonth = normalizePeriodNumber(sMonth);
+
             return {
                 month: sMonth,
                 monthText: Number(sMonth) + "월",
@@ -1827,7 +1848,7 @@ sap.ui.define([
                     return normalizeMonth(getField(oRow, "monat")) === sMonth;
                 }), "amount"),
                 budgetAmount: sum((aBudgetRows || []).filter(function (oRow) {
-                    return normalizeMonth(getField(oRow, "Poper")) === sMonth;
+                    return normalizePeriodNumber(getField(oRow, "Poper")) === iMonth;
                 }), "BudgetAmt")
             };
         });
@@ -2362,6 +2383,8 @@ sap.ui.define([
         isManufacturingReceiptAccount: isManufacturingReceiptAccount,
         isCostPerspectiveAccount: isCostPerspectiveAccount,
         filterCostPerspectiveRows: filterCostPerspectiveRows,
+        isCostBalanceAccount: isCostBalanceAccount,
+        filterCostBalanceRows: filterCostBalanceRows,
         buildManufacturingFlowRows: buildManufacturingFlowRows,
         buildClearingValidationRows: buildClearingValidationRows,
         buildSourcePoolRows: buildSourcePoolRows,

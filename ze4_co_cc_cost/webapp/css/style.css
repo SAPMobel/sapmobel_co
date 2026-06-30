@@ -2080,6 +2080,36 @@
     white-space: nowrap;
 }
 
+.ze4AllocationFlowLandingContent .ze4AllocationKpiGrid .ze4KpiSub .sapMObjStatusText {
+    display: block;
+    line-height: 1.25;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: normal;
+}
+
+.ze4AllocationFlowLandingContent .ze4KpiValueFormulaLine {
+    align-items: flex-start;
+    box-sizing: border-box;
+    gap: 0.55rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.ze4AllocationFlowLandingContent .ze4KpiValueFormulaLine .ze4KpiValueStatus {
+    flex: 0 0 auto;
+}
+
+.ze4AllocationFlowLandingContent .ze4KpiFormulaText {
+    color: #526376;
+    flex: 1 1 auto;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.25;
+    min-width: 0;
+}
+
 .ze4AllocationKpiGrid .ze4KpiValue {
     color: #075caf !important;
 }

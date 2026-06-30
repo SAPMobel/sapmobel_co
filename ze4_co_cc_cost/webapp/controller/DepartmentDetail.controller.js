@@ -312,22 +312,22 @@ sap.ui.define([
             aCurrentActualRows = this.service.currentActualRows(aScopedActualRows, oFilters.period);
             aPreviousActualRows = this._previousRowsByOrg(aActualRows, aPreviousYearRows, oFilters, oSelectedOrg);
             bProductionScope = this.service.isProductionOrgSelection(oSelectedOrg);
-            aCostActualRows = this.service.filterCostPerspectiveRows(aScopedActualRows, "saknr");
-            aCostBudgetRows = this.service.filterCostPerspectiveRows(aScopedBudgetRows, "Saknr");
-            aCostDocumentRows = this.service.filterCostPerspectiveRows(aScopedDocumentRows, "Saknr");
+            aCostActualRows = this.service.filterCostBalanceRows(aScopedActualRows, "saknr");
+            aCostBudgetRows = this.service.filterCostBalanceRows(aScopedBudgetRows, "Saknr");
+            aCostDocumentRows = this.service.filterCostBalanceRows(aScopedDocumentRows, "Saknr");
             aCostCurrentDocumentRows = this.service.currentDocumentRows(aCostDocumentRows, oFilters.period);
             aCostCumulativeActualRows = this.service.cumulativeActualRows(aCostActualRows, oFilters.period);
             aCostCumulativeBudgetRows = this.service.cumulativeBudgetRows(aCostBudgetRows, oFilters.period);
             aCostCurrentActualRows = this.service.currentActualRows(aCostActualRows, oFilters.period);
-            aCostPreviousActualRows = this.service.filterCostPerspectiveRows(aPreviousActualRows, "saknr");
-            aEffectiveScopeRows = bProductionScope ? aScopedActualRows : aCostActualRows;
-            aEffectiveBudgetRows = bProductionScope ? aScopedBudgetRows : aCostBudgetRows;
-            aEffectiveDocumentRows = bProductionScope ? aScopedDocumentRows : aCostDocumentRows;
-            aEffectiveCurrentDocumentRows = bProductionScope ? aCurrentDocumentRows : aCostCurrentDocumentRows;
-            aEffectiveCumulativeActualRows = bProductionScope ? aCumulativeActualRows : aCostCumulativeActualRows;
-            aEffectiveCumulativeBudgetRows = bProductionScope ? aCumulativeBudgetRows : aCostCumulativeBudgetRows;
-            aEffectiveCurrentActualRows = bProductionScope ? aCurrentActualRows : aCostCurrentActualRows;
-            aEffectivePreviousActualRows = bProductionScope ? aPreviousActualRows : aCostPreviousActualRows;
+            aCostPreviousActualRows = this.service.filterCostBalanceRows(aPreviousActualRows, "saknr");
+            aEffectiveScopeRows = aCostActualRows;
+            aEffectiveBudgetRows = aCostBudgetRows;
+            aEffectiveDocumentRows = aCostDocumentRows;
+            aEffectiveCurrentDocumentRows = aCostCurrentDocumentRows;
+            aEffectiveCumulativeActualRows = aCostCumulativeActualRows;
+            aEffectiveCumulativeBudgetRows = aCostCumulativeBudgetRows;
+            aEffectiveCurrentActualRows = aCostCurrentActualRows;
+            aEffectivePreviousActualRows = aCostPreviousActualRows;
             fTotalActual = this.service.sum(aEffectiveCumulativeActualRows, "amount");
             fCurrentActual = this.service.sum(aEffectiveCurrentActualRows, "amount");
             fPreviousActual = this.service.sum(aEffectivePreviousActualRows, "amount");
@@ -377,7 +377,7 @@ sap.ui.define([
                 previousAmount: this.service.sum(aAccountRows, "previousAmount"),
                 documentCount: this.service.sum(aAccountRows, "documentCount")
             };
-            oAccountSummary = bProductionScope ? oLedgerSummary : oCostSummary;
+            oAccountSummary = oCostSummary;
             aCompositionActualRows = bProductionScope ? aCumulativeActualRows.filter(function (oRow) {
                 return this.service.isManufacturingFlowAccount(this.service.getField(oRow, "saknr"));
             }.bind(this)) : aEffectiveCumulativeActualRows;

@@ -168,7 +168,8 @@ sap.ui.define([
             var oSelectedAccount = aAccountValueHelpRows.find(function (oRow) {
                 return oRow.saknr === sSelectedSaknr;
             });
-            var aMappedRows = this.service.filterByAccount(aOrgMappedRows, "Saknr", sSelectedSaknr);
+            var aVisibleMappedRows = sSelectedSaknr ? aOrgMappedRows : this.service.filterCostBalanceRows(aOrgMappedRows, "Saknr");
+            var aMappedRows = this.service.filterByAccount(aVisibleMappedRows, "Saknr", sSelectedSaknr);
             var fTotalAmount = this.service.sum(aMappedRows, "Amount");
             var fDebitAmount = aMappedRows.filter(function (oRow) {
                 return oRow.Drcrk === "S";

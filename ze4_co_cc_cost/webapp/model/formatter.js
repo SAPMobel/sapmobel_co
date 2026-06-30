@@ -15,6 +15,12 @@ sap.ui.define([
         maxFractionDigits: 1
     });
 
+    var oCompactAmountFormat = NumberFormat.getFloatInstance({
+        groupingEnabled: true,
+        minFractionDigits: 0,
+        maxFractionDigits: 1
+    });
+
     function toNumber(vValue) {
         if (vValue === null || vValue === undefined || vValue === "") {
             return null;
@@ -141,11 +147,11 @@ sap.ui.define([
             }
 
             if (Math.abs(fValue) >= 100000000) {
-                return oRateFormat.format(fValue / 100000000) + "억";
+                return oCompactAmountFormat.format(fValue / 100000000) + "억";
             }
 
-            if (Math.abs(fValue) >= 1000000) {
-                return oRateFormat.format(fValue / 1000000) + "M";
+            if (Math.abs(fValue) >= 10000) {
+                return oCompactAmountFormat.format(fValue / 10000) + "만";
             }
 
             return oAmountFormat.format(fValue);

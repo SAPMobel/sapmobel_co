@@ -12,7 +12,7 @@
         busy="{flow1>/busy}"
         busyIndicatorDelay="0">
         <content>
-            <VBox class="ze4PageContent ze4AllocationFlowContent">
+            <VBox class="ze4PageContent ze4AllocationFlowContent ze4AllocationFlowLandingContent">
                 <HBox class="ze4PageTitleBar" alignItems="Center" wrap="Wrap">
                     <VBox>
                         <Title text="{flow1>/pageTitle}" level="H1" titleStyle="H1" class="ze4PageHeroTitle" />
@@ -115,10 +115,13 @@
                             <core:Icon src="{flow1>icon}" class="ze4KpiIcon" color="{flow1>iconColor}" backgroundColor="{flow1>iconBackground}" />
                             <VBox class="ze4KpiText">
                                 <Text class="ze4KpiTitle" text="{flow1>title}" />
-                                <ObjectStatus class="ze4KpiValueStatus" text="{flow1>valueText}" state="{flow1>valueState}" tooltip="{flow1>valueText}" />
+                                <HBox class="ze4KpiValueFormulaLine" alignItems="Center">
+                                    <ObjectStatus class="ze4KpiValueStatus" text="{flow1>valueText}" state="{flow1>valueState}" tooltip="{flow1>valueText}" />
+                                    <Text class="ze4KpiFormulaText" text="{flow1>formulaText}" tooltip="{flow1>formulaText}" wrapping="true" visible="{= !!${flow1>formulaText} }" />
+                                </HBox>
                             </VBox>
                         </HBox>
-                        <ObjectStatus class="ze4KpiSub" text="{flow1>subText}" state="{flow1>state}" />
+                        <ObjectStatus class="ze4KpiSub" text="{flow1>subText}" tooltip="{flow1>subText}" state="{flow1>state}" visible="{= !!${flow1>subText} }" />
                     </VBox>
                 </FlexBox>
 
@@ -150,7 +153,7 @@
                             selectionMode="Single"
                             selectionBehavior="Row"
                             rowSelectionChange=".onReceiverRowSelection"
-                            visibleRowCount="7"
+                            visibleRowCount="10"
                             width="100%"
                             noData="조회 조건에 해당하는 배부 데이터가 없습니다."
                             class="ze4GridTable ze4Table ze4AllocationDetailTable">

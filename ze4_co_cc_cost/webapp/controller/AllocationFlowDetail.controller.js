@@ -39,7 +39,7 @@ sap.ui.define([
                         { label: "SKF ID", property: "skfId" },
                         { label: "배부기준", property: "skfText" },
                         { label: "기준값", property: "basisValueText" },
-                        { label: "비율", property: "basisRatioText", type: "text", summary: false },
+                        { label: "수신 비율", property: "basisRatioText", type: "text", summary: false },
                         { label: "금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) }
                     ])
                 ]
@@ -53,13 +53,14 @@ sap.ui.define([
                 { label: "라인", property: "docln" },
                 { label: "송신 코스트센터", property: "senderText" },
                 { label: "수신 코스트센터", property: "receiverText" },
+                { label: "흐름 방향", property: "directionText" },
                 { label: "계정", property: "saknrText" },
                 { label: "계정 성격", property: "accountRoleText" },
                 { label: "배부사이클", property: "cycleText" },
                 { label: "세그먼트", property: "segmentText" },
                 { label: "배부기준", property: "skfText" },
                 { label: "기준값", property: "basisValueText" },
-                { label: "비율", property: "basisRatioText", type: "text", summary: false },
+                { label: "수신 비율", property: "basisRatioText", type: "text", summary: false },
                 { label: "금액", value: function (oRow) { return this.exportAmount(oRow.allocAmount || oRow.amount, oRow.waers); }.bind(this) },
                 { label: "통화", property: "waers" }
             ];
@@ -144,7 +145,7 @@ sap.ui.define([
 
             if (oRow) {
                 oModel.setProperty("/selectedDetail", oRow);
-                oModel.setProperty("/skfSummaryRows", this._buildSkfSummary(oRow._groupRows || [oRow.raw]));
+                oModel.setProperty("/skfSummaryRows", this._skfSummaryForDetail(oRow));
                 oModel.setProperty("/contextChips", this._contextChips(this._effectiveContext(oModel.getProperty("/context") || {}, oModel.getProperty("/filters") || {}, oRow)));
                 oModel.setProperty("/pageTitle", this._pageTitle(oModel.getProperty("/context") || {}, oRow, oModel.getProperty("/filters") || {}));
             }
@@ -251,7 +252,8 @@ sap.ui.define([
                 var aEnriched = Flow.enrichRows(aRows, oHierarchyIndex, oFilters.groupBasis);
                 var oEffectiveFilters = this._normalizeFiltersWithAvailableOptions(aEnriched, oFilters);
                 var aFiltered = this._applyFilters(aEnriched, oEffectiveFilters);
-                var aDetailRows = this._buildDetailRows(aFiltered);
+                var oBasisPoolIndex = this._buildBasisPoolIndex(this._basisScopeRows(aEnriched, oEffectiveFilters));
+                var aDetailRows = this._buildDetailRows(aFiltered, oBasisPoolIndex, oEffectiveFilters);
                 var oSelected = aDetailRows[0] || this._emptyDetail();
                 var oContext = oModel.getProperty("/context") || {};
                 var oFilterOptions;
@@ -262,7 +264,8 @@ sap.ui.define([
                     });
                     oEffectiveFilters = this._normalizeFiltersWithAvailableOptions(aEnriched, oEffectiveFilters);
                     aFiltered = this._applyFilters(aEnriched, oEffectiveFilters);
-                    aDetailRows = this._buildDetailRows(aFiltered);
+                    oBasisPoolIndex = this._buildBasisPoolIndex(this._basisScopeRows(aEnriched, oEffectiveFilters));
+                    aDetailRows = this._buildDetailRows(aFiltered, oBasisPoolIndex, oEffectiveFilters);
                     oSelected = aDetailRows[0] || this._emptyDetail();
                 }
 
@@ -277,8 +280,8 @@ sap.ui.define([
                 oModel.setProperty("/skfOptions", oFilterOptions.skfOptions);
                 oModel.setProperty("/detailRows", aDetailRows);
                 oModel.setProperty("/selectedDetail", oSelected);
-                oModel.setProperty("/skfSummaryRows", this._buildSkfSummary(aFiltered));
-                oModel.setProperty("/kpis", this._buildKpis(aFiltered));
+                oModel.setProperty("/skfSummaryRows", this._skfSummaryForDetail(oSelected));
+                oModel.setProperty("/kpis", this._buildKpis(aFiltered, aDetailRows));
                 oModel.setProperty("/contextChips", this._contextChips(this._effectiveContext(oContext, oEffectiveFilters, oSelected)));
                 oModel.setProperty("/pageTitle", this._pageTitle(oContext, oSelected, oEffectiveFilters));
                 oModel.setProperty("/hasRows", aDetailRows.length > 0);
@@ -461,12 +464,234 @@ sap.ui.define([
             });
         },
 
-        _buildDetailRows: function (aRows) {
+        _basisScopeRows: function (aRows, oFilters) {
+            return this._applyFilters(aRows, oFilters, {
+                receiverCcg: true,
+                receiverKostl: true,
+                segmNo: true,
+                belnr: true
+            });
+        },
+
+        _buildBasisPoolIndex: function (aRows) {
+            var mPools = {};
+
+            (aRows || []).forEach(function (oRow) {
+                var fBasis = Flow.numberOrNull(Flow.getField(oRow, "BasisValue"));
+                var sPoolKey = this._basisPoolKey(oRow);
+                var sReceiverKey = this._basisReceiverKey(oRow);
+                var sUnit = Flow.skfUnitText(Flow.getField(oRow, "SkfUnitTxt"));
+                var oReceiver;
+
+                if (!Flow.isBasisMatched(oRow) || fBasis === null || !sPoolKey || !sReceiverKey) {
+                    return;
+                }
+
+                if (!mPools[sPoolKey]) {
+                    mPools[sPoolKey] = {
+                        key: sPoolKey,
+                        skfId: oRow._skfId || Flow.clean(Flow.getField(oRow, "SkfId")),
+                        skfText: oRow._skfText || Flow.textOrCode(Flow.getField(oRow, "SkfTxt"), Flow.getField(oRow, "SkfId")),
+                        unit: sUnit,
+                        receivers: {}
+                    };
+                }
+
+                oReceiver = mPools[sPoolKey].receivers[sReceiverKey];
+                if (!oReceiver) {
+                    mPools[sPoolKey].receivers[sReceiverKey] = {
+                        receiverKostl: sReceiverKey,
+                        receiverText: this._basisReceiverText(oRow, sReceiverKey),
+                        basisValue: fBasis
+                    };
+                } else if (Math.abs(fBasis) > Math.abs(oReceiver.basisValue || 0)) {
+                    oReceiver.basisValue = fBasis;
+                }
+            }.bind(this));
+
+            Object.keys(mPools).forEach(function (sPoolKey) {
+                var oPool = mPools[sPoolKey];
+                var aReceivers = Object.keys(oPool.receivers).map(function (sReceiverKey) {
+                    return oPool.receivers[sReceiverKey];
+                });
+
+                oPool.totalBasis = aReceivers.reduce(function (fSum, oReceiver) {
+                    return fSum + Flow.toNumber(oReceiver.basisValue);
+                }, 0);
+                oPool.summaryRows = this._balanceRatioTexts(aReceivers.map(function (oReceiver) {
+                    var fRatio = oPool.totalBasis ? Flow.toNumber(oReceiver.basisValue) / oPool.totalBasis * 100 : null;
+                    var sBasisValueText = Flow.amountText(oReceiver.basisValue, oPool.unit);
+
+                    return Object.assign({}, oReceiver, {
+                        skfId: oPool.skfId,
+                        skfText: oPool.skfText,
+                        unit: oPool.unit,
+                        basisValueText: sBasisValueText,
+                        basisRatio: fRatio,
+                        basisRatioText: fRatio === null ? "-" : Flow.rateText(fRatio),
+                        ratioText: fRatio === null ? "-" : Flow.rateText(fRatio)
+                    });
+                })).sort(function (oFirst, oSecond) {
+                    return Math.abs(oSecond.basisValue || 0) - Math.abs(oFirst.basisValue || 0) ||
+                        Flow.clean(oFirst.receiverText).localeCompare(Flow.clean(oSecond.receiverText), "ko");
+                });
+            }.bind(this));
+
+            return mPools;
+        },
+
+        _balanceRatioTexts: function (aRows) {
+            var aValidRows = (aRows || []).filter(function (oRow) {
+                return oRow.basisRatio !== null && oRow.basisRatio !== undefined;
+            });
+            var aRounded;
+            var iDiff;
+            var iDirection;
+            var aOrder;
+            var iIndex = 0;
+
+            if (!aValidRows.length) {
+                return aRows || [];
+            }
+
+            aRounded = aValidRows.map(function (oRow, iRowIndex) {
+                var fTenths = Flow.toNumber(oRow.basisRatio) * 10;
+                var iRounded = Math.round(fTenths);
+
+                return {
+                    row: oRow,
+                    index: iRowIndex,
+                    tenths: fTenths,
+                    rounded: iRounded,
+                    remainder: fTenths - Math.floor(fTenths)
+                };
+            });
+
+            iDiff = 1000 - aRounded.reduce(function (iSum, oItem) {
+                return iSum + oItem.rounded;
+            }, 0);
+            iDirection = iDiff >= 0 ? 1 : -1;
+            aOrder = aRounded.slice().sort(function (oFirst, oSecond) {
+                return iDirection > 0 ?
+                    oSecond.remainder - oFirst.remainder || oFirst.index - oSecond.index :
+                    oFirst.remainder - oSecond.remainder || oFirst.index - oSecond.index;
+            });
+
+            while (iDiff !== 0 && aOrder.length) {
+                aOrder[iIndex % aOrder.length].rounded += iDirection;
+                iDiff -= iDirection;
+                iIndex += 1;
+            }
+
+            aRounded.forEach(function (oItem) {
+                var sRatioText = Flow.rateText(oItem.rounded / 10);
+
+                oItem.row.basisRatioText = sRatioText;
+                oItem.row.ratioText = sRatioText;
+            });
+
+            return aRows || [];
+        },
+
+        _basisPoolKey: function (oRow) {
+            return [
+                oRow._cycle || Flow.clean(Flow.getField(oRow, "Cycle")),
+                oRow._skfId || Flow.clean(Flow.getField(oRow, "SkfId")),
+                oRow._senderKostl || Flow.normalize(Flow.getField(oRow, "SenderKostl"))
+            ].map(Flow.clean).join("|");
+        },
+
+        _basisReceiverKey: function (oRow) {
+            return oRow._receiverKostl || Flow.normalize(Flow.getField(oRow, "ReceiverKostl"));
+        },
+
+        _basisReceiverText: function (oRow, sReceiverKey) {
+            return oRow._receiverKostlText || Flow.textOrCode(Flow.getField(oRow, "ReceiverKostlTxt"), sReceiverKey);
+        },
+
+        _basisPoolRowsForRow: function (oRow, oBasisPoolIndex) {
+            var oPool = oBasisPoolIndex && oBasisPoolIndex[this._basisPoolKey(oRow)];
+
+            return oPool && oPool.summaryRows || [];
+        },
+
+        _basisRatioForRow: function (oRow, oBasisPoolIndex) {
+            var oPool = oBasisPoolIndex && oBasisPoolIndex[this._basisPoolKey(oRow)];
+            var sReceiverKey = this._basisReceiverKey(oRow);
+            var oReceiver = oPool && oPool.summaryRows && oPool.summaryRows.find(function (oCandidate) {
+                return oCandidate.receiverKostl === sReceiverKey;
+            });
+
+            if (oReceiver && oReceiver.basisRatio !== null && oReceiver.basisRatio !== undefined) {
+                return oReceiver.basisRatio;
+            }
+
+            return Flow.numberOrNull(Flow.getField(oRow, "BasisRatio"));
+        },
+
+        _basisRatioTextForRow: function (oRow, oBasisPoolIndex) {
+            var fRatio;
+            var oPool = oBasisPoolIndex && oBasisPoolIndex[this._basisPoolKey(oRow)];
+            var sReceiverKey = this._basisReceiverKey(oRow);
+            var oReceiver = oPool && oPool.summaryRows && oPool.summaryRows.find(function (oCandidate) {
+                return oCandidate.receiverKostl === sReceiverKey;
+            });
+
+            if (!Flow.isBasisMatched(oRow)) {
+                return "-";
+            }
+
+            if (oReceiver && oReceiver.basisRatioText) {
+                return oReceiver.basisRatioText;
+            }
+
+            fRatio = this._basisRatioForRow(oRow, oBasisPoolIndex);
+            return fRatio === null || fRatio === undefined ? "-" : Flow.rateText(fRatio);
+        },
+
+        _flowDirectionInfo: function (oRow, oFilters) {
+            var sSenderFilter = Flow.normalize(oFilters && oFilters.senderKostl);
+            var sReceiverFilter = Flow.normalize(oFilters && oFilters.receiverKostl);
+            var sSender = oRow._senderKostl || Flow.normalize(Flow.getField(oRow, "SenderKostl"));
+            var sReceiver = oRow._receiverKostl || Flow.normalize(Flow.getField(oRow, "ReceiverKostl"));
+            var bSenderMatch = !!sSenderFilter && sSender === sSenderFilter;
+            var bReceiverMatch = !!sReceiverFilter && sReceiver === sReceiverFilter;
+
+            if (bReceiverMatch && bSenderMatch && sSender === sReceiver) {
+                return {
+                    text: "내부",
+                    state: "Warning"
+                };
+            }
+            if (bReceiverMatch) {
+                return {
+                    text: "수신",
+                    state: "Information"
+                };
+            }
+            if (bSenderMatch) {
+                return {
+                    text: "송신",
+                    state: "Error"
+                };
+            }
+
+            return {
+                text: "-",
+                state: "None"
+            };
+        },
+
+        _buildDetailRows: function (aRows, oBasisPoolIndex, oFilters) {
             return (aRows || []).map(function (oRow) {
                 var sBelnr = Flow.clean(Flow.getField(oRow, "Belnr"));
                 var sDocln = Flow.clean(Flow.getField(oRow, "Docln"));
                 var sSaknr = Flow.clean(Flow.getField(oRow, "Saknr"));
                 var oDocumentStatus = this._documentStatusInfo(oRow);
+                var fBasisValue = Flow.numberOrNull(Flow.getField(oRow, "BasisValue"));
+                var fBasisRatio = this._basisRatioForRow(oRow, oBasisPoolIndex);
+                var aBasisPoolRows = this._basisPoolRowsForRow(oRow, oBasisPoolIndex);
+                var oDirection = this._flowDirectionInfo(oRow, oFilters);
 
                 return {
                     raw: oRow,
@@ -477,6 +702,8 @@ sap.ui.define([
                     receiverCcgText: oRow._receiverCcgText,
                     receiverKostl: oRow._receiverKostl,
                     receiverText: oRow._receiverKostlText,
+                    directionText: oDirection.text,
+                    directionState: oDirection.state,
                     receiverPrctrText: Flow.textOrCode(Flow.getField(oRow, "ReceiverPrctrTxt"), Flow.getField(oRow, "ReceiverPrctr")),
                     cycle: oRow._cycle,
                     cycleText: oRow._cycleText,
@@ -484,8 +711,11 @@ sap.ui.define([
                     segmNo: oRow._segmNo,
                     skfId: oRow._skfId,
                     skfText: oRow._skfText,
+                    skfUnit: Flow.skfUnitText(Flow.getField(oRow, "SkfUnitTxt")),
+                    basisValue: fBasisValue,
+                    basisRatio: fBasisRatio,
                     basisValueText: Flow.basisValueText(oRow),
-                    basisRatioText: Flow.basisRatioText(oRow),
+                    basisRatioText: this._basisRatioTextForRow(oRow, oBasisPoolIndex),
                     amount: oRow._amount,
                     amountText: Flow.amountText(oRow._amount, oRow._waers),
                     belnr: sBelnr || "-",
@@ -510,6 +740,8 @@ sap.ui.define([
                     documentStatusState: oDocumentStatus.state,
                     documentStatusIcon: oDocumentStatus.icon,
                     documentStatusTooltip: oDocumentStatus.tooltip,
+                    _basisPoolRows: aBasisPoolRows,
+                    _basisPoolKey: this._basisPoolKey(oRow),
                     _sortBudat: oRow._budat,
                     _sortDocln: Number(sDocln || 0)
                 };
@@ -584,13 +816,13 @@ sap.ui.define([
             });
         },
 
-        _buildKpis: function (aRows) {
+        _buildKpis: function (aRows, aDetailRows) {
             var fTotal = (aRows || []).reduce(function (fSum, oRow) {
                 return fSum + oRow._amount;
             }, 0);
             var mDocHeaders = {};
             var mDocLines = {};
-            var aBasisGroups = this._buildBasisGroups(aRows);
+            var aBasisGroups = this._buildBasisGroups(aDetailRows && aDetailRows.length ? aDetailRows : aRows);
 
             (aRows || []).forEach(function (oRow) {
                 var sDocKey = oRow._documentKey;
@@ -611,7 +843,7 @@ sap.ui.define([
                 this._createDetailKpi("배부금액", Flow.amountText(fTotal, "KRW"), "", "None", "sap-icon://money-bills"),
                 this._createDetailKpi("배부기준", this._basisNameText(aBasisGroups), "", "None", "sap-icon://group", this._basisNameLines(aBasisGroups)),
                 this._createDetailKpi("배부기준값", this._basisTotalText(aBasisGroups), "", "None", "sap-icon://lead", this._basisValueLines(aBasisGroups)),
-                this._createDetailKpi("비율", this._basisRatioText(aBasisGroups), "", "None", "sap-icon://pie-chart", this._basisRatioLines(aBasisGroups)),
+                this._createDetailKpi("수신 비율", this._basisRatioText(aBasisGroups), "", "None", "sap-icon://pie-chart", this._basisRatioLines(aBasisGroups)),
                 this._createDetailKpi("전표 건수", Object.keys(mDocHeaders).length + "건 / " + Object.keys(mDocLines).length + "라인", "", "None", "sap-icon://documents")
             ];
         },
@@ -626,13 +858,15 @@ sap.ui.define([
             var mGroups = {};
 
             (aRows || []).forEach(function (oRow) {
-                var fBasis = Flow.numberOrNull(Flow.getField(oRow, "BasisValue"));
-                var fRatio = Flow.numberOrNull(Flow.getField(oRow, "BasisRatio"));
-                var sSkfText = Flow.clean(oRow._skfText) || Flow.textOrCode(Flow.getField(oRow, "SkfTxt"), Flow.getField(oRow, "SkfId"));
-                var sUnit = Flow.skfUnitText(Flow.getField(oRow, "SkfUnitTxt"));
+                var fBasis = Flow.numberOrNull(oRow.basisValue !== undefined ? oRow.basisValue : Flow.getField(oRow, "BasisValue"));
+                var fRatio = Flow.numberOrNull(oRow.basisRatio !== undefined ? oRow.basisRatio : Flow.getField(oRow, "BasisRatio"));
+                var sSkfText = Flow.clean(oRow.skfText || oRow._skfText) || Flow.textOrCode(Flow.getField(oRow, "SkfTxt"), Flow.getField(oRow, "SkfId"));
+                var sUnit = Flow.clean(oRow.skfUnit) || Flow.skfUnitText(Flow.getField(oRow, "SkfUnitTxt"));
                 var sKey = [sSkfText, sUnit].join("|");
+                var sReceiverKey = oRow.receiverKostl || oRow._receiverKostl || Flow.normalize(Flow.getField(oRow, "ReceiverKostl")) || "UNKNOWN";
+                var oMember;
 
-                if (!Flow.isBasisMatched(oRow) || fBasis === null || !sSkfText || sSkfText === "-") {
+                if ((oRow.basisValue === undefined && !Flow.isBasisMatched(oRow)) || fBasis === null || !sSkfText || sSkfText === "-") {
                     return;
                 }
 
@@ -641,11 +875,15 @@ sap.ui.define([
                         skfText: sSkfText,
                         unit: sUnit,
                         basisValue: 0,
+                        basisMembers: {},
                         ratios: {}
                     };
                 }
 
-                mGroups[sKey].basisValue += fBasis;
+                oMember = mGroups[sKey].basisMembers[sReceiverKey];
+                if (!oMember || Math.abs(fBasis) > Math.abs(oMember)) {
+                    mGroups[sKey].basisMembers[sReceiverKey] = fBasis;
+                }
                 if (fRatio !== null) {
                     mGroups[sKey].ratios[fRatio.toFixed(1)] = fRatio;
                 }
@@ -653,6 +891,9 @@ sap.ui.define([
 
             return Object.keys(mGroups).map(function (sKey) {
                 var oGroup = mGroups[sKey];
+                oGroup.basisValue = Object.keys(oGroup.basisMembers).reduce(function (fSum, sMemberKey) {
+                    return fSum + Flow.toNumber(oGroup.basisMembers[sMemberKey]);
+                }, 0);
                 oGroup.ratioValues = Object.keys(oGroup.ratios).map(function (sRatioKey) {
                     return oGroup.ratios[sRatioKey];
                 }).sort(function (fFirst, fSecond) {
@@ -741,6 +982,16 @@ sap.ui.define([
                 return Flow.rateText(aValues[0]);
             }
             return Flow.rateText(aValues[0]) + " ~ " + Flow.rateText(aValues[aValues.length - 1]);
+        },
+
+        _skfSummaryForDetail: function (oDetail) {
+            if (oDetail && oDetail._basisPoolRows && oDetail._basisPoolRows.length) {
+                return oDetail._basisPoolRows;
+            }
+            if (oDetail && oDetail.raw) {
+                return this._buildSkfSummary([oDetail.raw]);
+            }
+            return [];
         },
 
         _buildSkfSummary: function (aRows) {

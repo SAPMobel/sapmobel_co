@@ -328,6 +328,8 @@ sap.ui.define([
             var fExternalAmount = this._sum(aExternalRows);
             var fAllAmount = this._sum(aAllRows);
             var fInternalAmount = fAllAmount - fExternalAmount;
+            var sInternalRatioDescription = "해당 코스트센터로 배부된 총 금액 중 내부에서 발생해 다시 배부된 금액의 비율입니다.";
+            var sInternalRatioFormula = "계산식: 내부 재배부금액 / (외부 유입금액 + 내부 재배부금액)";
             var mSenders = {};
             var mReceivers = {};
             var oMaxReceiver = aReceiverRows[0] || {};
@@ -344,7 +346,9 @@ sap.ui.define([
                 this.createKpi("선택 CCG 총 수신금액", Flow.amountText(fAllAmount, "KRW"), "", "None", "sap-icon://wallet"),
                 this.createKpi("외부 유입 CCG 수", Object.keys(mSenders).length + " 개", "", "None", "sap-icon://group"),
                 this.createKpi("내부 수령 코스트센터 수", Object.keys(mReceivers).length + " 개", "", "None", "sap-icon://building"),
-                this.createKpi("내부 재배부율", fAllAmount ? Flow.rateText(fInternalAmount / fAllAmount * 100) : "-", "", "None", "sap-icon://pie-chart"),
+                Object.assign(this.createKpi("내부 재배부율", fAllAmount ? Flow.rateText(fInternalAmount / fAllAmount * 100) : "-", sInternalRatioDescription, "None", "sap-icon://pie-chart"), {
+                    formulaText: sInternalRatioFormula
+                }),
                 this.createKpi("최대 최종 수령처", oMaxReceiver.receiverText || "-", Flow.amountText((oMaxReceiver.externalAmount || 0) + (oMaxReceiver.internalAmount || 0), "KRW"), "None", "sap-icon://competitor")
             ];
         },
@@ -353,6 +357,7 @@ sap.ui.define([
             var mExternal = {};
             var mCenter = {};
             var mInternalSenders = {};
+            var mInternalSenderCostCenters = {};
             var mRight = {};
             var mExternalLinks = {};
             var mExternalReceiverLinks = {};
@@ -379,18 +384,28 @@ sap.ui.define([
             };
 
             (aRows || []).forEach(function (oRow) {
+                var sSenderKostl = Flow.clean(oRow._senderKostl);
+
+                if (oRow._senderCcgId === oRow._receiverCcgId && sSenderKostl) {
+                    mInternalSenderCostCenters[sSenderKostl] = true;
+                }
+            });
+
+            (aRows || []).forEach(function (oRow) {
                 var bInternal = oRow._senderCcgId === oRow._receiverCcgId;
                 var sExternalCcgId = oRow._senderCcgId || Flow.GROUP_UNASSIGNED;
-                var sInternalSenderId = oRow._senderKostl || Flow.GROUP_UNASSIGNED;
-                var sReceiverKostl = oRow._receiverKostl || Flow.GROUP_UNASSIGNED;
+                var sInternalSenderId = Flow.clean(oRow._senderKostl) || Flow.GROUP_UNASSIGNED;
+                var sReceiverKostl = Flow.clean(oRow._receiverKostl) || Flow.GROUP_UNASSIGNED;
                 var sExternalText = oRow._senderCcgText || "그룹 미지정";
                 var sInternalSenderText = oRow._senderKostlText || "코스트센터 미지정";
                 var sRightText = oRow._receiverKostlText || "코스트센터 미지정";
                 var sExternalId = "E:" + sExternalCcgId;
                 var sInternalSenderNodeId = "K:" + sInternalSenderId;
                 var sRightId = "R:" + sReceiverKostl;
+                var sCollapsedReceiverId = "K:" + sReceiverKostl;
+                var bCollapseExternalReceiver = !bInternal && !!mInternalSenderCostCenters[sReceiverKostl];
                 var sExternalKey = sExternalId + "|" + sCenterId + "|" + oRow._cycle;
-                var sExternalReceiverKey = sCenterId + "|" + sRightId + "|" + oRow._cycle;
+                var sExternalReceiverKey = sCenterId + "|" + (bCollapseExternalReceiver ? sCollapsedReceiverId : sRightId) + "|" + oRow._cycle;
                 var sInternalSenderKey = sCenterId + "|" + sInternalSenderNodeId + "|" + oRow._cycle;
                 var sRightKey = sInternalSenderNodeId + "|" + sRightId + "|" + oRow._cycle;
                 var sExternalHash = "";
@@ -411,9 +426,8 @@ sap.ui.define([
                     senderKostlText: oRow._senderKostlText
                 });
 
-                this._addNode(mRight, sRightId, sRightText, oRow._cycle, oRow._amount, sReceiverHash, oRow._cycleText);
-
                 if (bInternal) {
+                    this._addNode(mRight, sRightId, sRightText, oRow._cycle, oRow._amount, sReceiverHash, oRow._cycleText);
                     this._addNode(mInternalSenders, sInternalSenderNodeId, sInternalSenderText, oRow._cycle, oRow._amount, sSenderHash, oRow._cycleText);
                     this._addLink(mInternalSenderLinks, sInternalSenderKey, sCenterId, sInternalSenderNodeId, oRow, sSenderHash);
                     this._addLink(mRightLinks, sRightKey, sInternalSenderNodeId, sRightId, oRow, sReceiverHash);
@@ -430,7 +444,13 @@ sap.ui.define([
                 });
                 this._addNode(mExternal, sExternalId, sExternalText, oRow._cycle, oRow._amount, sExternalHash, oRow._cycleText);
                 this._addLink(mExternalLinks, sExternalKey, sExternalId, sCenterId, oRow, sExternalHash);
-                this._addLink(mExternalReceiverLinks, sExternalReceiverKey, sCenterId, sRightId, oRow, sReceiverHash);
+                if (bCollapseExternalReceiver) {
+                    this._addNode(mInternalSenders, sCollapsedReceiverId, sRightText, oRow._cycle, oRow._amount, "", oRow._cycleText);
+                    this._addLink(mExternalReceiverLinks, sExternalReceiverKey, sCenterId, sCollapsedReceiverId, oRow, sReceiverHash);
+                } else {
+                    this._addNode(mRight, sRightId, sRightText, oRow._cycle, oRow._amount, sReceiverHash, oRow._cycleText);
+                    this._addLink(mExternalReceiverLinks, sExternalReceiverKey, sCenterId, sRightId, oRow, sReceiverHash);
+                }
             }.bind(this));
 
             aExternalNodes = this._nodes(mExternal);
@@ -548,6 +568,9 @@ sap.ui.define([
                     amount: 0,
                     href: sHref
                 };
+            }
+            if (mNodes[sId] && !mNodes[sId].href && sHref) {
+                mNodes[sId].href = sHref;
             }
             mNodes[sId].amount += fAmount;
         },

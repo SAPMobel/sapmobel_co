@@ -29,7 +29,7 @@ sap.ui.define([
                     orgNodeText: "",
                     saknr: "",
                     waers: "KRW",
-                    budgetVersion: "BUD"
+                    budgetVersion: "001"
                 },
                 filters: {
                     bukrs: "0001",
@@ -39,7 +39,7 @@ sap.ui.define([
                     orgNodeText: "",
                     saknr: "",
                     waers: "KRW",
-                    budgetVersion: "BUD"
+                    budgetVersion: "001"
                 },
                 selectedOrg: {
                     childId: "",

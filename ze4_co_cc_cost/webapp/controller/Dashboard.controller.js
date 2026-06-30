@@ -5,6 +5,14 @@ sap.ui.define([
     "use strict";
 
     var COST_CENTER_TABLE_TITLE = "코스트센터 기준 비용 현황";
+    var DEFAULT_ORG_TREE_VISIBLE_GROUPS = [
+        "렌탈사업부 그룹",
+        "영업본부 그룹",
+        "생산본부 그룹",
+        "물류본부 그룹",
+        "인사본부 그룹",
+        "회계본부 그룹"
+    ];
 
     return BaseController.extend("ZE4_CC_COST.controller.Dashboard", {
         getModelName: function () {
@@ -51,7 +59,6 @@ sap.ui.define([
                         { label: "레벨", property: "exportDepth" },
                         { label: "조직/코스트센터", property: "exportIndentText" },
                         { label: "코드", property: "childId" },
-                        { label: "책임자", property: "manager" },
                         { label: "금액", value: function (oRow) { return this.exportAmount(oRow.amount); }.bind(this) },
                         { label: "예산", value: function (oRow) { return this.exportAmount(oRow.budgetAmount); }.bind(this) }
                     ]),
@@ -91,7 +98,6 @@ sap.ui.define([
                 hasSelectedFunctionalAreaSummary: false,
                 hierarchyTitle: "조직 구조 요약",
                 hierarchyNameLabel: "조직/코스트센터",
-                hierarchyOwnerLabel: "책임자",
                 tableKeyLabel: "코스트센터",
                 tableNameLabel: "코스트센터명",
                 tableOwnerLabel: "책임자",
@@ -316,22 +322,22 @@ sap.ui.define([
             var aCurrentActualRows = this.service.currentActualRows(aOrgActualRows, oFilters.period);
             var aPreviousActualRows = this._previousRowsByOrg(aActualRows, aPreviousYearRows, oFilters, oSelectedOrg);
             var bProductionScope = this.service.isProductionOrgSelection(oSelectedOrg);
-            var aCostOrgActualRows = this.service.filterCostPerspectiveRows(aOrgActualRows, "saknr");
-            var aCostOrgBudgetRows = this.service.filterCostPerspectiveRows(aOrgBudgetRows, "Saknr");
-            var aCostOrgDocumentRows = this.service.filterCostPerspectiveRows(aOrgDocumentRows, "Saknr");
+            var aCostOrgActualRows = this.service.filterCostBalanceRows(aOrgActualRows, "saknr");
+            var aCostOrgBudgetRows = this.service.filterCostBalanceRows(aOrgBudgetRows, "Saknr");
+            var aCostOrgDocumentRows = this.service.filterCostBalanceRows(aOrgDocumentRows, "Saknr");
             var aCostCurrentDocumentRows = this.service.currentDocumentRows(aCostOrgDocumentRows, oFilters.period);
             var aCostCumulativeActualRows = this.service.cumulativeActualRows(aCostOrgActualRows, oFilters.period);
             var aCostCumulativeBudgetRows = this.service.cumulativeBudgetRows(aCostOrgBudgetRows, oFilters.period);
             var aCostCurrentActualRows = this.service.currentActualRows(aCostOrgActualRows, oFilters.period);
-            var aCostPreviousActualRows = this.service.filterCostPerspectiveRows(aPreviousActualRows, "saknr");
-            var aEffectiveOrgActualRows = bProductionScope ? aOrgActualRows : aCostOrgActualRows;
-            var aEffectiveOrgBudgetRows = bProductionScope ? aOrgBudgetRows : aCostOrgBudgetRows;
-            var aEffectiveOrgDocumentRows = bProductionScope ? aOrgDocumentRows : aCostOrgDocumentRows;
-            var aEffectiveCurrentDocumentRows = bProductionScope ? aCurrentDocumentRows : aCostCurrentDocumentRows;
-            var aEffectiveCumulativeActualRows = bProductionScope ? aCumulativeActualRows : aCostCumulativeActualRows;
-            var aEffectiveCumulativeBudgetRows = bProductionScope ? aCumulativeBudgetRows : aCostCumulativeBudgetRows;
-            var aEffectiveCurrentActualRows = bProductionScope ? aCurrentActualRows : aCostCurrentActualRows;
-            var aEffectivePreviousActualRows = bProductionScope ? aPreviousActualRows : aCostPreviousActualRows;
+            var aCostPreviousActualRows = this.service.filterCostBalanceRows(aPreviousActualRows, "saknr");
+            var aEffectiveOrgActualRows = aCostOrgActualRows;
+            var aEffectiveOrgBudgetRows = aCostOrgBudgetRows;
+            var aEffectiveOrgDocumentRows = aCostOrgDocumentRows;
+            var aEffectiveCurrentDocumentRows = aCostCurrentDocumentRows;
+            var aEffectiveCumulativeActualRows = aCostCumulativeActualRows;
+            var aEffectiveCumulativeBudgetRows = aCostCumulativeBudgetRows;
+            var aEffectiveCurrentActualRows = aCostCurrentActualRows;
+            var aEffectivePreviousActualRows = aCostPreviousActualRows;
             var fTotalActual = this.service.sum(aEffectiveCumulativeActualRows, "amount");
             var fTotalBudget = this.service.sum(aEffectiveCumulativeBudgetRows, "BudgetAmt");
             var fCurrentActual = this.service.sum(aEffectiveCurrentActualRows, "amount");
@@ -447,13 +453,74 @@ sap.ui.define([
                 legendPosition: "right"
             });
 
-            setTimeout(function () {
-                var oOrgTree = this.byId("orgRollupTree");
+            this._scheduleDefaultOrgTreeExpansion();
+        },
 
-                if (oOrgTree && oOrgTree.expandToLevel) {
-                    oOrgTree.expandToLevel(3);
-                }
+        _scheduleDefaultOrgTreeExpansion: function () {
+            setTimeout(function () {
+                this._applyDefaultOrgTreeExpansion();
             }.bind(this), 0);
+        },
+
+        _applyDefaultOrgTreeExpansion: function () {
+            var oOrgTree = this.byId("orgRollupTree");
+            var oModel = this.getView().getModel("dashboard");
+            var aRows = oModel.getProperty("/orgTreeRows") || [];
+            var mTargetNames = DEFAULT_ORG_TREE_VISIBLE_GROUPS.reduce(function (mNames, sName) {
+                mNames[sName] = true;
+                return mNames;
+            }, {});
+            var mExpandNodeIds = {};
+            var oBinding;
+            var mExpandedNodeIds = {};
+            var iPass;
+
+            function collectTargetAncestors(oNode) {
+                var bIsTarget = !!mTargetNames[oNode.nodeText];
+                var bHasTargetChild = (oNode.children || []).some(collectTargetAncestors);
+
+                if (!bIsTarget && bHasTargetChild && oNode.childId) {
+                    mExpandNodeIds[oNode.childId] = true;
+                }
+
+                return bIsTarget || bHasTargetChild;
+            }
+
+            aRows.forEach(collectTargetAncestors);
+
+            if (!oOrgTree || !oOrgTree.getBinding || !oOrgTree.collapseAll || !oOrgTree.expand || !Object.keys(mExpandNodeIds).length) {
+                return;
+            }
+
+            oBinding = oOrgTree.getBinding("rows");
+
+            if (!oBinding || !oBinding.getLength || !oOrgTree.getContextByIndex) {
+                return;
+            }
+
+            oOrgTree.collapseAll();
+
+            for (iPass = 0; iPass < 8; iPass += 1) {
+                var bExpanded = false;
+                var iLength = oBinding.getLength();
+                var iIndex;
+
+                for (iIndex = 0; iIndex < iLength; iIndex += 1) {
+                    var oContext = oOrgTree.getContextByIndex(iIndex);
+                    var oRow = oContext && oContext.getObject();
+                    var bAlreadyExpanded = oOrgTree.isExpanded && oOrgTree.isExpanded(iIndex);
+
+                    if (oRow && mExpandNodeIds[oRow.childId] && !mExpandedNodeIds[oRow.childId] && !bAlreadyExpanded) {
+                        oOrgTree.expand(iIndex);
+                        mExpandedNodeIds[oRow.childId] = true;
+                        bExpanded = true;
+                    }
+                }
+
+                if (!bExpanded) {
+                    break;
+                }
+            }
         },
 
         onTrendChartSelectData: function (oEvent) {

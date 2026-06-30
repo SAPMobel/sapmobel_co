@@ -321,7 +321,7 @@ sap.ui.define([
         _groupSummaryVisibleRowCount: function (aRows) {
             var iCount = (aRows || []).length;
 
-            return Math.max(7, Math.min(14, iCount || 7));
+            return Math.max(7, Math.min(15, iCount || 7));
         },
 
         _buildKpis: function (aRows, oSummary) {

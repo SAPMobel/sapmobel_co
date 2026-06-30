@@ -169,7 +169,7 @@
                                     rowSelectionChange=".onOrgTreeRowSelection"
                                     visibleRowCount="9"
                                     width="100%"
-                                    expandFirstLevel="true"
+                                    expandFirstLevel="false"
                                     enableColumnReordering="false"
                                     noData="계층별 집계 데이터가 없습니다.">
                                     <t:columns>
@@ -182,9 +182,8 @@
                                                 </HBox>
                                             </t:template>
                                         </t:Column>
-                                        <t:Column width="9rem"><Label text="코드" /><t:template><Text text="{dashboard>childId}" wrapping="false" tooltip="{dashboard>childId}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="12rem"><Label text="{dashboard>/hierarchyOwnerLabel}" /><t:template><Text text="{path: 'dashboard>manager', formatter: '.formatter.empty'}" wrapping="false" tooltip="{dashboard>manager}" class="ze4NoWrapText" /></t:template></t:Column>
-                                        <t:Column width="14rem" hAlign="End"><Label text="장부 순잔액" /><t:template><Text text="{path: 'dashboard>amount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
+                                        <t:Column width="8.5rem"><Label text="코드" /><t:template><Text text="{dashboard>childId}" wrapping="false" tooltip="{dashboard>childId}" class="ze4NoWrapText" /></t:template></t:Column>
+                                        <t:Column width="11.5rem" hAlign="End"><Label text="장부 순잔액" /><t:template><Text text="{path: 'dashboard>amount', formatter: '.formatter.amount'}" textAlign="End" wrapping="false" class="ze4AmountText" /></t:template></t:Column>
                                     </t:columns>
                                 </t:TreeTable>
                             </VBox>
