@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZCDS_E4_CO_0056_CDS" xml:lang="ko" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="zcds_e4_co_0056Type" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="p_bukrs"/>
+                    <PropertyRef Name="p_gjahr"/>
+                    <PropertyRef Name="p_monat_from"/>
+                    <PropertyRef Name="p_monat_to"/>
+                    <PropertyRef Name="bukrs"/>
+                    <PropertyRef Name="gjahr"/>
+                    <PropertyRef Name="waers"/>
+                </Key>
+                <Property Name="p_bukrs" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase"/>
+                <Property Name="p_gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative"/>
+                <Property Name="p_monat_from" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative"/>
+                <Property Name="p_monat_to" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative"/>
+                <Property Name="bukrs" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:label="회사코드"/>
+                <Property Name="gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="회계연도"/>
+                <Property Name="rental_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈수익"/>
+                <Property Name="rental_depr_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="감가상각비"/>
+                <Property Name="rental_service_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 서비스비"/>
+                <Property Name="rental_contract_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 계약/영업비"/>
+                <Property Name="rental_common_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 공통비"/>
+                <Property Name="rental_repair_cost_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 수선비"/>
+                <Property Name="rental_org_sga_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 조직 판관비"/>
+                <Property Name="rental_recovery_logi_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="회수물류 귀속 비용"/>
+                <Property Name="common_admin_pool_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="공통관리비"/>
+                <Property Name="common_admin_sales_alloc_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="공통관리비 판매 배부액"/>
+                <Property Name="common_admin_rental_alloc_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="공통관리비 렌탈 배부액"/>
+                <Property Name="rental_total_cost_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 총비용"/>
+                <Property Name="rental_operating_profit_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="렌탈 영업이익"/>
+                <Property Name="rental_operating_profit_rate" Type="Edm.Decimal" Precision="9" Scale="6" sap:label="렌탈 영업이익률"/>
+                <Property Name="sales_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="판매매출"/>
+                <Property Name="total_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers" sap:label="전체 수익"/>
+                <Property Name="sales_common_alloc_rate" Type="Edm.Decimal" Precision="9" Scale="6" sap:label="판매 공통관리비 배부율"/>
+                <Property Name="waers" Type="Edm.String" Nullable="false" MaxLength="5" sap:display-format="UpperCase" sap:label="통화" sap:semantics="currency-code"/>
+                <NavigationProperty Name="Parameters" Relationship="ZCDS_E4_CO_0056_CDS.assoc_0056" FromRole="ToRole_assoc_0056" ToRole="FromRole_assoc_0056" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="zcds_e4_co_0056Parameters" sap:semantics="parameters" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="p_bukrs"/>
+                    <PropertyRef Name="p_gjahr"/>
+                    <PropertyRef Name="p_monat_from"/>
+                    <PropertyRef Name="p_monat_to"/>
+                </Key>
+                <Property Name="p_bukrs" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:parameter="mandatory" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="p_gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:parameter="mandatory" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="p_monat_from" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:parameter="mandatory" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="p_monat_to" Type="Edm.String" Nullable="false" MaxLength="2" sap:display-format="NonNegative" sap:parameter="mandatory" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Set" Relationship="ZCDS_E4_CO_0056_CDS.assoc_0056" FromRole="FromRole_assoc_0056" ToRole="ToRole_assoc_0056"/>
+            </EntityType>
+            <Association Name="assoc_0056" sap:content-version="1">
+                <End Type="ZCDS_E4_CO_0056_CDS.zcds_e4_co_0056Parameters" Multiplicity="1" Role="FromRole_assoc_0056"/>
+                <End Type="ZCDS_E4_CO_0056_CDS.zcds_e4_co_0056Type" Multiplicity="*" Role="ToRole_assoc_0056"/>
+            </Association>
+            <EntityContainer Name="ZCDS_E4_CO_0056_CDS_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="zcds_e4_co_0056Set" EntityType="ZCDS_E4_CO_0056_CDS.zcds_e4_co_0056Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="zcds_e4_co_0056" EntityType="ZCDS_E4_CO_0056_CDS.zcds_e4_co_0056Parameters" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <AssociationSet Name="assoc_0056" Association="ZCDS_E4_CO_0056_CDS.assoc_0056" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="zcds_e4_co_0056" Role="FromRole_assoc_0056"/>
+                    <End EntitySet="zcds_e4_co_0056Set" Role="ToRole_assoc_0056"/>
+                </AssociationSet>
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

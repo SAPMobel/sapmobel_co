@@ -33,15 +33,3 @@ server:
           - path: /sap
             url: http://bgissap3.bgissap.co.kr:8000
             client: '100'
-    - name: sap-fe-mockserver
-      beforeMiddleware: csp
-      configuration:
-        mountPath: /
-        services:
-          - urlPath: /sap/opu/odata/sap/ZCDS_E4_CO_0041_CDS
-            metadataPath: ./webapp/localService/mainService/metadata.xml
-            mockdataPath: ./webapp/localService/mainService/data
-            generateMockData: true
-        annotations:
-          - localPath: ./webapp/localService/mainService/ZCDS_E4_CO_0041_CDS_VAN.xml
-            urlPath: /sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E4_CO_0041_CDS_VAN',Version='0001')/$value/

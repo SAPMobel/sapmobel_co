@@ -47,6 +47,14 @@
         "settings": {
           "odataVersion": "2.0"
         }
+      },
+      "rentalService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E4_CO_0056_CDS/",
+        "type": "OData",
+        "settings": {
+          "localUri": "localService/rentalService/metadata.xml",
+          "odataVersion": "2.0"
+        }
       }
     }
   },
@@ -108,6 +116,11 @@
       },
       "journal": {
         "dataSource": "journalService",
+        "preload": false,
+        "settings": {}
+      },
+      "rental": {
+        "dataSource": "rentalService",
         "preload": false,
         "settings": {}
       }

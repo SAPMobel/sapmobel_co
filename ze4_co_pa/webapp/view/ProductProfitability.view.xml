@@ -13,13 +13,15 @@
             <f:DynamicPageTitle>
                 <f:heading>
                     <VBox>
-                        <Title text="[EverNiture-CO] 제품 / 옵션 수익성 분석" level="H1" class="coPageTitle"/>
-                        <Text text="제품/옵션 기준 손익 및 판관비 매출비례 배부 분석" class="coPageSubtitle"/>
+                        <Title text="[EverNiture-CO] 제품 / 옵션 판매 수익성 분석" level="H1" class="coPageTitle"/>
+                        <Text text="제품/옵션 판매 기준 수익성" class="coPageSubtitle"/>
                     </VBox>
                 </f:heading>
                 <f:actions>
                     <Button text="종합 현황" icon="sap-icon://home" type="Transparent" press=".onGoCockpit"/>
                     <Button text="실적/계획 비교" icon="sap-icon://compare" type="Transparent" press=".onGoActualPlan"/>
+                    <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel"/>
+                    <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf"/>
                 </f:actions>
             </f:DynamicPageTitle>
         </f:title>
@@ -75,12 +77,17 @@
                     showIcon="true"
                     visible="{= !!${app>/productMessage} }"
                     class="coMessageStrip"/>
+                <MessageStrip
+                    text="이 화면은 제품/옵션별 판매 수익성 기준입니다. 렌탈수익 및 렌탈 직접비는 제외되며, 공통관리비는 판매매출과 렌탈수익의 비중에 따라 판매분만 반영됩니다."
+                    type="Information"
+                    showIcon="true"
+                    class="coMessageStrip"/>
                 <HBox class="coKpiGrid" wrap="Wrap">
                     <VBox class="coKpiCard">
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://bar-chart" class="coKpiIcon coKpiIconBlue"/>
                             <VBox>
-                                <Text text="총 매출" class="coKpiLabel"/>
+                                <Text text="판매매출" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/sales', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Information"/>
                             </VBox>
                         </HBox>
@@ -89,7 +96,7 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://cart" class="coKpiIcon coKpiIconPurple"/>
                             <VBox>
-                                <Text text="총 매출원가" class="coKpiLabel"/>
+                                <Text text="판매매출원가" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/cogs', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning"/>
                             </VBox>
                         </HBox>
@@ -98,7 +105,7 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://lead" class="coKpiIcon coKpiIconGreen"/>
                             <VBox>
-                                <Text text="총 매출총이익" class="coKpiLabel"/>
+                                <Text text="판매총이익" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/grossProfit', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="{path:'app>/kpi/grossProfit', formatter:'.formatter.stateByAmount'}"/>
                             </VBox>
                         </HBox>
@@ -107,18 +114,8 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://org-chart" class="coKpiIcon coKpiIconOrange"/>
                             <VBox>
-                                <Text text="판관비 Pool" class="coKpiLabel"/>
+                                <Text text="판매기준 판관비 합계" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/sgaPool', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard coKpiCardWithNote">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://business-objects-experience" class="coKpiIcon coKpiIconOrange"/>
-                            <VBox>
-                                <Text text="매출비례 배부 판관비" tooltip="{app>/kpi/allocationNote}" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/kpi/allocatedSga', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="Warning" tooltip="{app>/kpi/allocationNote}"/>
-                                <Text text="제품/옵션 매출 비중만큼 배부" wrapping="true" class="coKpiHint"/>
                             </VBox>
                         </HBox>
                     </VBox>
@@ -126,7 +123,7 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://trend-up" class="coKpiIcon coKpiIconTeal"/>
                             <VBox>
-                                <Text text="총 영업이익" class="coKpiLabel"/>
+                                <Text text="판매기준 영업이익" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/operatingProfit', formatter:'.formatter.amount'}" unit="{app>/kpi/currency}" emphasized="true" state="{path:'app>/kpi/operatingProfit', formatter:'.formatter.stateByAmount'}"/>
                             </VBox>
                         </HBox>
@@ -135,7 +132,7 @@
                         <HBox alignItems="Center">
                             <core:Icon src="sap-icon://pie-chart" class="coKpiIcon coKpiIconBlue"/>
                             <VBox>
-                                <Text text="영업이익률" class="coKpiLabel"/>
+                                <Text text="판매기준 영업이익률" class="coKpiLabel"/>
                                 <ObjectNumber number="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.percent'}" emphasized="true" state="{path:'app>/kpi/operatingProfitRate', formatter:'.formatter.stateByRate'}"/>
                             </VBox>
                         </HBox>
@@ -143,12 +140,12 @@
                 </HBox>
 
                 <HBox class="coMainGrid" wrap="Wrap">
-                    <VBox class="coPanel coPanelHalf">
-                        <Title text="1. 제품/옵션별 영업이익" level="H3" class="coPanelTitle"/>
+                    <VBox class="coPanel coPanelHalf coReferenceChartPanel">
+                        <Title text="제품/옵션별 판매기준 영업이익 TOP 10" level="H3" class="coPanelTitle"/>
                         <viz:VizFrame
                             id="productProfitChart"
                             width="100%"
-                            height="21rem"
+                            height="27rem"
                             vizType="bar"
                             uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
@@ -157,24 +154,26 @@
                                         <vizData:DimensionDefinition name="제품/옵션" value="{app>productKey}"/>
                                     </vizData:dimensions>
                                     <vizData:measures>
-                                        <vizData:MeasureDefinition name="영업이익" value="{app>operatingProfit}"/>
+                                        <vizData:MeasureDefinition name="판매기준 영업이익" value="{app>operatingProfit}"/>
                                     </vizData:measures>
                                 </vizData:FlattenedDataset>
                             </viz:dataset>
                             <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="영업이익"/>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="판매기준 영업이익"/>
                                 <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="제품/옵션"/>
                             </viz:feeds>
                         </viz:VizFrame>
                     </VBox>
 
                     <VBox class="coPanel coPanelHalf">
-                        <Title text="2. 제품그룹별 이익률 비교" level="H3" class="coPanelTitle"/>
+                        <Title text="제품그룹별 판매총이익률 / 판매기준 영업이익률" level="H3" class="coPanelTitle"/>
                         <viz:VizFrame
                             id="productMarginChart"
                             width="100%"
-                            height="21rem"
+                            height="27rem"
                             vizType="column"
+                            selectData=".onProductMarginChartSelect"
+                            deselectData=".onProductMarginChartDeselect"
                             uiConfig="{applicationSet:'fiori'}">
                             <viz:dataset>
                                 <vizData:FlattenedDataset data="{app>/marginChart}">
@@ -182,13 +181,13 @@
                                         <vizData:DimensionDefinition name="제품그룹" value="{app>productKey}"/>
                                     </vizData:dimensions>
                                     <vizData:measures>
-                                        <vizData:MeasureDefinition name="매출총이익률" value="{app>grossProfitRate}"/>
-                                        <vizData:MeasureDefinition name="영업이익률" value="{app>operatingProfitRate}"/>
+                                        <vizData:MeasureDefinition name="판매총이익률" value="{app>grossProfitRate}"/>
+                                        <vizData:MeasureDefinition name="판매기준 영업이익률" value="{app>operatingProfitRate}"/>
                                     </vizData:measures>
                                 </vizData:FlattenedDataset>
                             </viz:dataset>
                             <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출총이익률,영업이익률"/>
+                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="판매총이익률,판매기준 영업이익률"/>
                                 <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="제품그룹"/>
                             </viz:feeds>
                         </viz:VizFrame>
@@ -197,11 +196,11 @@
 
                 <VBox class="coPanel">
                     <Toolbar class="coPanelToolbar">
-                        <Title text="3. 제품/옵션 수익성 상세" level="H3"/>
+                        <Title text="제품/옵션 판매 수익성 상세" level="H3"/>
                         <ToolbarSpacer/>
                         <Button icon="sap-icon://home" text="종합 현황" type="Transparent" press=".onGoCockpit"/>
                     </Toolbar>
-                    <ScrollContainer horizontal="true" vertical="true" width="100%" height="34rem" class="coProductDetailScroller">
+                    <ScrollContainer horizontal="false" vertical="true" width="100%" height="34rem" class="coProductDetailScroller">
                         <Table
                             width="100%"
                             fixedLayout="true"
@@ -210,22 +209,19 @@
                             sticky="ColumnHeaders"
                             class="coTable coProductDetailTable">
                             <columns>
-                                <Column width="14.5%"><Text text="제품"/></Column>
-                                <Column width="3.5%"><Text text="옵션"/></Column>
-                                <Column width="3.5%"><Text text="제품유형"/></Column>
-                                <Column width="3.5%"><Text text="제품그룹"/></Column>
-                                <Column width="8%" hAlign="End"><Text text="매출"/></Column>
-                                <Column width="6.5%" hAlign="End"><Text text="원가"/></Column>
-                                <Column width="8%" hAlign="End"><Text text="매출총이익"/></Column>
-                                <Column width="4.5%" hAlign="End"><Text text="총이익률"/></Column>
-                                <Column width="5.5%" hAlign="End"><Text text="제조/차이"/></Column>
-                                <Column width="7%" hAlign="End"><Text text="판관비 Pool"/></Column>
-                                <Column width="8%" hAlign="End"><Text text="전체 배부 기준 매출" tooltip="제품/옵션별 양수 매출 합계입니다."/></Column>
-                                <Column width="5%" hAlign="End"><Text text="매출 비중" tooltip="제품/옵션 매출액을 전체 배부 기준 매출로 나눈 비율입니다."/></Column>
-                                <Column width="8%" hAlign="End"><Text text="매출비례 배부 판관비" tooltip="판관비에 매출 비중을 곱한 금액입니다."/></Column>
-                                <Column width="8.5%" hAlign="End"><Text text="영업이익"/></Column>
-                                <Column width="3.5%" hAlign="End"><Text text="영업이익률"/></Column>
-                                <Column width="2.5%" hAlign="Center"><Text text="전표"/></Column>
+                                <Column width="17rem"><Text text="제품"/></Column>
+                                <Column width="7.5rem"><Text text="옵션"/></Column>
+                                <Column width="4.6rem"><Text text="제품유형"/></Column>
+                                <Column width="5rem"><Text text="제품그룹"/></Column>
+                                <Column width="5.8rem" hAlign="End"><Text text="판매매출" class="coColumnRed"/></Column>
+                                <Column width="6.2rem" hAlign="End"><Text text="판매매출원가" class="coColumnPurple"/></Column>
+                                <Column width="5.8rem" hAlign="End"><Text text="판매총이익" class="coColumnRed"/></Column>
+                                <Column width="5rem" hAlign="End"><Text text="판매총이익률" class="coColumnOrange"/></Column>
+                                <Column width="6.5rem" hAlign="End"><Text text="제품별 배부 판관비" class="coColumnPurple"/></Column>
+                                <Column width="6.5rem" hAlign="End"><Text text="판매기준 영업이익" class="coColumnRed"/></Column>
+                                <Column width="8rem" hAlign="End"><Text text="판매기준 영업이익률" class="coColumnOrange"/></Column>
+                                <Column width="3.2rem" hAlign="Center"><Text text="상태"/></Column>
+                                <Column width="6.2rem" hAlign="Center"><Text text="전표"/></Column>
                             </columns>
                             <items>
                                 <ColumnListItem>
@@ -234,18 +230,31 @@
                                         <Text text="{app>optionDisplay}" wrapping="false"/>
                                         <Text text="{app>materialTypeDisplay}"/>
                                         <Text text="{app>materialGroupDisplay}"/>
-                                        <ObjectNumber number="{path:'app>sales', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>cogs', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>grossProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
-                                        <ObjectStatus text="{path:'app>grossProfitRate', formatter:'.formatter.percent'}" state="{path:'app>grossProfitRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
-                                        <ObjectNumber number="{path:'app>variance', formatter:'.formatter.amount'}" unit="{app>waers}" state="{path:'app>variance', formatter:'.formatter.stateByAmount'}"/>
-                                        <ObjectNumber number="{path:'app>sgaPool', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>totalSalesBase', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectStatus text="{path:'app>sgaAllocationRate', formatter:'.formatter.percent'}" state="Information" inverted="true" class="coRateChip"/>
-                                        <ObjectNumber number="{path:'app>allocatedSga', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>operatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}"/>
-                                        <ObjectStatus text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}" state="{path:'app>operatingProfitRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
-                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="전표 상세" press=".onOpenProductDrilldown"/>
+                                        <ObjectNumber number="{path:'app>sales', formatter:'.formatter.amount'}" unit="{app>waers}" class="coAmountRed"/>
+                                        <ObjectNumber number="{path:'app>cogs', formatter:'.formatter.amount'}" unit="{app>waers}" class="coAmountPurple"/>
+                                        <ObjectNumber number="{path:'app>grossProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}" class="coAmountRed"/>
+                                        <ObjectStatus text="{path:'app>grossProfitRate', formatter:'.formatter.percent'}" state="{path:'app>grossProfitRate', formatter:'.formatter.stateByRate'}" class="coRateChip coAmountOrange"/>
+                                        <ObjectNumber number="{path:'app>allocatedSga', formatter:'.formatter.amount'}" unit="{app>waers}" class="coAmountPurple"/>
+                                        <ObjectNumber number="{path:'app>operatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>profitState}" class="coAmountRed"/>
+                                        <ObjectStatus text="{path:'app>operatingProfitRate', formatter:'.formatter.percent'}" state="{path:'app>operatingProfitRate', formatter:'.formatter.stateByRate'}" class="coRateChip coAmountOrange"/>
+                                        <ObjectStatus text="{= ${app>operatingProfit} >= 0 ? '흑자' : '적자' }" state="{app>profitState}" class="coStatusCell"/>
+                                        <HBox justifyContent="Center" alignItems="Center" renderType="Bare" class="coJournalActionGroup">
+                                            <Button icon="sap-icon://sales-order" type="Transparent" tooltip="판매매출 전표 상세" press=".onOpenProductDrilldown">
+                                                <customData>
+                                                    <core:CustomData key="detailType" value="SALES"/>
+                                                </customData>
+                                            </Button>
+                                            <Button icon="sap-icon://cart" type="Transparent" tooltip="판매매출원가 전표 상세" press=".onOpenProductDrilldown">
+                                                <customData>
+                                                    <core:CustomData key="detailType" value="COGS"/>
+                                                </customData>
+                                            </Button>
+                                            <Button icon="sap-icon://detail-view" type="Transparent" tooltip="제품/옵션 전체 전표 상세" press=".onOpenProductDrilldown">
+                                                <customData>
+                                                    <core:CustomData key="detailType" value="ALL"/>
+                                                </customData>
+                                            </Button>
+                                        </HBox>
                                     </cells>
                                 </ColumnListItem>
                             </items>
@@ -258,6 +267,11 @@
 
     <Dialog id="drilldownDialog" title="전표 상세 - {app>/selectedProductTitle}" contentWidth="88rem" contentHeight="38rem" resizable="true" draggable="true">
         <VBox class="coDialogContent" busy="{app>/drilldownBusy}">
+            <MessageStrip
+                text="판매 수익성 기준 합계에는 렌탈수익 및 렌탈 직접비가 제외됩니다."
+                type="Information"
+                showIcon="true"
+                class="coMessageStrip"/>
             <MessageStrip
                 text="{app>/drilldownMessage}"
                 type="Information"

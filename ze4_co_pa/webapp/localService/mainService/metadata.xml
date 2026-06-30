@@ -65,7 +65,14 @@
                 <Property Name="gross_profit_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="gross_profit_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>
                 <Property Name="variance_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="sales_direct_sga_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="common_admin_pool_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="common_admin_sales_alloc_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="sales_common_alloc_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>
                 <Property Name="sga_pool_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="sales_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="rental_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
+                <Property Name="total_revenue_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="total_sales_base_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>
                 <Property Name="sga_allocation_rate" Type="Edm.Decimal" Precision="9" Scale="6"/>
                 <Property Name="allocated_sga_amt" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers"/>

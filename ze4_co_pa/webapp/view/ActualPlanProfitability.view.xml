@@ -14,30 +14,33 @@
                 <f:heading>
                     <VBox>
                         <Title text="[EverNiture-CO] 실적 / 계획 수익성 비교" level="H1" class="coPageTitle"/>
-                        <Text text="CO/FI 전표 및 예산 기준 Actual vs Plan 분석" class="coPageSubtitle"/>
+                        <Text text="CO/FI 실적 기준 수익성 흐름과 계획 비교 상태를 함께 확인합니다." class="coPageSubtitle"/>
+                        <Text text="{app>/actualPlanFilterSummary}" class="coFilterSummary"/>
                     </VBox>
                 </f:heading>
                 <f:actions>
                     <Button text="종합 현황" icon="sap-icon://home" type="Transparent" press=".onGoCockpit"/>
                     <Button text="제품/옵션 분석" icon="sap-icon://product" type="Transparent" press=".onGoProduct"/>
+                    <Button text="Excel 다운로드" icon="sap-icon://excel-attachment" type="Transparent" press=".onExportExcel"/>
+                    <Button text="PDF 다운로드" icon="sap-icon://print" type="Transparent" press=".onExportPdf"/>
                 </f:actions>
             </f:DynamicPageTitle>
         </f:title>
         <f:header>
             <f:DynamicPageHeader pinnable="true">
-                <VBox class="coHeaderContent">
-                    <HBox class="coFilterBar" wrap="Wrap" alignItems="End">
-                        <VBox class="coFilterItem">
+                <VBox class="coHeaderContent coActualPlanHeaderContent">
+                    <HBox class="coActualPlanFilterRow" wrap="Wrap" alignItems="End">
+                        <VBox class="coFilterItem coFilterItemSmall">
                             <Label text="회사코드" required="true"/>
                             <Input value="{app>/filters/companyCode}" editable="false"/>
                         </VBox>
-                        <VBox class="coFilterItem">
+                        <VBox class="coFilterItem coFilterItemSmall">
                             <Label text="회계연도" required="true"/>
                             <Select selectedKey="{app>/filters/fiscalYear}" width="100%" items="{app>/yearOptions}">
                                 <core:Item key="{app>key}" text="{app>text}"/>
                             </Select>
                         </VBox>
-                        <VBox class="coFilterItem">
+                        <VBox class="coFilterItem coFilterItemSmall">
                             <Label text="회계기간" required="true"/>
                             <Select selectedKey="{app>/filters/month}" width="100%" items="{app>/monthOptions}">
                                 <core:Item key="{app>key}" text="{app>text}"/>
@@ -47,6 +50,12 @@
                             <Label text="계획 버전" required="true"/>
                             <Input value="{app>/filters/planVersion}" maxLength="3" editable="false"/>
                         </VBox>
+                        <HBox class="coFilterActions" alignItems="End">
+                            <Button text="조회" type="Emphasized" press=".onSearch"/>
+                            <Button text="필터 초기화" type="Transparent" press=".onResetFilters"/>
+                        </HBox>
+                    </HBox>
+                    <HBox class="coActualPlanFilterRow coActualPlanDetailFilterRow" wrap="Wrap" alignItems="End">
                         <VBox class="coFilterItem">
                             <Label text="사업부문"/>
                             <ComboBox selectedKey="{app>/filters/segment}" width="100%" items="{app>/actualPlanValueHelp/segments}">
@@ -60,15 +69,11 @@
                             </ComboBox>
                         </VBox>
                         <VBox class="coFilterItem">
-                            <Label text="기능영역(FKBER)"/>
+                            <Label text="기능영역"/>
                             <ComboBox selectedKey="{app>/filters/fkber}" width="100%" items="{app>/actualPlanValueHelp/functionalAreas}">
                                 <core:Item key="{app>key}" text="{app>text}"/>
                             </ComboBox>
                         </VBox>
-                        <HBox class="coFilterActions" alignItems="End">
-                            <Button text="조회" type="Emphasized" press=".onSearch"/>
-                            <Button text="필터 초기화" type="Transparent" press=".onResetFilters"/>
-                        </HBox>
                     </HBox>
                 </VBox>
             </f:DynamicPageHeader>
@@ -76,233 +81,447 @@
         <f:content>
             <VBox class="coContent coActualPlanContent" fitContainer="true" busy="{app>/actualPlanBusy}">
                 <MessageStrip
-                    text="{app>/actualPlanMessage}"
+                    text="{= ${app>/actualPlanMessage} || ${app>/actualPlanPlanMessage} }"
                     type="Information"
                     showIcon="true"
-                    visible="{= !!${app>/actualPlanMessage} }"
+                    visible="{= !!${app>/actualPlanMessage} || !!${app>/actualPlanPlanMessage} }"
                     class="coMessageStrip"/>
 
-                <HBox class="coKpiGrid" wrap="Wrap">
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://bar-chart" class="coKpiIcon coKpiIconBlue"/>
-                            <VBox>
-                                <Text text="매출 실적" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesActual', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="Information"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://target-group" class="coKpiIcon coKpiIconPurple"/>
-                            <VBox>
-                                <Text text="매출 계획" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesPlan', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="Information"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://compare" class="coKpiIcon coKpiIconOrange"/>
-                            <VBox>
-                                <Text text="매출 차이" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/salesDiff', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/salesDiff', formatter:'.formatter.stateByAmount'}"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://trend-up" class="coKpiIcon coKpiIconTeal"/>
-                            <VBox>
-                                <Text text="영업이익 실적" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitActual', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitActual', formatter:'.formatter.stateByAmount'}"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://target-group" class="coKpiIcon coKpiIconGreen"/>
-                            <VBox>
-                                <Text text="영업이익 계획" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitPlan', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitPlan', formatter:'.formatter.stateByAmount'}"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://compare" class="coKpiIcon coKpiIconOrange"/>
-                            <VBox>
-                                <Text text="영업이익 차이" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitDiff', formatter:'.formatter.amount'}" unit="{app>/actualPlanKpi/currency}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitDiff', formatter:'.formatter.stateByAmount'}"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    <VBox class="coKpiCard">
-                        <HBox alignItems="Center">
-                            <core:Icon src="sap-icon://pie-chart" class="coKpiIcon coKpiIconBlue"/>
-                            <VBox>
-                                <Text text="영업이익률 차이" class="coKpiLabel"/>
-                                <ObjectNumber number="{path:'app>/actualPlanKpi/operatingProfitRateDiff', formatter:'.formatter.percent'}" emphasized="true" state="{path:'app>/actualPlanKpi/operatingProfitRateDiff', formatter:'.formatter.stateByRate'}"/>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                </HBox>
+                <IllustratedMessage
+                    illustrationType="sapIllus-NoData"
+                    title="조회 결과가 없습니다."
+                    description="필터 조건을 조정한 뒤 다시 조회하세요."
+                    visible="{= !${app>/hasActualPlanData} &amp;&amp; !${app>/actualPlanBusy} }"
+                    class="coActualPlanEmptyState"/>
 
-                <HBox class="coMainGrid coActualPlanCharts" wrap="Wrap">
-                    <VBox class="coPanel coPanelHalf">
-                        <Title text="1. 월별 Actual vs Plan" level="H3" class="coPanelTitle"/>
-                        <viz:VizFrame
-                            id="actualPlanMonthlyChart"
-                            class="coActualPlanChart"
-                            width="100%"
-                            height="21rem"
-                            vizType="column"
-                            uiConfig="{applicationSet:'fiori'}">
-                            <viz:dataset>
-                                <vizData:FlattenedDataset data="{app>/actualPlanMonthlyChart}">
-                                    <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="월" value="{app>monthText}"/>
-                                    </vizData:dimensions>
-                                    <vizData:measures>
-                                        <vizData:MeasureDefinition name="실적" value="{app>actual}"/>
-                                        <vizData:MeasureDefinition name="계획" value="{app>plan}"/>
-                                    </vizData:measures>
-                                </vizData:FlattenedDataset>
-                            </viz:dataset>
-                            <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="실적,계획"/>
-                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월"/>
-                            </viz:feeds>
-                        </viz:VizFrame>
-                    </VBox>
+                <IconTabBar class="coActualPlanTabs" expandable="false" selectedKey="summary" visible="{app>/hasActualPlanData}">
+                    <items>
+                        <IconTabFilter key="summary" text="요약" icon="sap-icon://business-objects-experience">
+                            <VBox class="coActualPlanTabContent">
+                                <HBox class="coActualPlanModeBar" alignItems="Center" wrap="Wrap">
+                                    <ObjectStatus text="{app>/actualPlanKpi/planStatusText}" state="{app>/actualPlanKpi/planStatusState}" inverted="true"/>
+                                    <Text text="{app>/actualPlanKpi/planStatusDetail}" class="coMutedText"/>
+                                </HBox>
 
-                    <VBox class="coPanel coPanelHalf">
-                        <Title text="2. 프로핏센터별 영업이익 Top/Bottom" level="H3" class="coPanelTitle"/>
-                        <viz:VizFrame
-                            id="actualPlanProfitCenterChart"
-                            class="coActualPlanChart"
-                            width="100%"
-                            height="21rem"
-                            vizType="column"
-                            uiConfig="{applicationSet:'fiori'}">
-                            <viz:dataset>
-                                <vizData:FlattenedDataset data="{app>/actualPlanProfitCenterChart}">
-                                    <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="손익센터" value="{app>profitCenter}"/>
-                                    </vizData:dimensions>
-                                    <vizData:measures>
-                                        <vizData:MeasureDefinition name="영업이익 실적" value="{app>actualOperatingProfit}"/>
-                                    </vizData:measures>
-                                </vizData:FlattenedDataset>
-                            </viz:dataset>
-                            <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="영업이익 실적"/>
-                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="손익센터"/>
-                            </viz:feeds>
-                        </viz:VizFrame>
-                    </VBox>
+                                <HBox class="coActualPlanKpiGrid" wrap="Wrap">
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="매출 실적" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/salesActualText}" emphasized="true" state="{app>/actualPlanKpi/salesActualState}"/>
+                                        <HBox class="coKpiInlineValues" wrap="Wrap" visible="{app>/hasPlanData}">
+                                            <ObjectStatus title="계획" text="{app>/actualPlanKpi/salesPlanText}" state="None"/>
+                                            <ObjectStatus title="차이" text="{app>/actualPlanKpi/salesDiffText}" state="{app>/actualPlanKpi/salesDiffState}"/>
+                                            <ObjectStatus title="달성률" text="{app>/actualPlanKpi/salesAchievementText}" state="{app>/actualPlanKpi/salesAchievementState}"/>
+                                        </HBox>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="매출원가" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/actualCogsText}" emphasized="true" state="{app>/actualPlanKpi/actualCogsState}"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="매출총이익" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/actualGrossProfitText}" emphasized="true" state="{app>/actualPlanKpi/actualGrossProfitState}"/>
+                                        <Text text="{app>/actualPlanKpi/actualGrossProfitRateText}" class="coKpiHint"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="판관비" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/actualSgaText}" emphasized="true" state="{app>/actualPlanKpi/actualSgaState}"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="영업이익" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/operatingProfitActualText}" emphasized="true" state="{app>/actualPlanKpi/operatingProfitActualState}"/>
+                                        <HBox class="coKpiInlineValues" wrap="Wrap" visible="{app>/hasPlanData}">
+                                            <ObjectStatus title="계획" text="{app>/actualPlanKpi/operatingProfitPlanText}" state="None"/>
+                                            <ObjectStatus title="차이" text="{app>/actualPlanKpi/operatingProfitDiffText}" state="{app>/actualPlanKpi/operatingProfitDiffState}"/>
+                                        </HBox>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard coActualPlanRateCard">
+                                        <Text text="영업이익률" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanKpi/operatingProfitActualRateText}" emphasized="true" state="{app>/actualPlanKpi/operatingProfitActualState}"/>
+                                        <HBox class="coKpiInlineValues" wrap="Wrap" visible="{app>/hasPlanData}">
+                                            <ObjectStatus title="계획률" text="{app>/actualPlanKpi/operatingProfitPlanRateText}" state="None"/>
+                                            <ObjectStatus title="차이" text="{app>/actualPlanKpi/operatingProfitRateDiffText}" state="{app>/actualPlanKpi/operatingProfitDiffState}"/>
+                                        </HBox>
+                                    </VBox>
+                                </HBox>
 
-                    <VBox class="coPanel coPanelHalf">
-                        <Title text="3. 손익 항목별 실적-계획 차이" level="H3" class="coPanelTitle"/>
-                        <viz:VizFrame
-                            id="actualPlanVarianceChart"
-                            class="coActualPlanChart"
-                            width="100%"
-                            height="21rem"
-                            vizType="column"
-                            uiConfig="{applicationSet:'fiori'}">
-                            <viz:dataset>
-                                <vizData:FlattenedDataset data="{app>/actualPlanVarianceChart}">
-                                    <vizData:dimensions>
-                                        <vizData:DimensionDefinition name="손익 항목" value="{app>item}"/>
-                                    </vizData:dimensions>
-                                    <vizData:measures>
-                                        <vizData:MeasureDefinition name="실적 - 계획" value="{app>diff}"/>
-                                    </vizData:measures>
-                                </vizData:FlattenedDataset>
-                            </viz:dataset>
-                            <viz:feeds>
-                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="실적 - 계획"/>
-                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="손익 항목"/>
-                            </viz:feeds>
-                        </viz:VizFrame>
-                    </VBox>
-                </HBox>
+                                <HBox class="coActualPlanMainGrid" wrap="Wrap">
+                                    <VBox class="coPanel coActualPlanWidePanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="월별 실적 추이" level="H3"/>
+                                        </Toolbar>
+                                        <VBox class="coSingleMonthCard" visible="{= ${app>/actualPlanMonthlyMode} === 'single' }">
+                                            <HBox alignItems="Center" wrap="Wrap" class="coSingleMonthHeader">
+                                                <ObjectStatus text="{app>/actualPlanMonthlySingle/monthText}" state="Information" inverted="true"/>
+                                                <Text text="선택 기간의 실적 요약" class="coMutedText"/>
+                                            </HBox>
+                                            <FlexBox class="coActualPlanMiniBars" wrap="Wrap" items="{app>/actualPlanProfitLossStructure}">
+                                                <VBox class="coActualPlanMiniBar">
+                                                    <Text text="{app>item}" class="coMutedText"/>
+                                                    <ObjectNumber number="{app>actualText}" state="{app>state}"/>
+                                                </VBox>
+                                            </FlexBox>
+                                        </VBox>
+                                        <viz:VizFrame
+                                            id="actualPlanMonthlyChart"
+                                            class="coActualPlanChart"
+                                            width="100%"
+                                            height="17rem"
+                                            visible="{= ${app>/actualPlanMonthlyMode} === 'chart' &amp;&amp; ${app>/hasPlanData} }"
+                                            vizType="combination"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{app>/actualPlanMonthlyChart}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="월" value="{app>monthText}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="매출 실적" value="{app>salesActual}"/>
+                                                        <vizData:MeasureDefinition name="매출 계획" value="{app>salesPlan}"/>
+                                                        <vizData:MeasureDefinition name="영업이익 실적" value="{app>operatingProfitActual}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출 실적,매출 계획"/>
+                                                <vizFeeds:FeedItem uid="valueAxis2" type="Measure" values="영업이익 실적"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                        <viz:VizFrame
+                                            id="actualPlanMonthlyActualChart"
+                                            class="coActualPlanChart"
+                                            width="100%"
+                                            height="17rem"
+                                            visible="{= ${app>/actualPlanMonthlyMode} === 'chart' &amp;&amp; !${app>/hasPlanData} }"
+                                            vizType="combination"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{app>/actualPlanMonthlyChart}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="월" value="{app>monthText}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="매출 실적" value="{app>salesActual}"/>
+                                                        <vizData:MeasureDefinition name="영업이익 실적" value="{app>operatingProfitActual}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출 실적"/>
+                                                <vizFeeds:FeedItem uid="valueAxis2" type="Measure" values="영업이익 실적"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="월"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
 
-                <VBox class="coPanel coActualPlanDetailPanel">
-                    <Toolbar class="coPanelToolbar">
-                        <Title text="4. 프로핏센터 수익성 상세" level="H3"/>
-                        <ToolbarSpacer/>
-                        <Button icon="sap-icon://product" text="제품/옵션 분석" type="Transparent" press=".onGoProduct"/>
-                    </Toolbar>
-                    <ScrollContainer horizontal="true" vertical="true" width="100%" height="100%" class="coActualPlanDetailScroller">
-                        <Table
-                            width="273rem"
-                            items="{app>/actualPlanRows}"
-                            noDataText="조회 결과가 없습니다."
-                            sticky="ColumnHeaders"
-                            class="coTable">
-                            <columns>
-                                <Column width="6rem"><Text text="회계기간"/></Column>
-                                <Column width="16rem"><Text text="사업부문"/></Column>
-                                <Column width="16rem"><Text text="손익센터"/></Column>
-                                <Column width="16rem"><Text text="기능영역"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출 차이"/></Column>
-                                <Column width="8rem" hAlign="End"><Text text="매출 달성률"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출원가 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출원가 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출총이익 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출총이익 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="매출총이익 차이"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="판관비 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="판관비 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="판관비 차이"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="영업이익 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="영업이익 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="영업이익 차이"/></Column>
-                                <Column width="9rem" hAlign="End"><Text text="영업이익 달성률"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="제조/차이 실적"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="제조/차이 계획"/></Column>
-                                <Column width="11rem" hAlign="End"><Text text="제조/차이 차이"/></Column>
-                                <Column width="6rem"><Text text="통화"/></Column>
-                                <Column width="5rem" hAlign="Center"><Text text="전표"/></Column>
-                            </columns>
-                            <items>
-                                <ColumnListItem>
-                                    <cells>
-                                        <Text text="{app>monat}"/>
-                                        <ObjectIdentifier title="{app>segmentDisplay}"/>
-                                        <ObjectIdentifier title="{app>prctrDisplay}"/>
-                                        <ObjectIdentifier title="{app>fkberDisplay}"/>
-                                        <ObjectNumber number="{path:'app>actualSales', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planSales', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>salesDiff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>salesDiffState}"/>
-                                        <ObjectStatus text="{path:'app>salesAchievementRate', formatter:'.formatter.percent'}" state="{path:'app>salesAchievementRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
-                                        <ObjectNumber number="{path:'app>actualCogs', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planCogs', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>actualGrossProfit', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planGrossProfit', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>grossProfitDiff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>grossProfitDiffState}"/>
-                                        <ObjectNumber number="{path:'app>actualSga', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planSga', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>sgaDiff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>sgaDiffState}"/>
-                                        <ObjectNumber number="{path:'app>actualOperatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planOperatingProfit', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>operatingProfitDiff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>operatingProfitDiffState}"/>
-                                        <ObjectStatus text="{path:'app>opProfitAchievementRate', formatter:'.formatter.percent'}" state="{path:'app>opProfitAchievementRate', formatter:'.formatter.stateByRate'}" inverted="true" class="coRateChip"/>
-                                        <ObjectNumber number="{path:'app>actualVariance', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>planVariance', formatter:'.formatter.amount'}" unit="{app>waers}"/>
-                                        <ObjectNumber number="{path:'app>varianceDiff', formatter:'.formatter.amount'}" unit="{app>waers}" state="{app>varianceDiffState}"/>
-                                        <Text text="{app>waers}"/>
-                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="전표 상세" press=".onOpenProfitCenterDrilldown"/>
-                                    </cells>
-                                </ColumnListItem>
-                            </items>
-                        </Table>
-                    </ScrollContainer>
-                </VBox>
+                                    <VBox class="coPanel coActualPlanSidePanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="손익 구조" level="H3"/>
+                                        </Toolbar>
+                                        <List items="{app>/actualPlanProfitLossStructure}" class="coActualPlanPlList">
+                                            <CustomListItem>
+                                                <HBox class="coActualPlanPlRow" alignItems="Center">
+                                                    <Text text="{app>item}" class="coPlItem"/>
+                                                    <ToolbarSpacer/>
+                                                    <ObjectNumber number="{app>actualText}" state="{app>state}"/>
+                                                </HBox>
+                                            </CustomListItem>
+                                        </List>
+                                        <viz:VizFrame
+                                            id="actualPlanVarianceChart"
+                                            class="coActualPlanChart"
+                                            width="100%"
+                                            height="12rem"
+                                            visible="{app>/hasPlanData}"
+                                            vizType="waterfall"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{app>/actualPlanVarianceChart}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="손익 항목" value="{app>item}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="차이" value="{app>diff}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="차이"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="손익 항목"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </HBox>
+
+                                <HBox class="coActualPlanDiagnosticGrid" wrap="Wrap">
+                                    <VBox class="coPanel coActualPlanComparisonPanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="조직별 손익 비교" level="H3"/>
+                                        </Toolbar>
+                                        <Table
+                                            width="100%"
+                                            items="{app>/actualPlanOrgComparisonRows}"
+                                            noDataText="조회 결과가 없습니다."
+                                            class="coTable coActualPlanComparisonTable">
+                                            <columns>
+                                                <Column width="13rem"><Text text="조직"/></Column>
+                                                <Column width="7rem" hAlign="End"><Text text="매출"/></Column>
+                                                <Column width="7rem" hAlign="End"><Text text="매출원가"/></Column>
+                                                <Column width="7rem" hAlign="End"><Text text="매출총이익"/></Column>
+                                                <Column width="7rem" hAlign="End"><Text text="판관비"/></Column>
+                                                <Column width="7rem" hAlign="End"><Text text="영업이익"/></Column>
+                                                <Column width="6rem" hAlign="End"><Text text="영업이익률"/></Column>
+                                                <Column width="6rem" hAlign="End"><Text text="판관비율"/></Column>
+                                                <Column width="11rem"><Text text="영업이익 기여도"/></Column>
+                                            </columns>
+                                            <items>
+                                                <ColumnListItem>
+                                                    <cells>
+                                                        <ObjectIdentifier title="{app>profitCenter}" text="{app>orgComparisonMetaText}"/>
+                                                        <Text text="{app>actualSalesText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualCogsText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualGrossProfitText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualSgaText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualOperatingProfitText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>displayOperatingProfitRateText}" textAlign="End"/>
+                                                        <Text text="{app>actualSgaRateText}" textAlign="End"/>
+                                                        <VBox class="coContributionCell">
+                                                            <ObjectStatus text="{app>operatingProfitContributionText}" state="{app>operatingProfitContributionState}"/>
+                                                            <ProgressIndicator
+                                                                percentValue="{app>operatingProfitContributionBarPercent}"
+                                                                showValue="false"
+                                                                state="{app>operatingProfitContributionState}"/>
+                                                        </VBox>
+                                                    </cells>
+                                                </ColumnListItem>
+                                            </items>
+                                        </Table>
+                                    </VBox>
+                                    <VBox class="coPanel coActualPlanManagementPanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="수익성 관리 포인트" level="H3"/>
+                                        </Toolbar>
+                                        <List items="{app>/actualPlanManagementPoints}" noDataText="데이터 없음" class="coActualPlanManagementList">
+                                            <CustomListItem>
+                                                <VBox class="coManagementPointRow">
+                                                    <HBox alignItems="Center">
+                                                        <ObjectStatus text="{app>title}" state="{app>state}" inverted="true"/>
+                                                        <ToolbarSpacer/>
+                                                        <ObjectStatus text="{app>metricText}" state="{app>state}"/>
+                                                    </HBox>
+                                                    <Text text="{app>orgName}" class="coRankTitle"/>
+                                                    <Text text="{app>metaText}" class="coMutedText"/>
+                                                    <Text text="{app>benchmarkText}" class="coMutedText"/>
+                                                </VBox>
+                                            </CustomListItem>
+                                        </List>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </IconTabFilter>
+
+                        <IconTabFilter key="organization" text="조직 손익 기여도 분석" icon="sap-icon://org-chart">
+                            <VBox class="coActualPlanTabContent">
+                                <HBox class="coActualPlanOrgKpiGrid" wrap="Wrap">
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="수익 책임 조직" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanOrgSummary/revenueOrgCountText}" emphasized="true" state="Success"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="비용/지원 조직" class="coKpiLabel"/>
+                                        <ObjectNumber number="{app>/actualPlanOrgSummary/supportOrgCountText}" emphasized="true" state="Information"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="최고 영업이익 조직" class="coKpiLabel"/>
+                                        <Text text="{app>/actualPlanOrgSummary/bestOrgName}" class="coRankTitle"/>
+                                        <Text text="{app>/actualPlanOrgSummary/bestOrgMetaText}" class="coMutedText"/>
+                                        <ObjectNumber number="{app>/actualPlanOrgSummary/bestOrgAmountText}" state="{app>/actualPlanOrgSummary/bestOrgState}"/>
+                                    </VBox>
+                                    <VBox class="coActualPlanKpiCard">
+                                        <Text text="최대 비용 영향 조직" class="coKpiLabel"/>
+                                        <Text text="{app>/actualPlanOrgSummary/maxCostOrgName}" class="coRankTitle"/>
+                                        <Text text="{app>/actualPlanOrgSummary/maxCostOrgMetaText}" class="coMutedText"/>
+                                        <ObjectNumber number="{app>/actualPlanOrgSummary/maxCostOrgAmountText}" state="{app>/actualPlanOrgSummary/maxCostOrgState}"/>
+                                    </VBox>
+                                </HBox>
+
+                                <HBox class="coActualPlanDetailTopGrid" wrap="Wrap">
+                                    <VBox class="coPanel coActualPlanRevenueChartPanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="수익 책임 조직 영업이익" level="H3"/>
+                                        </Toolbar>
+                                        <viz:VizFrame
+                                            id="actualPlanProfitCenterChart"
+                                            class="coActualPlanOrgChart"
+                                            width="100%"
+                                            height="22rem"
+                                            vizType="dual_combination"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                    <vizData:FlattenedDataset data="{app>/actualPlanRevenueOrgChart}">
+                                                        <vizData:dimensions>
+                                                            <vizData:DimensionDefinition name="조직그룹" value="{app>profitCenter}"/>
+                                                        </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="매출" value="{app>actualSales}"/>
+                                                        <vizData:MeasureDefinition name="영업이익 실적" value="{app>actualOperatingProfit}"/>
+                                                        <vizData:MeasureDefinition name="영업이익률" value="{app>displayOperatingProfitRate}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="매출,영업이익 실적"/>
+                                                <vizFeeds:FeedItem uid="valueAxis2" type="Measure" values="영업이익률"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="조직그룹"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+
+                                    <VBox class="coPanel coActualPlanSupportChartPanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="비용/지원 조직 원가 영향" level="H3"/>
+                                        </Toolbar>
+                                        <viz:VizFrame
+                                            id="actualPlanSupportCostChart"
+                                            class="coActualPlanSupportChart"
+                                            width="100%"
+                                            height="22rem"
+                                            vizType="column"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{app>/actualPlanSupportCostChart}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="조직그룹" value="{app>profitCenter}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="발생비용" value="{app>actualIncurredCost}"/>
+                                                        <vizData:MeasureDefinition name="원가 영향" value="{app>actualCostImpact}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="발생비용,원가 영향"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="조직그룹"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+
+                                    <VBox class="coPanel coActualPlanCompositionPanel">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="전체 손익 구성" level="H3"/>
+                                        </Toolbar>
+                                        <viz:VizFrame
+                                            id="actualPlanCompositionChart"
+                                            class="coActualPlanCompositionChart"
+                                            width="100%"
+                                            height="13rem"
+                                            visible="{app>/actualPlanHasProfitLossStructure}"
+                                            vizType="column"
+                                            uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{app>/actualPlanCompositionChart}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="손익 항목" value="{app>item}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="금액" value="{app>amount}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis" type="Measure" values="금액"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="손익 항목"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                        <List items="{app>/actualPlanProfitLossStructure}" class="coActualPlanCompositionList">
+                                            <CustomListItem>
+                                                <HBox class="coActualPlanCompositionRow" alignItems="Center">
+                                                    <Text text="{app>item}" class="coPlItem"/>
+                                                    <ToolbarSpacer/>
+                                                    <ObjectNumber number="{app>actualText}" state="{app>state}"/>
+                                                </HBox>
+                                            </CustomListItem>
+                                        </List>
+                                    </VBox>
+                                </HBox>
+
+                                <VBox class="coPanel coActualPlanDetailPanel">
+                                    <Toolbar class="coPanelToolbar">
+                                        <Title text="조직그룹별 손익 테이블" level="H3"/>
+                                        <ToolbarSpacer/>
+                                        <Button icon="sap-icon://product" text="제품/옵션 분석" type="Transparent" press=".onGoProduct"/>
+                                    </Toolbar>
+                                    <ScrollContainer horizontal="true" vertical="true" width="100%" height="100%" class="coActualPlanDetailScroller">
+                                        <Table
+                                            width="142rem"
+                                            items="{app>/actualPlanOrgDetailRows}"
+                                            noDataText="조회 결과가 없습니다."
+                                            sticky="ColumnHeaders"
+                                            mode="SingleSelectMaster"
+                                            selectionChange=".onSelectActualPlanRow"
+                                            class="coTable coActualPlanDetailTable">
+                                            <columns>
+                                                <Column width="14rem"><Text text="사업부문"/></Column>
+                                                <Column width="10rem"><Text text="책임 유형"/></Column>
+                                                <Column width="16rem"><Text text="조직그룹"/></Column>
+                                                <Column width="12rem"><Text text="기능영역"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="매출"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="매출원가"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="매출총이익"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="판관비"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="영업이익"/></Column>
+                                                <Column width="8rem" hAlign="End"><Text text="영업이익률"/></Column>
+                                                <Column width="10rem" hAlign="End"><Text text="원가 영향"/></Column>
+                                                <Column width="10rem" hAlign="End" visible="{app>/hasPlanData}"><Text text="계획 영업이익"/></Column>
+                                                <Column width="10rem" hAlign="End" visible="{app>/hasPlanData}"><Text text="차이"/></Column>
+                                                <Column width="8rem" hAlign="End" visible="{app>/hasPlanData}"><Text text="달성률"/></Column>
+                                                <Column width="5rem" hAlign="Center"><Text text="전표"/></Column>
+                                            </columns>
+                                            <items>
+                                                <ColumnListItem type="Active">
+                                                    <cells>
+                                                        <ObjectIdentifier title="{app>segmentDisplay}" tooltip="{app>segment}"/>
+                                                        <ObjectStatus text="{app>responsibilityTypeText}" state="{app>responsibilityTypeState}" inverted="true"/>
+                                                        <ObjectIdentifier title="{app>orgGroupDisplay}" text="{app>memberProfitCenterText}" tooltip="{app>orgGroupKey}"/>
+                                                        <ObjectIdentifier title="{app>fkberDisplay}" tooltip="{app>fkber}"/>
+                                                        <Text text="{app>actualSalesText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualCogsText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualGrossProfitText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualSgaText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>actualOperatingProfitText}" textAlign="End" class="coAmountText"/>
+                                                        <Text text="{app>displayOperatingProfitRateText}" textAlign="End"/>
+                                                        <ObjectNumber number="{app>actualCostImpactText}" state="{app>actualCostImpactState}"/>
+                                                        <Text text="{app>planOperatingProfitText}" textAlign="End" class="coAmountText" visible="{app>/hasPlanData}"/>
+                                                        <ObjectStatus text="{app>operatingProfitDiffText}" state="{app>operatingProfitDiffState}" inverted="true" class="coRateChip" visible="{app>/hasPlanData}"/>
+                                                        <ObjectStatus text="{app>opProfitAchievementText}" state="{app>opProfitAchievementState}" inverted="true" class="coRateChip" visible="{app>/hasPlanData}"/>
+                                                        <Button icon="sap-icon://detail-view" type="Transparent" tooltip="전표 상세" press=".onOpenProfitCenterDrilldown" visible="{app>canDrilldown}"/>
+                                                    </cells>
+                                                </ColumnListItem>
+                                            </items>
+                                        </Table>
+                                    </ScrollContainer>
+                                </VBox>
+
+                                <VBox class="coActualPlanDetailStack">
+                                    <VBox class="coPanel coActualPlanDetailFullPanel" visible="{app>/hasPlanData}">
+                                        <Toolbar class="coPanelToolbar">
+                                            <Title text="계획 대비 차이 원인" level="H3"/>
+                                        </Toolbar>
+                                        <List items="{app>/actualPlanFinancialFlow}" class="coFlowList">
+                                            <CustomListItem>
+                                                <HBox class="coFlowRow" alignItems="Center">
+                                                    <Text text="{app>item}" class="coFlowItem"/>
+                                                    <ToolbarSpacer/>
+                                                    <ObjectStatus text="{app>diffText}" state="{app>state}" inverted="true"/>
+                                                </HBox>
+                                            </CustomListItem>
+                                        </List>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+                        </IconTabFilter>
+                    </items>
+                </IconTabBar>
             </VBox>
         </f:content>
     </f:DynamicPage>

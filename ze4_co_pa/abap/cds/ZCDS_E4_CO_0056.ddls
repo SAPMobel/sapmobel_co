@@ -1,0 +1,180 @@
+@AbapCatalog.sqlViewName: 'ZCDSV_E4_CO_0056'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Rental Profitability Summary OData'
+@OData.publish: true
+define view ZCDS_E4_CO_0056
+  with parameters
+    p_bukrs      : bukrs,
+    p_gjahr      : gjahr,
+    p_monat_from : monat,
+    p_monat_to   : monat
+  as select from ZCDS_E4_CO_0035(
+    p_bukrs:      $parameters.p_bukrs,
+    p_gjahr:      $parameters.p_gjahr,
+    p_monat_from: $parameters.p_monat_from,
+    p_monat_to:   $parameters.p_monat_to
+  ) as Line
+  left outer join ZCDS_E4_CO_0054(
+    p_bukrs:      $parameters.p_bukrs,
+    p_gjahr:      $parameters.p_gjahr,
+    p_monat_from: $parameters.p_monat_from,
+    p_monat_to:   $parameters.p_monat_to
+  ) as SgaClass
+    on  SgaClass.bukrs = Line.bukrs
+    and SgaClass.gjahr = Line.gjahr
+    and SgaClass.waers = Line.waers
+  left outer join ZCDS_E4_CO_0055(
+    p_bukrs:      $parameters.p_bukrs,
+    p_gjahr:      $parameters.p_gjahr,
+    p_monat_from: $parameters.p_monat_from,
+    p_monat_to:   $parameters.p_monat_to
+  ) as AllocRate
+    on  AllocRate.bukrs = Line.bukrs
+    and AllocRate.gjahr = Line.gjahr
+    and AllocRate.waers = Line.waers
+{
+  key Line.bukrs,
+  key Line.gjahr,
+  key Line.waers,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '400003' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_revenue_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700007'
+                  and ( Line.blart = 'AF' or Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.fkber = '5000' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_depr_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700014' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_service_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700015' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_contract_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700016' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_common_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700009'
+                  and ( Line.segment = '2000' or Line.prctr = 'PC_RT' or Line.fkber = '5000' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_repair_cost_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct between '700001' and '700013'
+                  and Line.racct <> '700007'
+                  and Line.racct <> '700009'
+                  and ( Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_org_sga_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct between '700001' and '700013'
+                  and Line.racct <> '700007'
+                  and Line.racct <> '700009'
+                  and Line.kostl = 'CC_MM12'
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) as rental_recovery_logi_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      max( SgaClass.common_admin_pool_amt ) as common_admin_pool_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      max( SgaClass.common_admin_pool_amt ) * max( AllocRate.sales_common_alloc_rate ) as common_admin_sales_alloc_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      max( SgaClass.common_admin_pool_amt ) - ( max( SgaClass.common_admin_pool_amt ) * max( AllocRate.sales_common_alloc_rate ) ) as common_admin_rental_alloc_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '700007'
+                  and ( Line.blart = 'AF' or Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.fkber = '5000' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct = '700014' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct = '700015' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct = '700016' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct = '700009'
+                  and ( Line.segment = '2000' or Line.prctr = 'PC_RT' or Line.fkber = '5000' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct between '700001' and '700013'
+                  and Line.racct <> '700007'
+                  and Line.racct <> '700009'
+                  and ( Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' )
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + sum( case when Line.racct between '700001' and '700013'
+                  and Line.racct <> '700007'
+                  and Line.racct <> '700009'
+                  and Line.kostl = 'CC_MM12'
+                then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    + ( max( SgaClass.common_admin_pool_amt ) - ( max( SgaClass.common_admin_pool_amt ) * max( AllocRate.sales_common_alloc_rate ) ) ) as rental_total_cost_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      sum( case when Line.racct = '400003' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+    - (
+        sum( case when Line.racct = '700007'
+                    and ( Line.blart = 'AF' or Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.fkber = '5000' )
+                  then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct = '700014' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct = '700015' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct = '700016' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct = '700009'
+                    and ( Line.segment = '2000' or Line.prctr = 'PC_RT' or Line.fkber = '5000' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' )
+                  then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct between '700001' and '700013'
+                    and Line.racct <> '700007'
+                    and Line.racct <> '700009'
+                    and ( Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' )
+                  then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + sum( case when Line.racct between '700001' and '700013'
+                    and Line.racct <> '700007'
+                    and Line.racct <> '700009'
+                    and Line.kostl = 'CC_MM12'
+                  then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+      + ( max( SgaClass.common_admin_pool_amt ) - ( max( SgaClass.common_admin_pool_amt ) * max( AllocRate.sales_common_alloc_rate ) ) )
+      ) as rental_operating_profit_amt,
+      case
+        when sum( case when Line.racct = '400003' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ) = 0
+          then cast( 0 as abap.dec( 9, 6 ) )
+        else division(
+          sum( case when Line.racct = '400003' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+        - (
+            sum( case when Line.racct = '700007'
+                        and ( Line.blart = 'AF' or Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.fkber = '5000' )
+                      then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct = '700014' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct = '700015' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct = '700016' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct = '700009'
+                        and ( Line.segment = '2000' or Line.prctr = 'PC_RT' or Line.fkber = '5000' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' )
+                      then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct between '700001' and '700013'
+                        and Line.racct <> '700007'
+                        and Line.racct <> '700009'
+                        and ( Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' )
+                      then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + sum( case when Line.racct between '700001' and '700013'
+                        and Line.racct <> '700007'
+                        and Line.racct <> '700009'
+                        and Line.kostl = 'CC_MM12'
+                      then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end )
+          + ( max( SgaClass.common_admin_pool_amt ) - ( max( SgaClass.common_admin_pool_amt ) * max( AllocRate.sales_common_alloc_rate ) ) )
+          ),
+          sum( case when Line.racct = '400003' then Line.pl_amount else cast( 0 as abap.curr( 16, 3 ) ) end ),
+          6
+        )
+      end as rental_operating_profit_rate,
+      @Semantics.amount.currencyCode: 'waers'
+      max( AllocRate.sales_revenue_amt ) as sales_revenue_amt,
+      @Semantics.amount.currencyCode: 'waers'
+      max( AllocRate.total_revenue_amt ) as total_revenue_amt,
+      max( AllocRate.sales_common_alloc_rate ) as sales_common_alloc_rate,
+      @Semantics.currencyCode: true
+      Line.waers
+}
+where
+      Line.bukrs = $parameters.p_bukrs
+  and Line.gjahr = $parameters.p_gjahr
+  and Line.monat between $parameters.p_monat_from and $parameters.p_monat_to
+  and (
+       Line.racct = '400003'
+    or Line.racct = '700014'
+    or Line.racct = '700015'
+    or Line.racct = '700016'
+    or ( Line.racct = '700009'
+         and ( Line.segment = '2000' or Line.prctr = 'PC_RT' or Line.fkber = '5000' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' ) )
+    or ( Line.racct = '700007'
+         and ( Line.blart = 'AF' or Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.fkber = '5000' ) )
+    or ( Line.racct between '700001' and '700013'
+         and Line.racct <> '700007'
+         and Line.racct <> '700009'
+         and ( Line.prctr = 'PC_RT' or Line.kostl = 'CC_RT01' or Line.kostl = 'CC_RT02' or Line.kostl = 'CC_MM12' ) )
+  )
+group by
+  Line.bukrs,
+  Line.gjahr,
+  Line.waers

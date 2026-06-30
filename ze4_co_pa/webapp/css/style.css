@@ -67,6 +67,46 @@
     width: 100%;
 }
 
+.coCockpitKpiGrid {
+    grid-auto-flow: column;
+    grid-template-columns: repeat(7, minmax(9.75rem, 1fr));
+    grid-template-rows: repeat(2, minmax(4.75rem, 1fr));
+}
+
+.coCockpitKpiGrid .coKpiCard {
+    min-height: 4.75rem;
+    padding: 0.875rem;
+}
+
+.coCockpitKpiGrid .coKpiTall {
+    grid-row: span 2;
+}
+
+.coCockpitKpiGrid .coKpiTall > .sapMFlexBox {
+    height: 100%;
+}
+
+.coCockpitKpiGrid .coKpiIcon {
+    font-size: 1.375rem;
+    height: 2.75rem;
+    line-height: 2.75rem;
+    margin-right: 0.75rem;
+    width: 2.75rem;
+}
+
+.coCockpitKpiGrid .coKpiLabel {
+    font-size: 0.8125rem;
+    line-height: 1.2;
+}
+
+.coCockpitKpiGrid .sapMObjectNumberText {
+    font-size: 1.05rem;
+}
+
+.coRentalKpiGrid {
+    grid-template-columns: repeat(4, minmax(13rem, 1fr));
+}
+
 .coKpiCard > .sapMFlexBox {
     justify-content: flex-start;
     width: 100%;
@@ -174,8 +214,7 @@
     min-width: 0;
 }
 
-.coPanelNarrow,
-.coPanelInfo {
+.coPanelNarrow {
     flex: 1 1 auto;
     min-width: 0;
 }
@@ -189,6 +228,14 @@
     grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
+.coCockpitProductGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.coRentalMainGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
 .coCockpitMainGrid .coPanelWide {
     grid-column: span 5;
 }
@@ -198,21 +245,98 @@
 }
 
 .coCockpitMainGrid .coPanelMedium {
-    grid-column: span 3;
+    grid-column: span 4;
 }
 
-.coCockpitMainGrid .coPanelInfo {
-    grid-column: span 1;
+.coCockpitMainGrid .coPanelHalf {
+    grid-column: span 4;
+}
+
+.coCockpitProductGrid .coPanelHalf {
+    grid-column: span 6;
+}
+
+.coCockpitProductGrid .coPanelFull {
+    grid-column: span 12;
+}
+
+.coRentalMainGrid .coPanelHalf {
+    grid-column: span 6;
+}
+
+.coRentalMainGrid .coPanelFull {
+    grid-column: span 12;
 }
 
 .coPanelTitle {
     margin-bottom: 0.75rem;
 }
 
+.coReferenceChartPanel {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+    border-top: 0.25rem solid #008a83;
+}
+
+.coReferenceChartPanel .coPanelTitle {
+    color: #1f2d3d;
+    margin-bottom: 0.5rem;
+}
+
 .coPanelToolbar {
     background: transparent;
     border: 0;
     padding: 0 0 0.75rem 0;
+}
+
+.coAnalysisTabs {
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(34, 48, 74, 0.05);
+    box-sizing: border-box;
+    overflow: hidden;
+    width: 100%;
+}
+
+.coAnalysisTabs .sapMITBHead {
+    padding: 0.25rem 0.75rem 0 0.75rem;
+}
+
+.coAnalysisTabs .sapMITBContent {
+    background: transparent;
+    border-bottom: 0;
+    padding: 0;
+}
+
+.coAnalysisTabs .sapMITBContainerContent {
+    border-bottom: 0;
+    padding: 0.75rem;
+}
+
+.coAnalysisTabs .sapMITBFilter {
+    min-width: 7.5rem;
+    padding: 0 0.25rem;
+}
+
+.coAnalysisTabs .sapMITBSelected .sapMITBText {
+    font-weight: 900;
+}
+
+.coAnalysisSlide {
+    gap: 1rem;
+    width: 100%;
+}
+
+.coAnalysisGrid {
+    width: 100%;
+}
+
+.coAnalysisGrid.coCockpitMainGrid .coPanelHalf {
+    grid-column: span 6;
+}
+
+.coJournalActionGroup {
+    gap: 0.125rem;
 }
 
 .coActualPlanPage,
@@ -235,10 +359,169 @@
 .coActualPlanContent {
     display: grid !important;
     gap: 0.75rem;
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
     height: 100%;
     min-height: 0;
     overflow: hidden;
+    width: 100%;
+}
+
+.coFilterSummary {
+    color: #5b6b82;
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    margin-top: 0.125rem;
+}
+
+.coActualPlanTabs {
+    min-height: 0;
+    overflow: hidden;
+    width: 100% !important;
+}
+
+.coActualPlanContent > .sapMFlexItem,
+.coActualPlanTabContent > .sapMFlexItem,
+.coActualPlanTabs .sapMITBContainerContent > .sapMFlexItem {
+    box-sizing: border-box;
+    width: 100% !important;
+}
+
+.coActualPlanTabs .sapMITBContent,
+.coActualPlanTabs .sapMITBContainerContent {
+    box-sizing: border-box;
+    min-height: 0;
+    width: 100% !important;
+}
+
+.coActualPlanTabContent {
+    box-sizing: border-box;
+    gap: 0.75rem;
+    min-height: 0;
+    padding-top: 0.75rem;
+    width: 100% !important;
+}
+
+.coExecutiveKpiStrip {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.coInsightKpiCard {
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.375rem rgba(34, 48, 74, 0.05);
+    box-sizing: border-box;
+    gap: 0.45rem;
+    min-height: 9rem;
+    min-width: 0;
+    padding: 1rem;
+}
+
+.coKpiInlineValues,
+.coSingleMonthValues {
+    gap: 0.65rem;
+}
+
+.coInsightGrid,
+.coOrgBoard {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.coInsightPanel {
+    grid-column: span 4;
+    min-width: 0;
+}
+
+.coSingleMonthCard {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.5rem;
+    gap: 0.75rem;
+    min-height: 17rem;
+    padding: 1rem;
+}
+
+.coFlowList {
+    margin-top: 0.5rem;
+}
+
+.coFlowRow {
+    min-height: 2.5rem;
+    padding: 0.35rem 0.5rem;
+}
+
+.coFlowItem {
+    color: #22304a;
+    font-weight: 800;
+}
+
+.coRankGrid {
+    gap: 0.75rem;
+}
+
+.coRankPanel {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.5rem;
+    flex: 1 1 13rem;
+    min-width: 0;
+    padding: 0.75rem;
+}
+
+.coActualPlanRankChart {
+    margin-top: 0.75rem;
+}
+
+.coOrgMatrixPanel {
+    grid-column: span 7;
+}
+
+.coSelectedPlPanel {
+    grid-column: span 5;
+}
+
+.coActualPlanMatrix {
+    gap: 0.55rem;
+}
+
+.coMatrixCell {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.45rem;
+    box-sizing: border-box;
+    flex: 1 1 12rem;
+    gap: 0.25rem;
+    min-width: 12rem;
+    padding: 0.75rem;
+}
+
+.coMatrixTitle,
+.coPlItem {
+    color: #22304a;
+    font-weight: 900;
+}
+
+.coMutedText {
+    color: #5b6b82;
+}
+
+.coPlRow {
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.25rem;
+}
+
+.coSelectedCause {
+    margin-top: 0.75rem;
+}
+
+.coAmountText {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    min-width: 7rem;
+    text-align: right;
 }
 
 .coActualPlanCharts {
@@ -257,6 +540,7 @@
 .coActualPlanDetailPanel {
     display: flex;
     flex-direction: column;
+    height: clamp(24rem, 45vh, 36rem);
     min-height: 0;
     overflow: hidden;
 }
@@ -268,26 +552,102 @@
 .coActualPlanDetailScroller {
     border-top: 1px solid #d9e2ec;
     flex: 1 1 auto;
-    height: auto !important;
+    height: 100% !important;
     min-height: 0;
+    overflow: auto !important;
+}
+
+.coActualPlanDetailScroller .sapMScrollContScroll {
+    min-height: 100%;
 }
 
 .coTable .sapMListTblHeaderCell {
     background: #f3f6fb;
 }
 
+.coActualPlanDetailTable .sapMListTblHeaderCell:nth-child(n+5):nth-child(-n+8),
+.coActualPlanDetailTable .sapMListTblCell:nth-child(n+5):nth-child(-n+8) {
+    background-color: #eef6ff;
+}
+
+.coActualPlanDetailTable .sapMListTblHeaderCell:nth-child(n+9):nth-child(-n+12),
+.coActualPlanDetailTable .sapMListTblCell:nth-child(n+9):nth-child(-n+12) {
+    background-color: #fff8ec;
+}
+
+.coActualPlanDetailTable .sapMListTblHeaderCell:nth-child(n+13):nth-child(-n+17),
+.coActualPlanDetailTable .sapMListTblCell:nth-child(n+13):nth-child(-n+17) {
+    background-color: #edf8f2;
+}
+
 .coProductDetailScroller {
     border-top: 1px solid #d9e2ec;
 }
 
+.coRentalDetailScroller {
+    border-top: 1px solid #d9e2ec;
+}
+
 .coProductDetailTable {
-    min-width: 96rem;
+    min-width: 0;
+}
+
+.coRentalDetailTable {
+    min-width: 110rem;
+}
+
+.coRentalProductTable {
+    min-width: 62rem;
 }
 
 .coProductDetailTable .sapMListTblHeaderCell,
-.coProductDetailTable .sapMListTblCell {
+.coProductDetailTable .sapMListTblCell,
+.coRentalDetailTable .sapMListTblHeaderCell,
+.coRentalDetailTable .sapMListTblCell,
+.coRentalProductTable .sapMListTblHeaderCell,
+.coRentalProductTable .sapMListTblCell {
     padding-left: 0.35rem;
     padding-right: 0.35rem;
+}
+
+.coProductDetailTable .sapMListTblHeaderCell .sapMText {
+    line-height: 1.15;
+    white-space: normal;
+}
+
+.coProductDetailTable .sapMListTblHeaderCell:nth-child(n+5):nth-child(-n+12),
+.coProductDetailTable .sapMListTblCell:nth-child(n+5):nth-child(-n+12) {
+    padding-left: 0.45rem;
+    padding-right: 0.45rem;
+}
+
+.coProductDetailTable .sapMListTblCell:nth-child(n+5):nth-child(-n+12) .sapMObjectNumber {
+    align-items: baseline;
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: 100%;
+    width: 100%;
+}
+
+.coProductDetailTable .coColumnRed,
+.coProductDetailTable .coAmountRed .sapMObjectNumberText,
+.coProductDetailTable .coAmountRed .sapMObjectNumberUnit,
+.coProductDetailTable .coAmountRed .sapMObjStatusText {
+    color: #bb0000 !important;
+}
+
+.coProductDetailTable .coColumnOrange,
+.coProductDetailTable .coAmountOrange .sapMObjectNumberText,
+.coProductDetailTable .coAmountOrange .sapMObjectNumberUnit,
+.coProductDetailTable .coAmountOrange .sapMObjStatusText {
+    color: #b25a00 !important;
+}
+
+.coProductDetailTable .coColumnPurple,
+.coProductDetailTable .coAmountPurple .sapMObjectNumberText,
+.coProductDetailTable .coAmountPurple .sapMObjectNumberUnit,
+.coProductDetailTable .coAmountPurple .sapMObjStatusText {
+    color: #6f42c1 !important;
 }
 
 .coProductDetailTable .coProductCell .sapMObjectIdentifierTitle .sapMText,
@@ -298,11 +658,37 @@
 
 .coProductDetailTable .sapMObjectNumberText,
 .coProductDetailTable .sapMObjectNumberUnit {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.coProductDetailTable .sapMObjectNumberUnit {
+    font-size: 0.6875rem;
+    margin-left: 0.125rem;
+    opacity: 0.72;
 }
 
 .coProductDetailTable .coRateChip {
-    min-width: 3.75rem;
+    min-width: 0;
+}
+
+.coProductDetailTable .coRateChip .sapMObjStatusText {
+    font-size: 0.75rem;
+    line-height: 1.15;
+    padding: 0.2rem 0.35rem;
+}
+
+.coProductDetailTable .coJournalActionGroup .sapMBtn {
+    min-width: 1.65rem;
+    padding: 0;
+    width: 1.65rem;
+}
+
+.coProductDetailTable .coJournalActionGroup .sapMBtnInner {
+    min-width: 1.5rem;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .coMiniTable {
@@ -316,6 +702,46 @@
 .coMiniTable .sapMListTblCell {
     padding-top: 0.35rem;
     padding-bottom: 0.35rem;
+}
+
+.coRentalSummaryPanel {
+    display: flex;
+    flex-direction: column;
+}
+
+.coRentalProfitCallout {
+    background: linear-gradient(180deg, #f4f9ff 0%, #eef7f2 100%);
+    border-top: 1px solid #d9e2ec;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding: 1rem 0.25rem 0.25rem 0.25rem;
+}
+
+.coRentalProfitLabel,
+.coRentalProfitAmountLabel {
+    color: #526376;
+    font-size: 0.8125rem;
+    font-weight: 800;
+}
+
+.coRentalProfitRow {
+    gap: 1rem;
+    width: 100%;
+}
+
+.coRentalProfitRate .sapMObjectNumberText {
+    font-size: 2rem;
+    font-weight: 900 !important;
+    line-height: 1.1;
+}
+
+.coRentalProfitAmount {
+    gap: 0.4rem;
+}
+
+.coRentalProfitAmount .sapMObjectNumberText {
+    font-size: 1.05rem;
+    font-weight: 900 !important;
 }
 
 .coProductCell .sapMObjectIdentifierTitle .sapMText,
@@ -351,123 +777,346 @@
     font-weight: 800;
 }
 
-.coPanelInfo {
-    padding: 0.75rem;
+.coDialogContent {
+    gap: 0.75rem;
+    padding: 0.25rem;
 }
 
-.coCriteriaTitle {
-    margin-bottom: 0.7rem;
+.coBreakdownList {
+    border: 1px solid #d9e2ec;
+    border-radius: 0.375rem;
+    overflow: hidden;
 }
 
-.coCriteriaList {
-    gap: 0.5rem;
-    margin: 0;
-}
-
-.coCriteriaItem {
-    background: #ffffff;
-    border: 1px solid #d8e4f2;
-    border-left: 0.25rem solid #0a6ed1;
-    border-radius: 0.45rem;
-    box-shadow: 0 0.125rem 0.375rem rgba(34, 48, 74, 0.06);
+.coBreakdownRow {
     box-sizing: border-box;
-    gap: 0.45rem;
-    min-height: 3rem;
-    min-width: 0;
-    padding: 0.45rem 0.45rem 0.45rem 0.5rem;
+    min-height: 3.25rem;
+    padding: 0.75rem 1rem;
     width: 100%;
 }
 
-.coCriteriaItem .sapMFlexItem {
+.coBreakdownName {
+    color: #334e68;
+    font-weight: 800;
+}
+
+.coBreakdownValueGroup {
+    gap: 0.75rem;
+}
+
+.coActualPlanHeaderContent {
+    gap: 0.5rem;
+}
+
+.coActualPlanFilterRow {
+    gap: 0.75rem;
+}
+
+.coActualPlanDetailFilterRow {
+    padding-top: 0.25rem;
+}
+
+.coActualPlanContent {
+    overflow: auto;
+}
+
+.coActualPlanEmptyState {
+    align-self: center;
+    margin-top: 2rem;
+    max-width: 32rem;
+}
+
+.coActualPlanModeBar {
+    gap: 0.75rem;
+    min-height: 2rem;
+}
+
+.coActualPlanKpiGrid,
+.coActualPlanOrgKpiGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.coActualPlanOrgKpiGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.coActualPlanKpiCard {
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 0.375rem;
+    box-sizing: border-box;
+    gap: 0.35rem;
+    min-height: 7rem;
     min-width: 0;
+    padding: 0.875rem;
 }
 
-.coCriteriaIcon {
-    align-items: center;
-    border-radius: 50%;
-    display: inline-flex;
-    flex: 0 0 auto;
-    font-size: 0.95rem;
-    height: 1.75rem;
-    justify-content: center;
-    line-height: 1.75rem;
-    text-align: center;
-    width: 1.75rem;
-}
-
-.coCriteriaText {
-    min-width: 0;
-}
-
-.coCriteriaName {
-    color: #22304a;
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 900;
+.coActualPlanKpiCard .sapMObjectNumberText {
+    font-size: 1.35rem;
+    font-weight: 800;
     line-height: 1.15;
+}
+
+.coActualPlanRateCard .sapMObjectNumberText {
+    font-size: 1.55rem;
+}
+
+.coActualPlanMainGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.coActualPlanWidePanel {
+    grid-column: span 8;
+    min-width: 0;
+}
+
+.coActualPlanSidePanel {
+    grid-column: span 4;
+    min-width: 0;
+}
+
+.coSingleMonthHeader {
+    gap: 0.75rem;
+}
+
+.coActualPlanMiniBars {
+    gap: 0.5rem;
+}
+
+.coActualPlanMiniBar {
+    background: #f7f9fc;
+    border: 1px solid #e5ebf3;
+    border-radius: 0.375rem;
+    box-sizing: border-box;
+    flex: 1 1 10rem;
+    gap: 0.25rem;
+    min-width: 9rem;
+    padding: 0.75rem;
+}
+
+.coActualPlanPlList {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.coActualPlanPlRow {
+    min-height: 2.8rem;
+    padding: 0.35rem 0.75rem;
+}
+
+.coActualPlanRankGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.coActualPlanRankPanel {
+    min-width: 0;
+}
+
+.coActualPlanRankList {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.coActualPlanRankRow {
+    gap: 0.75rem;
+    min-height: 3.1rem;
+    padding: 0.35rem 0.75rem;
+}
+
+.coActualPlanDiagnosticGrid {
+    display: grid !important;
+    gap: 0.75rem;
+    grid-template-columns: minmax(0, 3fr) minmax(22rem, 2fr);
+    width: 100%;
+}
+
+.coActualPlanComparisonPanel,
+.coActualPlanManagementPanel {
+    min-width: 0;
+}
+
+.coActualPlanComparisonTable .sapMListTblHeaderCell,
+.coActualPlanComparisonTable .sapMListTblCell {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+}
+
+.coActualPlanComparisonTable .sapMObjectIdentifierTitle .sapMText,
+.coActualPlanComparisonTable .sapMObjectIdentifierText .sapMText {
+    display: block;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.coCriteriaBadge {
-    border-radius: 999px;
-    display: inline-block;
-    font-size: 0.76rem;
-    font-weight: 900;
-    line-height: 1.1;
-    margin-top: 0.25rem;
-    padding: 0.2rem 0.45rem;
-    width: fit-content;
+.coContributionCell {
+    gap: 0.25rem;
+    min-width: 8rem;
 }
 
-.coCriteriaRevenue {
-    border-left-color: #0a6ed1;
+.coContributionCell .sapMPI {
+    height: 0.375rem;
+    min-width: 7rem;
 }
 
-.coCriteriaRevenue .coCriteriaIcon,
-.coCriteriaRevenue .coCriteriaBadge {
-    background: #eaf3ff;
-    color: #0a6ed1;
+.coActualPlanManagementList {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.375rem;
+    overflow: hidden;
 }
 
-.coCriteriaCogs {
-    border-left-color: #c8792a;
+.coManagementPointRow {
+    gap: 0.25rem;
+    min-height: 4.25rem;
+    padding: 0.6rem 0.75rem;
 }
 
-.coCriteriaCogs .coCriteriaIcon,
-.coCriteriaCogs .coCriteriaBadge {
-    background: #fff3e5;
-    color: #a95800;
+.coRankBadge {
+    min-width: 2rem;
 }
 
-.coCriteriaSga {
-    border-left-color: #8054c7;
+.coRankTextBox {
+    min-width: 0;
 }
 
-.coCriteriaSga .coCriteriaIcon,
-.coCriteriaSga .coCriteriaBadge {
-    background: #f2ecff;
-    color: #6f42c1;
+.coRankTitle {
+    color: #22304a;
+    font-weight: 800;
 }
 
-.coCriteriaVariance {
-    border-left-color: #008a83;
+.coActualPlanOrgChart {
+    height: 22rem !important;
 }
 
-.coCriteriaVariance .coCriteriaIcon,
-.coCriteriaVariance .coCriteriaBadge {
-    background: #e8f6f6;
-    color: #00736d;
-}
-
-.coDialogContent {
+.coActualPlanDetailTopGrid {
+    display: grid !important;
     gap: 0.75rem;
-    padding: 0.25rem;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    width: 100%;
+}
+
+.coActualPlanRevenueChartPanel {
+    grid-column: span 6;
+    min-width: 0;
+}
+
+.coActualPlanSupportChartPanel {
+    grid-column: span 3;
+    min-width: 0;
+}
+
+.coActualPlanCompositionPanel {
+    grid-column: span 3;
+    min-height: 0;
+    min-width: 0;
+}
+
+.coActualPlanSupportChart {
+    height: 22rem !important;
+}
+
+.coActualPlanCompositionChart {
+    height: 13rem !important;
+}
+
+.coActualPlanCompositionList {
+    border: 1px solid #e5ebf3;
+    border-radius: 0.375rem;
+    margin-top: 0.75rem;
+    max-height: 8.25rem;
+    overflow: auto;
+}
+
+.coActualPlanCompositionRow {
+    min-height: 2.2rem;
+    padding: 0.25rem 0.6rem;
+}
+
+.coActualPlanDetailStack {
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.coActualPlanDetailFullPanel {
+    min-width: 0;
+    width: 100%;
+}
+
+.coActualPlanDetailChart {
+    height: 20rem !important;
+}
+
+.coActualPlanDetailTable .sapMListTblHeaderCell,
+.coActualPlanDetailTable .sapMListTblCell {
+    background-color: transparent;
+}
+
+.coActualPlanDetailTable .sapMListTblHeaderCell {
+    background-color: #f3f6fb;
+}
+
+@media (max-width: 1200px) {
+    .coCockpitKpiGrid {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: auto;
+    }
+
+    .coCockpitKpiGrid .coKpiTall {
+        grid-row: auto;
+    }
+
+    .coCockpitMainGrid .coPanelHalf {
+        grid-column: span 6;
+    }
+
+    .coRentalKpiGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coExecutiveKpiStrip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coInsightPanel,
+    .coOrgMatrixPanel,
+    .coSelectedPlPanel {
+        grid-column: span 12;
+    }
+
+    .coActualPlanKpiGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .coActualPlanOrgKpiGrid,
+    .coActualPlanRankGrid,
+    .coActualPlanDiagnosticGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coActualPlanWidePanel,
+    .coActualPlanSidePanel,
+    .coActualPlanRevenueChartPanel,
+    .coActualPlanSupportChartPanel,
+    .coActualPlanCompositionPanel {
+        grid-column: span 12;
+    }
 }
 
 @media (max-width: 900px) {
+    .coCockpitKpiGrid {
+        grid-template-columns: 1fr;
+    }
+
     .coFilterItem,
     .coFilterItemSmall,
     .coKpiCard {
@@ -483,10 +1132,55 @@
         grid-template-columns: 1fr;
     }
 
+    .coCockpitProductGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .coRentalMainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .coExecutiveKpiStrip,
+    .coInsightGrid,
+    .coOrgBoard {
+        grid-template-columns: 1fr;
+    }
+
+    .coInsightPanel,
+    .coOrgMatrixPanel,
+    .coSelectedPlPanel {
+        grid-column: 1;
+    }
+
+    .coActualPlanKpiGrid,
+    .coActualPlanOrgKpiGrid,
+    .coActualPlanMainGrid,
+    .coActualPlanRankGrid,
+    .coActualPlanDiagnosticGrid,
+    .coActualPlanDetailTopGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .coActualPlanWidePanel,
+    .coActualPlanSidePanel,
+    .coActualPlanRevenueChartPanel,
+    .coActualPlanSupportChartPanel,
+    .coActualPlanCompositionPanel {
+        grid-column: 1;
+    }
+
+    .coActualPlanDetailPanel {
+        height: 30rem;
+    }
+
     .coCockpitMainGrid .coPanelWide,
     .coCockpitMainGrid .coPanelNarrow,
     .coCockpitMainGrid .coPanelMedium,
-    .coCockpitMainGrid .coPanelInfo {
+    .coCockpitMainGrid .coPanelHalf,
+    .coCockpitProductGrid .coPanelFull,
+    .coCockpitProductGrid .coPanelHalf,
+    .coRentalMainGrid .coPanelHalf,
+    .coRentalMainGrid .coPanelFull {
         grid-column: 1;
     }
 }
