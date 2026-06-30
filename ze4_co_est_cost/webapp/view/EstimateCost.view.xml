@@ -716,20 +716,46 @@
                                     items="{bomImpact>/topItems}">
                                     <CustomListItem>
                                         <VBox class="zecBomImpactItem">
-                                            <HBox renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
+                                            <HBox class="zecBomImpactHeader" renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
                                                 <VBox class="zecBomImpactText">
                                                     <Label text="{bomImpact>title}"/>
-                                                    <Text text="{bomImpact>subtitle}" wrapping="false"/>
+                                                    <HBox class="zecBomImpactTags" renderType="Bare" wrap="Wrap">
+                                                        <HBox class="zecBomImpactTag" renderType="Bare" alignItems="Center" visible="{= !!${bomImpact>componentIdDisplay} }">
+                                                            <Label text="{i18n>bomComponentNo}"/>
+                                                            <Text text="{bomImpact>componentIdDisplay}" wrapping="false"/>
+                                                        </HBox>
+                                                        <HBox class="zecBomImpactTag" renderType="Bare" alignItems="Center" visible="{= !!${bomImpact>componentTypeText} }">
+                                                            <Label text="{i18n>bomComponentType}"/>
+                                                            <Text text="{bomImpact>componentTypeText}" wrapping="false"/>
+                                                        </HBox>
+                                                    </HBox>
                                                 </VBox>
                                                 <ObjectStatus
+                                                    class="zecBomImpactAmount"
                                                     text="{bomImpact>displayRolledPriceDiff}"
                                                     state="{bomImpact>state}"/>
                                             </HBox>
                                             <HBox class="zecBomImpactMeta" renderType="Bare" wrap="Wrap">
-                                                <ObjectAttribute title="{i18n>bomInputQty}" text="{bomImpact>displayInputQty}"/>
-                                                <ObjectAttribute title="{i18n>bomUnitPriceDiff}" text="{bomImpact>displayComponentUnitPriceDiff}"/>
-                                                <ObjectAttribute title="{i18n>bomUsageRatio}" text="{bomImpact>displayUsageRatio}"/>
-                                                <ObjectAttribute title="{i18n>bomPriceDiffQty}" text="{bomImpact>displayPriceDiffQty}"/>
+                                                <VBox class="zecBomImpactMetric" visible="{= !!${bomImpact>displayBomLineCount} }">
+                                                    <Label text="{i18n>bomLineCount}"/>
+                                                    <Text text="{bomImpact>displayBomLineCount}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomInputQty}"/>
+                                                    <Text text="{bomImpact>displayInputQty}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomUnitPriceDiff}"/>
+                                                    <Text text="{bomImpact>displayComponentUnitPriceDiff}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomUsageRatio}"/>
+                                                    <Text text="{bomImpact>displayUsageRatio}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomPriceDiffQty}"/>
+                                                    <Text text="{bomImpact>displayPriceDiffQty}" wrapping="false"/>
+                                                </VBox>
                                             </HBox>
                                         </VBox>
                                     </CustomListItem>
@@ -816,20 +842,46 @@
                                     items="{bomImpact>/items}">
                                     <CustomListItem>
                                         <VBox class="zecBomImpactItem zecBomImpactDialogItem">
-                                            <HBox renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
+                                            <HBox class="zecBomImpactHeader" renderType="Bare" alignItems="Start" justifyContent="SpaceBetween">
                                                 <VBox class="zecBomImpactText">
                                                     <Label text="{bomImpact>title}"/>
-                                                    <Text text="{bomImpact>subtitle}" wrapping="false"/>
+                                                    <HBox class="zecBomImpactTags" renderType="Bare" wrap="Wrap">
+                                                        <HBox class="zecBomImpactTag" renderType="Bare" alignItems="Center" visible="{= !!${bomImpact>componentIdDisplay} }">
+                                                            <Label text="{i18n>bomComponentNo}"/>
+                                                            <Text text="{bomImpact>componentIdDisplay}" wrapping="false"/>
+                                                        </HBox>
+                                                        <HBox class="zecBomImpactTag" renderType="Bare" alignItems="Center" visible="{= !!${bomImpact>componentTypeText} }">
+                                                            <Label text="{i18n>bomComponentType}"/>
+                                                            <Text text="{bomImpact>componentTypeText}" wrapping="false"/>
+                                                        </HBox>
+                                                    </HBox>
                                                 </VBox>
                                                 <ObjectStatus
+                                                    class="zecBomImpactAmount"
                                                     text="{bomImpact>displayRolledPriceDiff}"
                                                     state="{bomImpact>state}"/>
                                             </HBox>
                                             <HBox class="zecBomImpactMeta" renderType="Bare" wrap="Wrap">
-                                                <ObjectAttribute title="{i18n>bomInputQty}" text="{bomImpact>displayInputQty}"/>
-                                                <ObjectAttribute title="{i18n>bomUnitPriceDiff}" text="{bomImpact>displayComponentUnitPriceDiff}"/>
-                                                <ObjectAttribute title="{i18n>bomUsageRatio}" text="{bomImpact>displayUsageRatio}"/>
-                                                <ObjectAttribute title="{i18n>bomPriceDiffQty}" text="{bomImpact>displayPriceDiffQty}"/>
+                                                <VBox class="zecBomImpactMetric" visible="{= !!${bomImpact>displayBomLineCount} }">
+                                                    <Label text="{i18n>bomLineCount}"/>
+                                                    <Text text="{bomImpact>displayBomLineCount}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomInputQty}"/>
+                                                    <Text text="{bomImpact>displayInputQty}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomUnitPriceDiff}"/>
+                                                    <Text text="{bomImpact>displayComponentUnitPriceDiff}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomUsageRatio}"/>
+                                                    <Text text="{bomImpact>displayUsageRatio}" wrapping="false"/>
+                                                </VBox>
+                                                <VBox class="zecBomImpactMetric">
+                                                    <Label text="{i18n>bomPriceDiffQty}"/>
+                                                    <Text text="{bomImpact>displayPriceDiffQty}" wrapping="false"/>
+                                                </VBox>
                                             </HBox>
                                         </VBox>
                                     </CustomListItem>

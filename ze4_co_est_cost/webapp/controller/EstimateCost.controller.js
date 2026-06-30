@@ -171,7 +171,7 @@ sap.ui.define([
                 { label: "표준원가", rawValue: function (oRow) { return oRow.standardCostTotal || oRow.std_total_cost; }, value: function (oRow) { return formatter.currencyInteger(oRow.standardCostTotal || oRow.std_total_cost, oRow.waers); }, type: "amount", total: true },
                 { label: "예상실제원가", rawValue: function (oRow) { return oRow.expectedActualCostTotal || oRow.expected_actual_cost; }, value: function (oRow) { return formatter.currencyInteger(oRow.expectedActualCostTotal || oRow.expected_actual_cost, oRow.waers); }, type: "amount", total: true },
                 { label: "차이", rawValue: function (oRow) { return oRow.varianceAmount || oRow.totalDiff; }, value: function (oRow) { return formatter.currencyInteger(oRow.varianceAmount || oRow.totalDiff, oRow.waers); }, type: "amount", total: true },
-                { label: "차이율", rawProperty: "varianceRate", value: function (oRow) { return formatter.percent(oRow.varianceRate); }, type: "percent" }
+                { label: "차이율", rawProperty: "varianceRate", value: function (oRow) { return formatter.percent(oRow.varianceRate); }, type: "percent", percentScale: "point", summary: false }
             ];
         },
 
@@ -180,9 +180,9 @@ sap.ui.define([
                 { label: "구분", property: "dimensionText" },
                 { label: "표준원가", rawProperty: "standardCostTotal", value: function (oRow) { return formatter.currencyInteger(oRow.standardCostTotal, oRow.waers); }, type: "amount", total: true },
                 { label: "예상실제원가", rawProperty: "expectedActualCostTotal", value: function (oRow) { return formatter.currencyInteger(oRow.expectedActualCostTotal, oRow.waers); }, type: "amount", total: true },
-                { label: "가격차이율", rawProperty: "priceDiffRatio", value: function (oRow) { return formatter.percent(oRow.priceDiffRatio); }, type: "percent" },
-                { label: "가공차이율", rawProperty: "processingDiffRatio", value: function (oRow) { return formatter.percent(oRow.processingDiffRatio); }, type: "percent" },
-                { label: "총 차이율", rawValue: function (oRow) { return oRow.totalDiffRatio || oRow.varianceRate; }, value: function (oRow) { return formatter.percent(oRow.totalDiffRatio || oRow.varianceRate); }, type: "percent" }
+                { label: "가격차이율", rawProperty: "priceDiffRatio", value: function (oRow) { return formatter.percent(oRow.priceDiffRatio); }, type: "percent", percentScale: "point", summary: false },
+                { label: "가공차이율", rawProperty: "processingDiffRatio", value: function (oRow) { return formatter.percent(oRow.processingDiffRatio); }, type: "percent", percentScale: "point", summary: false },
+                { label: "총 차이율", rawValue: function (oRow) { return oRow.totalDiffRatio || oRow.varianceRate; }, value: function (oRow) { return formatter.percent(oRow.totalDiffRatio || oRow.varianceRate); }, type: "percent", percentScale: "point", summary: false }
             ];
         },
 
@@ -907,6 +907,10 @@ sap.ui.define([
                 return;
             }
 
+            if (!(await this._confirmExecuteSettlement())) {
+                return;
+            }
+
             this._setBusy(true);
             this._callFunction(oModel, "ExecutePriceSettlement", {
                 IvBukrs: mFilters.bukrs,
@@ -927,6 +931,23 @@ sap.ui.define([
                 MessageBox.error(sMessage);
             }.bind(this)).finally(function () {
                 this._setBusy(false);
+            }.bind(this));
+        },
+
+        _confirmExecuteSettlement() {
+            var sExecuteAction = this._text("executeSettlementConfirmAction");
+            var sCancelAction = this._text("executeSettlementCancelAction");
+
+            return new Promise(function (resolve) {
+                MessageBox.warning(this._text("executeSettlementConfirmMessage"), {
+                    title: this._text("executeSettlementConfirmTitle"),
+                    actions: [sExecuteAction, sCancelAction],
+                    emphasizedAction: sExecuteAction,
+                    initialFocus: sCancelAction,
+                    onClose: function (sAction) {
+                        resolve(sAction === sExecuteAction);
+                    }
+                });
             }.bind(this));
         },
 
@@ -1038,7 +1059,11 @@ sap.ui.define([
                     oModel,
                     sPath,
                     this._buildBomImpactFilters(oModel, mSelection),
-                    [new Sorter("posnr", false)]
+                    [
+                        new Sorter("idnrk_txt", false),
+                        new Sorter("idnrk", false),
+                        new Sorter("idnrk_mtart", false)
+                    ]
                 );
             }.bind(this)).then(function (aRows) {
                 if (this._iBomImpactRequestId !== iRequestId) {
@@ -1068,7 +1093,7 @@ sap.ui.define([
                 bukrs: this._trimUpper(oFilterData.bukrs),
                 gjahr: String(oSelectedItem.gjahr || oFilterData.gjahr || "").trim(),
                 poper: this._normalizePoper(oFilterData.monat || oSelectedItem.monat),
-                werks: "",
+                werks: "1000",
                 matnr: this._trimUpper(oSelectedItem.matnr),
                 mtopt: String(oSelectedItem.mtopt || "").trim()
             };
@@ -1127,13 +1152,8 @@ sap.ui.define([
             };
             var aItems = (aRows || []).map(function (oRow) {
                 return this._prepareBomImpactItem(oRow);
-            }.bind(this)).sort(function (oLeft, oRight) {
-                if (oLeft.absRolledPriceDiff !== oRight.absRolledPriceDiff) {
-                    return oRight.absRolledPriceDiff - oLeft.absRolledPriceDiff;
-                }
-
-                return String(oLeft.posnr || "").localeCompare(String(oRight.posnr || ""));
-            });
+            }.bind(this));
+            var aImpactSortedItems = aItems.slice().sort(this._compareBomImpactItems.bind(this));
             var bHasNonZeroImpact;
             var aTopItems;
             var aDonutItems;
@@ -1146,8 +1166,8 @@ sap.ui.define([
             bHasNonZeroImpact = aItems.some(function (oItem) {
                 return oItem.rolledPriceDiff !== null && oItem.rolledPriceDiff !== 0;
             });
-            aTopItems = bHasNonZeroImpact ? aItems.slice(0, 5) : [];
-            aDonutItems = this._buildBomImpactDonutItems(aItems);
+            aTopItems = bHasNonZeroImpact ? aImpactSortedItems.slice(0, 5) : [];
+            aDonutItems = this._buildBomImpactDonutItems(aImpactSortedItems);
 
             if (oTotal.hasValue && fSelectedPriceDiff !== null) {
                 this._warnIfBomImpactTotalDiffers(oTotal.value, fSelectedPriceDiff, mSelection);
@@ -1170,6 +1190,24 @@ sap.ui.define([
                 totalRolledPriceDiffAmt: oTotal.hasValue ? oTotal.value : null,
                 currency: (aItems[0] && aItems[0].waers) || oSelectedItem.waers || ""
             };
+        },
+
+        _compareBomImpactItems(oLeft, oRight) {
+            if (oLeft.absRolledPriceDiff !== oRight.absRolledPriceDiff) {
+                return oRight.absRolledPriceDiff - oLeft.absRolledPriceDiff;
+            }
+
+            return [
+                "title",
+                "idnrk",
+                "idnrkType"
+            ].reduce(function (iResult, sFieldName) {
+                if (iResult !== 0) {
+                    return iResult;
+                }
+
+                return String(oLeft[sFieldName] || "").localeCompare(String(oRight[sFieldName] || ""));
+            }, 0);
         },
 
         _buildBomImpactDonutItems(aItems) {
@@ -1232,10 +1270,45 @@ sap.ui.define([
             }.bind(this));
         },
 
+        _getMaterialTypeText(sTypeCode) {
+            var sCode = this._trimUpper(sTypeCode);
+            var aMaterialTypes;
+            var oMatchedType;
+            var sTypeText;
+            var mFallbackTextKeys = {
+                FERT: "materialTypeFert",
+                HALB: "materialTypeHalb",
+                ROH: "materialTypeRoh",
+                HAWA: "materialTypeHawa",
+                VERP: "materialTypeVerp",
+                HIBE: "materialTypeHibe",
+                NLAG: "materialTypeNlag",
+                DIEN: "materialTypeDien",
+                ERSA: "materialTypeErsa"
+            };
+
+            if (!sCode) {
+                return "";
+            }
+
+            aMaterialTypes = this.getView().getModel("materialTypes").getProperty("/items") || [];
+            oMatchedType = aMaterialTypes.find(function (oType) {
+                return this._trimUpper(oType && oType.mtart) === sCode;
+            }.bind(this));
+            sTypeText = oMatchedType && (oMatchedType.mtbez || oMatchedType.mtart_t || oMatchedType.text || oMatchedType.name);
+
+            if (sTypeText) {
+                return sTypeText;
+            }
+
+            return mFallbackTextKeys[sCode] ? this._text(mFallbackTextKeys[sCode]) : sCode;
+        },
+
         _prepareBomImpactItem(oRow) {
             var sCurrency = oRow.waers || "";
             var fRolledPriceDiff = this._toAmount(oRow.rolled_price_diff_amt);
             var fComponentUnitPriceDiff = this._toAmount(oRow.component_unit_price_diff_amt);
+            var sComponentTypeText = this._getMaterialTypeText(oRow.idnrk_mtart);
 
             return {
                 matnr: oRow.matnr || "",
@@ -1250,6 +1323,7 @@ sap.ui.define([
                 meins: oRow.meins || "",
                 bmeng: this._toAmount(oRow.bmeng),
                 bmein: oRow.bmein || "",
+                bomLineCount: this._toAmount(oRow.bom_line_cnt),
                 componentRawPriceDiff: this._toAmount(oRow.component_raw_price_diff_amt),
                 componentPriceDiffQty: this._toAmount(oRow.component_price_diff_qty),
                 componentUnitPriceDiff: fComponentUnitPriceDiff,
@@ -1258,9 +1332,12 @@ sap.ui.define([
                 absRolledPriceDiff: Math.abs(fRolledPriceDiff || 0),
                 waers: sCurrency,
                 title: oRow.idnrk_txt || oRow.idnrk || "",
-                subtitle: [oRow.idnrk, oRow.idnrk_mtart].filter(Boolean).join(" / "),
+                componentIdDisplay: oRow.idnrk || "",
+                componentTypeText: sComponentTypeText,
+                subtitle: [oRow.idnrk, sComponentTypeText].filter(Boolean).join(" - "),
                 displayInputQty: this._formatQuantityWithUnit(oRow.menge, oRow.meins),
                 displayBaseQty: this._formatQuantityWithUnit(oRow.bmeng, oRow.bmein),
+                displayBomLineCount: formatter.integer(oRow.bom_line_cnt),
                 displayPriceDiffQty: formatter.quantity(oRow.component_price_diff_qty),
                 displayUsageRatio: formatter.quantity(oRow.bom_usage_ratio),
                 displayComponentUnitPriceDiff: formatter.currency(fComponentUnitPriceDiff, sCurrency),
@@ -1893,7 +1970,7 @@ sap.ui.define([
             var aNonFinishedItems = (aItems || []).filter(function (oItem) {
                 return !this._isFinishedProductItem(oItem);
             }.bind(this));
-            var aGroupRows = this._buildCostCompareRows(aNonFinishedItems, "matkl", "wgbez", "unassignedGroup");
+            var aGroupRows = this._buildCostCompareRows(aNonFinishedItems, "matkl", "wgbez", "unassignedGroup", 0);
             var aTypeRows = this._sortProductTypeCostRows(
                 this._buildCostCompareRows(aItems, "mtart", "mtbez", "unassignedType")
             );

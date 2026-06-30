@@ -296,14 +296,26 @@ sap.ui.define([
         return sType === "amount" || sType === "integer" || sType === "percent" || sType === "number";
     }
 
-    function parseNumber(vValue, sType) {
+    function normalizePercentNumber(fNumber, bPercentText, oColumn) {
+        var sScale = oColumn && oColumn.percentScale;
+
+        if (sScale === "point") {
+            return fNumber / 100;
+        }
+        if (sScale === "ratio") {
+            return bPercentText ? fNumber / 100 : fNumber;
+        }
+        return bPercentText || Math.abs(fNumber) > 1 ? fNumber / 100 : fNumber;
+    }
+
+    function parseNumber(vValue, sType, oColumn) {
         var sText;
         var bPercent;
         var bNegative;
         var fNumber;
 
         if (typeof vValue === "number" && isFinite(vValue)) {
-            return sType === "percent" && Math.abs(vValue) > 1 ? vValue / 100 : vValue;
+            return sType === "percent" ? normalizePercentNumber(vValue, false, oColumn) : vValue;
         }
         if (vValue === null || vValue === undefined || vValue === "") {
             return NaN;
@@ -324,8 +336,8 @@ sap.ui.define([
         if (bNegative) {
             fNumber = -Math.abs(fNumber);
         }
-        if (sType === "percent" && (bPercent || Math.abs(fNumber) > 1)) {
-            fNumber = fNumber / 100;
+        if (sType === "percent") {
+            fNumber = normalizePercentNumber(fNumber, bPercent, oColumn);
         }
         return fNumber;
     }
@@ -337,9 +349,9 @@ sap.ui.define([
         var fNumber;
 
         if (isNumericType(sType)) {
-            fNumber = parseNumber(vRaw, sType);
+            fNumber = parseNumber(vRaw, sType, oColumn);
             if (!isFinite(fNumber)) {
-                fNumber = parseNumber(vDisplay, sType);
+                fNumber = parseNumber(vDisplay, sType, oColumn);
             }
             if (isFinite(fNumber)) {
                 return { value: fNumber, type: "number", display: clean(vDisplay) };
@@ -351,14 +363,18 @@ sap.ui.define([
     function shouldTotal(oColumn) {
         var sType = inferColumnType(oColumn);
         var sLabel = String(oColumn.label || "");
+        var vTotalMode = oColumn.total !== undefined ? oColumn.total : (oColumn.aggregate !== undefined ? oColumn.aggregate : oColumn.summary);
 
+        if (sType === "percent") {
+            return vTotalMode === "ratio" || vTotalMode === "average";
+        }
         if (oColumn.total !== undefined) {
             return !!oColumn.total;
         }
-        if (!isNumericType(sType) || sType === "percent") {
+        if (!isNumericType(sType)) {
             return false;
         }
-        return !/순위|레벨|라인|No\.?|번호|코드|ID$/i.test(sLabel);
+        return !/순위|레벨|라인|No\.?|번호|코드|ID$|단가|평균|율|비중|Rate|Ratio|Percent/i.test(sLabel);
     }
 
     function variant(oReport) {
@@ -424,14 +440,95 @@ sap.ui.define([
         return STYLE.TEXT;
     }
 
-    function totalValue(aRows, oColumn) {
-        return asArray(aRows).reduce(function (fTotal, oRow) {
-            var sType = inferColumnType(oColumn);
-            var fValue = parseNumber(rawValueForColumn(oRow, oColumn), sType);
+    function findColumn(oSection, vSelector) {
+        var sSelector = String(vSelector || "");
 
-            if (!isFinite(fValue)) {
-                fValue = parseNumber(valueForColumn(oRow, oColumn), sType);
+        if (!sSelector) {
+            return null;
+        }
+        return sectionColumns(oSection || {}).find(function (oColumn) {
+            return oColumn === vSelector ||
+                oColumn.label === sSelector ||
+                oColumn.property === sSelector ||
+                oColumn.path === sSelector ||
+                oColumn.rawProperty === sSelector ||
+                oColumn.rawPath === sSelector;
+        }) || null;
+    }
+
+    function numericValueForColumn(oRow, oColumn) {
+        var sType = inferColumnType(oColumn);
+        var fValue = parseNumber(rawValueForColumn(oRow, oColumn), sType, oColumn);
+
+        if (!isFinite(fValue)) {
+            fValue = parseNumber(valueForColumn(oRow, oColumn), sType, oColumn);
+        }
+        return fValue;
+    }
+
+    function totalBySelector(aRows, oSection, vSelector) {
+        var oColumn = findColumn(oSection, vSelector);
+
+        if (oColumn) {
+            return totalValue(aRows, oColumn, oSection);
+        }
+        if (typeof vSelector === "function") {
+            return asArray(aRows).reduce(function (fTotal, oRow) {
+                var fValue = parseNumber(vSelector(oRow), "number");
+                return fTotal + (isFinite(fValue) ? fValue : 0);
+            }, 0);
+        }
+        if (typeof vSelector === "string" && vSelector) {
+            return asArray(aRows).reduce(function (fTotal, oRow) {
+                var fValue = parseNumber(getByPath(oRow, vSelector), "number");
+                return fTotal + (isFinite(fValue) ? fValue : 0);
+            }, 0);
+        }
+        return NaN;
+    }
+
+    function ratioValue(aRows, oSection, oColumn) {
+        var vNumerator = oColumn.numeratorColumn || oColumn.numerator || oColumn.numeratorLabel || oColumn.numeratorProperty;
+        var vDenominator = oColumn.denominatorColumn || oColumn.denominator || oColumn.denominatorLabel || oColumn.denominatorProperty;
+        var fNumerator = totalBySelector(aRows, oSection, vNumerator);
+        var fDenominator = totalBySelector(aRows, oSection, vDenominator);
+
+        if (!isFinite(fNumerator) || !isFinite(fDenominator) || fDenominator === 0) {
+            return NaN;
+        }
+        return fNumerator / fDenominator;
+    }
+
+    function averageValue(aRows, oColumn) {
+        var fTotal = 0;
+        var iCount = 0;
+
+        asArray(aRows).forEach(function (oRow) {
+            var fValue = numericValueForColumn(oRow, oColumn);
+
+            if (isFinite(fValue)) {
+                fTotal += fValue;
+                iCount += 1;
             }
+        });
+        return iCount ? fTotal / iCount : NaN;
+    }
+
+    function totalValue(aRows, oColumn, oSection) {
+        var sType = inferColumnType(oColumn);
+        var vMode = oColumn.total !== undefined ? oColumn.total : (oColumn.aggregate !== undefined ? oColumn.aggregate : oColumn.summary);
+
+        if (sType === "percent") {
+            if (vMode === "ratio") {
+                return ratioValue(aRows, oSection, oColumn);
+            }
+            if (vMode === "average") {
+                return averageValue(aRows, oColumn);
+            }
+            return NaN;
+        }
+        return asArray(aRows).reduce(function (fTotal, oRow) {
+            var fValue = numericValueForColumn(oRow, oColumn);
             return fTotal + (isFinite(fValue) ? fValue : 0);
         }, 0);
     }
@@ -588,7 +685,7 @@ sap.ui.define([
                 }
                 if (shouldTotal(oColumn)) {
                     bHasTotal = true;
-                    return cell(totalValue(aRows, oColumn), "number", STYLE.TOTAL_NUMBER);
+                    return cell(totalValue(aRows, oColumn, oSection), "number", inferColumnType(oColumn) === "percent" ? STYLE.PERCENT : STYLE.TOTAL_NUMBER);
                 }
                 return cell("", "text", STYLE.TOTAL_LABEL);
             });
@@ -761,36 +858,93 @@ sap.ui.define([
     }
 
     function sectionNumericSummary(oSection) {
-        var aColumns = sectionColumns(oSection).filter(shouldTotal).slice(0, 4);
+        var aItems = [];
 
-        return aColumns.map(function (oColumn) {
-            return {
+        sectionColumns(oSection).forEach(function (oColumn) {
+            var sType = inferColumnType(oColumn);
+            var vMode = oColumn.summary !== undefined ? oColumn.summary : (oColumn.aggregate !== undefined ? oColumn.aggregate : oColumn.total);
+            var fValue;
+
+            if (vMode === false || aItems.length >= 4) {
+                return;
+            }
+            if (sType === "percent" && vMode !== "ratio" && vMode !== "average") {
+                return;
+            }
+            if (!shouldTotal(oColumn)) {
+                return;
+            }
+
+            fValue = totalValue(oSection.rows, oColumn, oSection);
+            if (!isFinite(fValue)) {
+                return;
+            }
+            aItems.push({
                 label: oColumn.label || oColumn.property || "",
-                value: totalValue(oSection.rows, oColumn)
-            };
+                value: fValue,
+                type: sType
+            });
         });
+        return aItems;
     }
 
-    function formatPdfNumber(vValue) {
+    function formatPdfNumber(vValue, sType) {
         if (typeof vValue !== "number" || !isFinite(vValue)) {
             return clean(vValue);
+        }
+        if (sType === "percent") {
+            return (vValue * 100).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }) + "%";
         }
         return vValue.toLocaleString();
     }
 
-    function topRows(oSection, iLimit) {
+    function formattedColumnValue(oRow, oColumn) {
+        var sType = inferColumnType(oColumn);
+        var oValue;
+
+        if (sType === "percent") {
+            oValue = typedValue(oRow, oColumn);
+            if (oValue.type === "number") {
+                return formatPdfNumber(oValue.value, "percent");
+            }
+        }
+        return clean(valueForColumn(oRow, oColumn));
+    }
+
+    function isBarCandidate(oColumn) {
+        if (!oColumn || oColumn.bar === false || oColumn.representative === false) {
+            return false;
+        }
+        return isNumericType(inferColumnType(oColumn));
+    }
+
+    function representativeColumn(oSection) {
         var aColumns = sectionColumns(oSection);
-        var oAmountColumn = aColumns.find(function (oColumn) {
-            return inferColumnType(oColumn) === "amount" || shouldTotal(oColumn);
+
+        return aColumns.find(function (oColumn) {
+            return isBarCandidate(oColumn) && inferColumnType(oColumn) === "amount" && oColumn.summary !== false;
+        }) || aColumns.find(function (oColumn) {
+            return isBarCandidate(oColumn) && inferColumnType(oColumn) === "amount";
+        }) || aColumns.find(function (oColumn) {
+            return isBarCandidate(oColumn) && inferColumnType(oColumn) === "number";
+        }) || aColumns.find(function (oColumn) {
+            return isBarCandidate(oColumn) && inferColumnType(oColumn) === "percent";
         }) || aColumns[1] || aColumns[0];
+    }
+
+    function topRows(oSection, iLimit) {
+        var oAmountColumn = representativeColumn(oSection);
 
         if (!oAmountColumn) {
             return asArray(oSection.rows).slice(0, iLimit || 5);
         }
 
         return asArray(oSection.rows).slice().sort(function (oA, oB) {
-            return Math.abs(parseNumber(rawValueForColumn(oB, oAmountColumn), inferColumnType(oAmountColumn)) || 0) -
-                Math.abs(parseNumber(rawValueForColumn(oA, oAmountColumn), inferColumnType(oAmountColumn)) || 0);
+            return Math.abs(numericValueForColumn(oB, oAmountColumn) || 0) -
+                Math.abs(numericValueForColumn(oA, oAmountColumn) || 0);
         }).slice(0, iLimit || 5);
     }
 
@@ -824,7 +978,7 @@ sap.ui.define([
         }).join("") + "</tr></thead><tbody>" + aRows.map(function (oRow) {
             return "<tr>" + aColumns.map(function (oColumn) {
                 var sType = inferColumnType(oColumn);
-                return "<td class=\"" + (isNumericType(sType) ? "num" : "") + "\">" + html(clean(valueForColumn(oRow, oColumn))) + "</td>";
+                return "<td class=\"" + (isNumericType(sType) ? "num" : "") + "\">" + html(formattedColumnValue(oRow, oColumn)) + "</td>";
             }).join("") + "</tr>";
         }).join("") + "</tbody></table>" +
             (asArray(oSection.rows).length > aRows.length ? "<p class=\"note\">상위 " + aRows.length + "건만 표시. 전체 데이터는 Excel 시트에 포함됩니다.</p>" : "");
@@ -835,22 +989,20 @@ sap.ui.define([
         var aRows = topRows(oSection, 5);
         var aColumns = sectionColumns(oSection);
         var oLabelColumn = aColumns[0];
-        var oValueColumn = aColumns.find(function (oColumn) {
-            return inferColumnType(oColumn) === "amount" || shouldTotal(oColumn);
-        }) || aColumns[1];
+        var oValueColumn = representativeColumn(oSection);
         var fMax = Math.max.apply(Math, aRows.map(function (oRow) {
-            return Math.abs(parseNumber(rawValueForColumn(oRow, oValueColumn || {}), inferColumnType(oValueColumn || {})) || 0);
+            return Math.abs(numericValueForColumn(oRow, oValueColumn || {}) || 0);
         }).concat([1]));
 
         return "<div class=\"section\"><div class=\"sectionHeader\"><h2>" + html(oSection.title) + "</h2><span>" + asArray(oSection.rows).length + " rows</span></div>" +
             (aSummary.length ? "<div class=\"summaryGrid\">" + aSummary.map(function (oItem) {
-                return "<div class=\"summaryCard\"><span>" + html(oItem.label) + "</span><strong>" + html(formatPdfNumber(oItem.value)) + "</strong></div>";
+                return "<div class=\"summaryCard\"><span>" + html(oItem.label) + "</span><strong>" + html(formatPdfNumber(oItem.value, oItem.type)) + "</strong></div>";
             }).join("") + "</div>" : "") +
             (oLabelColumn && oValueColumn ? "<div style=\"margin-top:8px\">" + aRows.map(function (oRow) {
-                var fValue = parseNumber(rawValueForColumn(oRow, oValueColumn), inferColumnType(oValueColumn)) || 0;
+                var fValue = numericValueForColumn(oRow, oValueColumn) || 0;
                 var iWidth = Math.max(3, Math.round(Math.abs(fValue) / fMax * 100));
 
-                return "<div class=\"barRow\"><div class=\"barLabel\">" + html(clean(valueForColumn(oRow, oLabelColumn))) + "</div><div class=\"barTrack\"><div class=\"barFill\" style=\"width:" + iWidth + "%\"></div></div><div class=\"barValue\">" + html(clean(valueForColumn(oRow, oValueColumn))) + "</div></div>";
+                return "<div class=\"barRow\"><div class=\"barLabel\">" + html(clean(valueForColumn(oRow, oLabelColumn))) + "</div><div class=\"barTrack\"><div class=\"barFill\" style=\"width:" + iWidth + "%\"></div></div><div class=\"barValue\">" + html(formattedColumnValue(oRow, oValueColumn)) + "</div></div>";
             }).join("") + "</div>" : "") +
             "<div style=\"margin-top:8px\">" + sectionTableHtml(oSection, 8) + "</div></div>";
     }
